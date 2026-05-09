@@ -1,0 +1,16 @@
+{
+  "name": "topkpop-io",
+  "version": "1.0.0",
+  "description": "TopKpop.io — K-Pop AI Super Sleuth professional development game for K-8 educators",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

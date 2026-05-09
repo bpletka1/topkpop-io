@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TopKpop.io — AI Super Sleuth</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== CSS VARIABLES — NEON NOIR PALETTE ===== */
+    :root {
+      --black:     #0B0C10;
+      --dark:      #111318;
+      --panel:     rgba(15,16,22,0.82);
+      --crimson:   #E6005C;
+      --purple:    #8A2BE2;
+      --amber:     #FFBF00;
+      --silver:    #E0E0E0;
+      --muted:     #888;
+      --glow-r:    0 0 18px #E6005C99, 0 0 40px #E6005C44;
+      --glow-p:    0 0 18px #8A2BE299, 0 0 40px #8A2BE244;
+      --glow-a:    0 0 18px #FFBF0099, 0 0 40px #FFBF0044;
+    }
+
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--black);
+      color: var(--silver);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--crimson); border-radius: 3px; }
+
+    /* ===== NAVIGATION ===== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 70px;
+      background: rgba(11,12,16,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(230,0,92,0.25);
+    }
+    .nav-logo {
+      font-family: 'Syncopate', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.12em;
+      color: #fff;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--crimson); }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--silver);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--crimson); }
+    .nav-cta {
+      background: var(--crimson);
+      color: #fff !important;
+      padding: 8px 20px;
+      border-radius: 3px;
+      font-size: 0.6rem !important;
+      letter-spacing: 0.2em !important;
+      box-shadow: var(--glow-r);
+      transition: box-shadow 0.3s, transform 0.2s !important;
+    }
+    .nav-cta:hover {
+      box-shadow: 0 0 30px #E6005Ccc !important;
+      transform: translateY(-1px);
+      color: #fff !important;
+    }
+
+    /* ===== HERO SECTION ===== */
+    #hero {
+      position: relative;
+      height: 100vh;
+      min-height: 700px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: url('assets/hero_bg.jpg') center/cover no-repeat;
+      filter: brightness(0.45) saturate(1.2);
+      transform: scale(1.04);
+      animation: slowZoom 20s ease-in-out infinite alternate;
+    }
+    @keyframes slowZoom {
+      from { transform: scale(1.04); }
+      to   { transform: scale(1.12); }
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(11,12,16,0.1) 0%,
+        rgba(11,12,16,0.3) 50%,
+        rgba(11,12,16,0.95) 100%
+      );
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+      padding: 0 24px;
+    }
+    .hero-eyebrow {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.35em;
+      color: var(--crimson);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      animation: fadeUp 1s ease 0.2s both;
+    }
+    .hero-title {
+      font-family: 'Syncopate', sans-serif;
+      font-weight: 700;
+      font-size: clamp(2.4rem, 6vw, 5.5rem);
+      line-height: 1.05;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 0 60px rgba(230,0,92,0.4);
+      animation: fadeUp 1s ease 0.4s both;
+    }
+    .hero-title .accent { color: var(--crimson); }
+    .hero-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      color: rgba(224,224,224,0.8);
+      margin: 24px auto;
+      max-width: 620px;
+      line-height: 1.6;
+      animation: fadeUp 1s ease 0.6s both;
+    }
+    .hero-stat {
+      display: inline-block;
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--amber);
+      border: 1px solid rgba(255,191,0,0.35);
+      padding: 6px 18px;
+      border-radius: 2px;
+      margin-bottom: 36px;
+      animation: fadeUp 1s ease 0.7s both;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeUp 1s ease 0.9s both;
+    }
+    .btn-primary {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--crimson);
+      border: none;
+      padding: 16px 36px;
+      border-radius: 3px;
+      cursor: pointer;
+      box-shadow: var(--glow-r);
+      animation: pulse 2.5s ease-in-out infinite;
+      text-decoration: none;
+      display: inline-block;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: var(--glow-r); }
+      50% { box-shadow: 0 0 35px #E6005Ccc, 0 0 70px #E6005C55; }
+    }
+    .btn-secondary {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--silver);
+      background: transparent;
+      border: 1px solid rgba(138,43,226,0.6);
+      padding: 16px 36px;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
+    }
+    .btn-secondary:hover {
+      border-color: var(--purple);
+      color: #fff;
+      box-shadow: var(--glow-p);
+    }
+    .hero-scroll {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      animation: fadeUp 1s ease 1.2s both;
+    }
+    .hero-scroll span {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.5rem;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+    }
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--crimson), transparent);
+      animation: scrollDrop 1.5s ease-in-out infinite;
+    }
+    @keyframes scrollDrop {
+      0% { transform: scaleY(0); transform-origin: top; opacity: 1; }
+      100% { transform: scaleY(1); transform-origin: top; opacity: 0; }
+    }
+
+    /* ===== SECTION SHARED ===== */
+    section { padding: 100px 40px; }
+    .section-label {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.4em;
+      color: var(--crimson);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Syncopate', sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 1rem;
+      line-height: 1.75;
+      color: rgba(224,224,224,0.7);
+      max-width: 640px;
+    }
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(to right, var(--crimson), var(--purple));
+      margin: 20px 0 40px;
+    }
+
+    /* ===== STORY SECTION ===== */
+    #story {
+      background: var(--dark);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      max-width: 1300px;
+      margin: 0 auto;
+      border-radius: 4px;
+    }
+    .story-image {
+      position: relative;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .story-image img {
+      width: 100%;
+      display: block;
+      border-radius: 4px;
+      filter: saturate(1.1);
+    }
+    .story-image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(230,0,92,0.3);
+      border-radius: 4px;
+      box-shadow: inset 0 0 40px rgba(138,43,226,0.15);
+    }
+    .story-badge {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(11,12,16,0.85);
+      border: 1px solid var(--crimson);
+      padding: 6px 14px;
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.55rem;
+      letter-spacing: 0.25em;
+      color: var(--crimson);
+      border-radius: 2px;
+    }
+
+    /* ===== SUSPECTS SECTION ===== */
+    #suspects {
+      background: var(--black);
+      text-align: center;
+      padding: 100px 40px;
+    }
+    #suspects .section-label,
+    #suspects .section-title,
+    #suspects .section-desc { text-align: center; margin-left: auto; margin-right: auto; }
+    #suspects .divider { margin: 20px auto 50px; }
+    .suspects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto 40px;
+    }
+    .suspect-card {
+      position: relative;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.35s ease;
+      aspect-ratio: 3/4;
+      background: #111;
+    }
+    .suspect-card:hover { transform: translateY(-8px); }
+    .suspect-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.85) brightness(0.9);
+      transition: filter 0.35s;
+    }
+    .suspect-card:hover img { filter: saturate(1.2) brightness(1.05); }
+    .suspect-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(11,12,16,0.95) 0%, rgba(11,12,16,0.2) 55%, transparent 100%);
+      transition: background 0.35s;
+    }
+    .suspect-card:hover .suspect-overlay {
+      background: linear-gradient(to top, rgba(11,12,16,0.98) 0%, rgba(138,43,226,0.15) 60%, transparent 100%);
+    }
+    .suspect-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 20px;
+    }
+    .suspect-role {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.5rem;
+      letter-spacing: 0.3em;
+      color: var(--crimson);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .suspect-name {
+      font-family: 'Syncopate', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .suspect-motive {
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: rgba(224,224,224,0.65);
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+    .suspect-card:hover .suspect-motive { max-height: 80px; }
+    .suspect-border {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(138,43,226,0);
+      border-radius: 4px;
+      transition: border-color 0.35s, box-shadow 0.35s;
+    }
+    .suspect-card:hover .suspect-border {
+      border-color: rgba(138,43,226,0.7);
+      box-shadow: 0 0 25px rgba(138,43,226,0.25), inset 0 0 25px rgba(138,43,226,0.08);
+    }
+    /* Placeholder suspect cards */
+    .suspect-placeholder {
+      background: linear-gradient(135deg, #111318 0%, #1a1b24 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 30px;
+    }
+    .suspect-placeholder .suspect-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(230,0,92,0.3), rgba(138,43,226,0.3));
+      border: 2px solid rgba(138,43,226,0.4);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+
+    /* ===== MISSIONS SECTION ===== */
+    #missions {
+      background: linear-gradient(180deg, var(--black) 0%, #0e0f16 100%);
+      text-align: center;
+      padding: 100px 40px;
+    }
+    #missions .section-label,
+    #missions .section-title,
+    #missions .section-desc { text-align: center; margin-left: auto; margin-right: auto; }
+    #missions .divider { margin: 20px auto 50px; }
+    .missions-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      max-width: 1100px;
+      margin: 0 auto 50px;
+    }
+    .mission-card {
+      position: relative;
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,191,0,0.15);
+      border-radius: 6px;
+      padding: 36px 28px;
+      text-align: left;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .mission-card:hover {
+      border-color: rgba(255,191,0,0.5);
+      box-shadow: var(--glow-a);
+      transform: translateY(-6px);
+    }
+    .mission-card-bg {
+      position: absolute;
+      inset: 0;
+      background: url('assets/treasure_trove_locked.jpg') center/cover no-repeat;
+      opacity: 0.08;
+      transition: opacity 0.3s;
+    }
+    .mission-card:hover .mission-card-bg { opacity: 0.14; }
+    .mission-number {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.55rem;
+      letter-spacing: 0.35em;
+      color: var(--amber);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .mission-icon {
+      font-size: 2.4rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .mission-title {
+      font-family: 'Syncopate', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .mission-desc {
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: rgba(224,224,224,0.6);
+      margin-bottom: 20px;
+    }
+    .mission-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.5rem;
+      letter-spacing: 0.25em;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .status-locked .status-dot { background: var(--muted); }
+    .status-locked { color: var(--muted); }
+    .status-active .status-dot { background: var(--crimson); box-shadow: var(--glow-r); animation: blink 1.4s ease-in-out infinite; }
+    .status-active { color: var(--crimson); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .mission-week {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.5rem;
+      letter-spacing: 0.2em;
+      color: rgba(255,191,0,0.5);
+      border: 1px solid rgba(255,191,0,0.2);
+      padding: 4px 10px;
+      border-radius: 2px;
+    }
+
+    /* ===== LEADERBOARD SECTION ===== */
+    #leaderboard {
+      background: var(--dark);
+      padding: 100px 40px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    .leaderboard-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .leaderboard-table th {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.55rem;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .leaderboard-table td {
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--silver);
+    }
+    .leaderboard-table tr:hover td { background: rgba(138,43,226,0.06); }
+    .rank-1 td:first-child { color: var(--amber); font-weight: 700; }
+    .rank-2 td:first-child { color: #C0C0C0; }
+    .rank-3 td:first-child { color: #CD7F32; }
+    .score-bar-wrap {
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px;
+      height: 4px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .score-bar {
+      height: 100%;
+      background: linear-gradient(to right, var(--crimson), var(--purple));
+      border-radius: 2px;
+    }
+    .placeholder-badge {
+      display: inline-block;
+      background: rgba(230,0,92,0.12);
+      border: 1px dashed rgba(230,0,92,0.4);
+      color: var(--crimson);
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.5rem;
+      letter-spacing: 0.2em;
+      padding: 4px 12px;
+      border-radius: 2px;
+      margin-top: 16px;
+    }
+
+    /* ===== HOW IT WORKS ===== */
+    #how-it-works {
+      background: var(--black);
+      text-align: center;
+      padding: 100px 40px;
+    }
+    #how-it-works .section-label,
+    #how-it-works .section-title,
+    #how-it-works .section-desc { text-align: center; margin-left: auto; margin-right: auto; }
+    #how-it-works .divider { margin: 20px auto 60px; }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .step {
+      position: relative;
+      padding: 36px 24px;
+      background: var(--panel);
+      border: 1px solid rgba(138,43,226,0.15);
+      border-radius: 6px;
+      text-align: center;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .step:hover {
+      border-color: rgba(138,43,226,0.5);
+      box-shadow: var(--glow-p);
+    }
+    .step-number {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: rgba(138,43,226,0.2);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .step-icon { font-size: 2rem; margin-bottom: 14px; display: block; }
+    .step-title {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .step-desc { font-size: 0.82rem; line-height: 1.6; color: rgba(224,224,224,0.6); }
+
+    /* ===== REGISTER CTA SECTION ===== */
+    #register {
+      position: relative;
+      padding: 120px 40px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .register-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(230,0,92,0.18) 0%, rgba(138,43,226,0.12) 40%, transparent 70%);
+    }
+    #register .section-title { font-size: clamp(2rem, 4vw, 3.5rem); margin-bottom: 16px; }
+    #register .section-desc { margin: 0 auto 40px; text-align: center; }
+    .register-form {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 560px;
+      margin: 0 auto 20px;
+    }
+    .register-form input {
+      flex: 1;
+      min-width: 220px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(138,43,226,0.4);
+      border-radius: 3px;
+      padding: 14px 18px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .register-form input:focus {
+      border-color: var(--purple);
+      box-shadow: var(--glow-p);
+    }
+    .register-form input::placeholder { color: var(--muted); }
+    .register-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+    .register-note span { color: var(--amber); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: #080909;
+      border-top: 1px solid rgba(230,0,92,0.15);
+      padding: 50px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+    .footer-brand .nav-logo { font-size: 1rem; display: block; margin-bottom: 12px; }
+    .footer-brand p { font-size: 0.8rem; line-height: 1.65; color: var(--muted); max-width: 260px; }
+    .footer-links h4 {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.55rem;
+      letter-spacing: 0.3em;
+      color: var(--crimson);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { font-size: 0.82rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--silver); }
+    .footer-bottom {
+      grid-column: 1 / -1;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-bottom p { font-size: 0.75rem; color: var(--muted); }
+    .footer-bottom .phase-badge {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.5rem;
+      letter-spacing: 0.2em;
+      color: var(--amber);
+      border: 1px solid rgba(255,191,0,0.3);
+      padding: 4px 12px;
+      border-radius: 2px;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      #story { grid-template-columns: 1fr; gap: 40px; }
+      .suspects-grid { grid-template-columns: repeat(2, 1fr); }
+      .missions-grid { grid-template-columns: 1fr; }
+      .leaderboard-layout { grid-template-columns: 1fr; gap: 40px; }
+      .steps-grid { grid-template-columns: repeat(2, 1fr); }
+      footer { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== NAVIGATION ===== -->
+<nav>
+  <a class="nav-logo" href="#"><span>TOP</span>KPOP.IO</a>
+  <ul class="nav-links">
+    <li><a href="#story">The Case</a></li>
+    <li><a href="#suspects">Suspects</a></li>
+    <li><a href="#missions">Missions</a></li>
+    <li><a href="#leaderboard">Leaderboard</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#register" class="nav-cta">Register</a></li>
+  </ul>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Top K-Pop Entertainment &nbsp;·&nbsp; AI Super Sleuth</p>
+    <h1 class="hero-title">The Debut Is<br><span class="accent">In Danger.</span></h1>
+    <p class="hero-subtitle">
+      71 million subscribers are waiting. Someone inside Top K-Pop Entertainment has sabotaged the debut.
+      You are the Detective Recruit. Use AI to uncover the truth.
+    </p>
+    <div class="hero-stat">⚠ &nbsp; SABOTAGE DETECTED — INVESTIGATION OPEN</div>
+    <div class="hero-buttons">
+      <a href="#register" class="btn-primary">Register as a Super Sleuth</a>
+      <a href="#story" class="btn-secondary">Read the Case File</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ===== EDUCATOR AUDIENCE BANNER ===== -->
+<section style="background: linear-gradient(135deg, rgba(138,43,226,0.12) 0%, rgba(230,0,92,0.08) 50%, rgba(255,191,0,0.06) 100%); border-top:1px solid rgba(138,43,226,0.2); border-bottom:1px solid rgba(230,0,92,0.2); padding:70px 40px;">
+  <div style="max-width:1100px; margin:0 auto; text-align:center;">
+    <p style="font-family:'Syncopate',sans-serif; font-size:0.6rem; letter-spacing:0.4em; color:var(--amber); text-transform:uppercase; margin-bottom:14px;">Designed For Educators</p>
+    <h2 style="font-family:'Syncopate',sans-serif; font-weight:700; font-size:clamp(1.4rem,3vw,2.4rem); text-transform:uppercase; letter-spacing:0.06em; color:#fff; margin-bottom:20px; line-height:1.2;">Your Classroom Just Got a<br><span style="color:var(--crimson);">Case to Crack.</span></h2>
+    <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:clamp(1rem,1.8vw,1.2rem); color:rgba(224,224,224,0.8); max-width:700px; margin:0 auto 44px; line-height:1.7;">
+      The K-Pop AI Super Sleuth is a professional development experience built exclusively for the educators shaping the next generation. No singing required. No dance moves graded. Just you, your team, and the most immersive AI learning journey ever designed for a school.
+    </p>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px; max-width:900px; margin:0 auto;">
+
+      <div style="background:rgba(15,16,22,0.8); backdrop-filter:blur(10px); border:1px solid rgba(255,191,0,0.2); border-radius:6px; overflow:hidden; transition:border-color 0.3s;">
+        <div style="width:100%; height:180px; overflow:hidden;">
+          <img src="/assets/images/educator_teacher.jpg" alt="Teachers" style="width:100%; height:100%; object-fit:cover; object-position:center top;" />
+        </div>
+        <div style="padding:24px;">
+          <p style="font-family:'Syncopate',sans-serif; font-size:0.65rem; letter-spacing:0.2em; color:var(--amber); text-transform:uppercase; margin-bottom:10px;">Teachers</p>
+          <p style="font-size:0.82rem; line-height:1.65; color:rgba(224,224,224,0.7);">Kindergarten through 8th grade teachers who want to bring AI tools into their classroom through a story-driven, culturally rich learning experience.</p>
+        </div>
+      </div>
+
+      <div style="background:rgba(15,16,22,0.8); backdrop-filter:blur(10px); border:1px solid rgba(230,0,92,0.2); border-radius:6px; overflow:hidden;">
+        <div style="width:100%; height:180px; overflow:hidden;">
+          <img src="/assets/images/educator_principal.jpg" alt="Principals & Admins" style="width:100%; height:100%; object-fit:cover; object-position:center top;" />
+        </div>
+        <div style="padding:24px;">
+          <p style="font-family:'Syncopate',sans-serif; font-size:0.65rem; letter-spacing:0.2em; color:var(--crimson); text-transform:uppercase; margin-bottom:10px;">Principals &amp; Admins</p>
+          <p style="font-size:0.82rem; line-height:1.65; color:rgba(224,224,224,0.7);">School leaders and district administrators looking for a scalable, engaging way to build AI literacy across their entire instructional staff.</p>
+        </div>
+      </div>
+
+      <div style="background:rgba(15,16,22,0.8); backdrop-filter:blur(10px); border:1px solid rgba(138,43,226,0.2); border-radius:6px; overflow:hidden;">
+        <div style="width:100%; height:180px; overflow:hidden;">
+          <img src="/assets/images/educator_aide.jpg" alt="Instructional Aides" style="width:100%; height:100%; object-fit:cover; object-position:center top;" />
+        </div>
+        <div style="padding:24px;">
+          <p style="font-family:'Syncopate',sans-serif; font-size:0.65rem; letter-spacing:0.2em; color:var(--purple); text-transform:uppercase; margin-bottom:10px;">Instructional Aides</p>
+          <p style="font-size:0.82rem; line-height:1.65; color:rgba(224,224,224,0.7);">Instructional coaches and aides ready to deepen their understanding of AI-integrated pedagogy through hands-on, mission-based challenges.</p>
+        </div>
+      </div>
+
+    </div>
+    <div style="margin-top:40px; padding:20px 32px; background:rgba(230,0,92,0.08); border:1px solid rgba(230,0,92,0.25); border-radius:4px; display:inline-block; max-width:700px;">
+      <p style="font-family:'Syncopate',sans-serif; font-size:0.6rem; letter-spacing:0.25em; color:var(--crimson); text-transform:uppercase; margin-bottom:8px;">The Mission</p>
+      <p style="font-size:0.88rem; line-height:1.7; color:rgba(224,224,224,0.85);">
+        Over four weeks, educator teams use real AI tools — image generation, music production, lesson design, and language models — to complete missions, earn points, and solve a K-Pop mystery. Every artifact they create is something they can take directly back to their classroom.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STORY SECTION ===== -->
+<section style="background: var(--dark); padding: 100px 40px;">
+  <div id="story" style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center;">
+    <div class="story-image">
+      <img src="/assets/characters/minseo.jpg" alt="CEO Minseo" />
+      <div class="story-badge">CLASSIFIED — CASE FILE 001</div>
+    </div>
+    <div>
+      <p class="section-label">The Case</p>
+      <h2 class="section-title">CEO Minseo's<br>Empire Is Crumbling</h2>
+      <div class="divider"></div>
+      <p class="section-desc" style="margin-bottom:20px;">
+        Minseo is the chairman of Top K-Pop Entertainment and the producer of the show. A legendary figure in the K-Pop industry, he rose to fame in the late 1990s with a groundbreaking boy group and became an emblem of the Hallyu wave — propelling Korean pop culture onto the global stage.
+      </p>
+      <p class="section-desc" style="margin-bottom:32px;">
+        Now, with 71 million subscribers watching and a historic debut on the line, someone on the inside has sabotaged everything. Costumes destroyed. Choreography files corrupted. Catering poisoned. Six suspects. Four weeks. One truth. Your mission: use AI to uncover the saboteur before the final reveal.
+      </p>
+      <a href="#suspects" class="btn-primary" style="font-size:0.65rem; padding:14px 28px;">Meet the Suspects →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SUSPECTS SECTION ===== -->
+<section id="suspects">
+  <p class="section-label">The Investigation</p>
+  <h2 class="section-title">Six Suspects.<br>One Saboteur.</h2>
+  <div class="divider"></div>
+  <p class="section-desc" style="margin-bottom:50px;">
+    Every member of the inner circle had motive, means, and opportunity. Study their profiles, analyze the clues, and decide who brought the empire to its knees.
+  </p>
+  <div class="suspects-grid">
+
+    <!-- Suspect 1 — Sunny Anna -->
+    <div class="suspect-card">
+      <img src="/assets/characters/sunny_anna.jpg" alt="Sunny Anna" />
+      <div class="suspect-overlay"></div>
+      <div class="suspect-border"></div>
+      <div class="suspect-info">
+        <p class="suspect-role">Host of Show</p>
+        <p class="suspect-name">Sunny Anna</p>
+        <p class="suspect-motive">Runner-up last season. Now the host. She believes she should have won the 100,000,000 won prize — and become a top idol.</p>
+      </div>
+    </div>
+
+    <!-- Suspect 2 — James Paul -->
+    <div class="suspect-card">
+      <img src="/assets/characters/james_paul.jpg" alt="James Paul" />
+      <div class="suspect-overlay"></div>
+      <div class="suspect-border"></div>
+      <div class="suspect-info">
+        <p class="suspect-role">Master Makeup Artist</p>
+        <p class="suspect-name">James Paul</p>
+        <p class="suspect-motive">Swedish-Korean heritage. Mentored by his Korean great-grandmother. Blends K-beauty tradition with modern artistry — but what secrets does he hide behind the brush?</p>
+      </div>
+    </div>
+
+    <!-- Suspect 3 — Emilise -->
+    <div class="suspect-card">
+      <img src="/assets/characters/emilise.jpg" alt="Emilise" />
+      <div class="suspect-overlay"></div>
+      <div class="suspect-border"></div>
+      <div class="suspect-info">
+        <p class="suspect-role">The Choreographer</p>
+        <p class="suspect-name">Emilise</p>
+        <p class="suspect-motive">Half Korean, half Latina. Founder of E2U dance company. Her groundbreaking fusion of cultural rhythms revolutionized K-Pop — but her credit was stolen.</p>
+      </div>
+    </div>
+
+    <!-- Suspect 4 — Star Tammy -->
+    <div class="suspect-card">
+      <img src="/assets/characters/star_tammy.jpg" alt="Star Tammy" />
+      <div class="suspect-overlay"></div>
+      <div class="suspect-border"></div>
+      <div class="suspect-info">
+        <p class="suspect-role">Fashion Designer</p>
+        <p class="suspect-name">Star 별 Tammy</p>
+        <p class="suspect-motive">Paris-trained at École de la Chambre Syndicale. Commands the K-Pop fashion stage. The costumes were sabotaged — and she designed every one of them.</p>
+      </div>
+    </div>
+
+    <!-- Suspect 5 — Hanbit Phil -->
+    <div class="suspect-card">
+      <img src="/assets/characters/hanbit_phil.jpg" alt="Hanbit Phil" />
+      <div class="suspect-overlay"></div>
+      <div class="suspect-border"></div>
+      <div class="suspect-info">
+        <p class="suspect-role">Company Chef</p>
+        <p class="suspect-name">Hanbit Phil</p>
+        <p class="suspect-motive">CEO Minseo's son. Accused of nepotism. He swears he didn't poison the food — that someone tampered with it to get him fired.</p>
+      </div>
+    </div>
+
+    <!-- Suspect 6 — Nari -->
+    <div class="suspect-card">
+      <img src="/assets/characters/nari.jpg" alt="Nari" />
+      <div class="suspect-overlay"></div>
+      <div class="suspect-border"></div>
+      <div class="suspect-info">
+        <p class="suspect-role">Assistant to Sunny</p>
+        <p class="suspect-name">Nari</p>
+        <p class="suspect-motive">Driven, ambitious, and holding an IOU for $30,000. Wesley Womans University Media Comm graduate. On a steadfast path to becoming a K-Pop producer — at any cost.</p>
+      </div>
+    </div>
+
+  </div>
+  <a href="#" class="btn-secondary">View Full Dossiers →</a>
+
+  <!-- Supporting Cast -->
+  <div style="max-width:1100px; margin:60px auto 0;">
+    <p class="section-label" style="text-align:center; margin-bottom:8px;">Supporting Cast</p>
+    <div class="divider" style="margin:0 auto 40px;"></div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px;">
+
+      <!-- Anna Im -->
+      <div style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+        <div style="width:160px; height:160px; border-radius:50%; overflow:hidden; border:2px solid rgba(138,43,226,0.6); box-shadow:0 0 20px rgba(138,43,226,0.3); margin-bottom:18px;">
+          <img src="/assets/characters/anna_im.jpg" alt="Anna Im" style="width:100%; height:100%; object-fit:cover; object-position:top;" />
+        </div>
+        <p style="font-family:'Syncopate',sans-serif; font-size:0.6rem; letter-spacing:0.25em; color:var(--purple); margin-bottom:6px;">Lead Detective</p>
+        <p style="font-family:'Syncopate',sans-serif; font-weight:700; font-size:0.85rem; color:#fff; margin-bottom:10px;">Anna Im</p>
+        <p style="font-size:0.8rem; line-height:1.6; color:rgba(224,224,224,0.65); max-width:260px;">Lead Detective of H.A.L.O. — an elite investigative task force specializing in cases at the intersection of entertainment, media influence, and AI.</p>
+      </div>
+
+      <!-- Bobby Lee -->
+      <div style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+        <div style="width:160px; height:160px; border-radius:50%; overflow:hidden; border:2px solid rgba(138,43,226,0.6); box-shadow:0 0 20px rgba(138,43,226,0.3); margin-bottom:18px;">
+          <img src="/assets/characters/bobby_lee.jpg" alt="Bobby Lee" style="width:100%; height:100%; object-fit:cover; object-position:top;" />
+        </div>
+        <p style="font-family:'Syncopate',sans-serif; font-size:0.6rem; letter-spacing:0.25em; color:var(--purple); margin-bottom:6px;">Private Detective</p>
+        <p style="font-family:'Syncopate',sans-serif; font-weight:700; font-size:0.85rem; color:#fff; margin-bottom:10px;">Bobby Lee</p>
+        <p style="font-size:0.8rem; line-height:1.6; color:rgba(224,224,224,0.65); max-width:260px;">A sharp-witted investigator wrapped in neon glow. Bobby Lee walks the line between idol-level charisma and hard-boiled mystery — a former rising star turned detective.</p>
+      </div>
+
+      <!-- Detective Recruit -->
+      <div style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+        <div style="width:160px; height:160px; border-radius:50%; overflow:hidden; border:2px dashed rgba(230,0,92,0.6); box-shadow:0 0 25px rgba(230,0,92,0.35); margin-bottom:18px;">
+          <img src="/assets/characters/detective_recruit.jpg" alt="Detective Recruit" style="width:100%; height:100%; object-fit:cover; object-position:center top;" />
+        </div>
+        <p style="font-family:'Syncopate',sans-serif; font-size:0.6rem; letter-spacing:0.25em; color:var(--crimson); margin-bottom:6px;">That's You</p>
+        <p style="font-family:'Syncopate',sans-serif; font-weight:700; font-size:0.85rem; color:#fff; margin-bottom:10px;">Detective Recruit</p>
+        <p style="font-size:0.8rem; line-height:1.6; color:rgba(224,224,224,0.65); max-width:260px;">Your identity is unwritten. Your badge is waiting. Register to step into the investigation and become the sleuth who cracks the K-Pop case of the century.</p>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<!-- ===== MISSIONS SECTION ===== -->
+<section id="missions">
+  <p class="section-label">The Treasure Troves</p>
+  <h2 class="section-title">Three Missions.<br>Four Weeks.</h2>
+  <div class="divider"></div>
+  <p class="section-desc" style="margin-bottom:50px;">
+    Each week, a new Treasure Trove unlocks — releasing mission details, AI tools, and clues. Complete all three to earn your full score and make your final accusation.
+  </p>
+  <div class="missions-grid">
+
+    <div class="mission-card">
+      <div class="mission-card-bg"></div>
+      <div class="mission-week">Week 1</div>
+      <p class="mission-number">Treasure Trove 01</p>
+      <span class="mission-icon">🖼️</span>
+      <h3 class="mission-title">Create Your K-Pop Identity</h3>
+      <p class="mission-desc">Design your AI-generated idol avatar and promotional poster. Establish your trainee persona with a name, skills, and group tagline in Korean and Spanish.</p>
+      <div class="mission-status status-active">
+        <div class="status-dot"></div>
+        <span>Active — Submit Now</span>
+      </div>
+    </div>
+
+    <div class="mission-card">
+      <div class="mission-card-bg"></div>
+      <div class="mission-week">Week 2</div>
+      <p class="mission-number">Treasure Trove 02</p>
+      <span class="mission-icon">🎵</span>
+      <h3 class="mission-title">Produce the Evidence Song</h3>
+      <p class="mission-desc">Write multilingual song lyrics, produce an AI-generated track, and create a music video. Your song must weave in the clues you've collected so far.</p>
+      <div class="mission-status status-locked">
+        <div class="status-dot"></div>
+        <span>Unlocks Monday — Week 2</span>
+      </div>
+    </div>
+
+    <div class="mission-card">
+      <div class="mission-card-bg"></div>
+      <div class="mission-week">Week 3</div>
+      <p class="mission-number">Treasure Trove 03</p>
+      <span class="mission-icon">📚</span>
+      <h3 class="mission-title">Teach the Case — AI Lesson Plan</h3>
+      <p class="mission-desc">Unpack an ELA standard, design an AI-integrated lesson plan, and perform a team cultural dance. The lesson must connect K-Pop culture to classroom learning.</p>
+      <div class="mission-status status-locked">
+        <div class="status-dot"></div>
+        <span>Unlocks Monday — Week 3</span>
+      </div>
+    </div>
+
+  </div>
+  <div class="placeholder-badge">⚙ Phase 2: Submission forms + AI scoring will be wired here</div>
+</section>
+
+<!-- ===== LEADERBOARD SECTION ===== -->
+<section style="background: var(--dark); padding: 100px 40px;">
+  <div id="leaderboard" style="max-width:1200px; margin:0 auto;">
+    <div class="leaderboard-layout">
+      <div>
+        <p class="section-label">Live Scores</p>
+        <h2 class="section-title">The<br>Leaderboard</h2>
+        <div class="divider"></div>
+        <p class="section-desc" style="margin-bottom:24px;">
+          Scores update automatically the moment a submission is evaluated. The team with the most points AND the correct saboteur accusation wins.
+        </p>
+        <div class="placeholder-badge">⚙ Phase 2: Live database scores will populate here</div>
+      </div>
+      <div>
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Team / Trainee</th>
+              <th>School</th>
+              <th>Score</th>
+              <th>Progress</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="rank-1">
+              <td>🥇 1</td>
+              <td>Team Neon Pulse</td>
+              <td>Lincoln Elem.</td>
+              <td>847</td>
+              <td><div class="score-bar-wrap"><div class="score-bar" style="width:94%"></div></div></td>
+            </tr>
+            <tr class="rank-2">
+              <td>🥈 2</td>
+              <td>The Crimson Idols</td>
+              <td>Park Middle</td>
+              <td>791</td>
+              <td><div class="score-bar-wrap"><div class="score-bar" style="width:88%"></div></div></td>
+            </tr>
+            <tr class="rank-3">
+              <td>🥉 3</td>
+              <td>Seoul Detectives</td>
+              <td>Rivera K-8</td>
+              <td>734</td>
+              <td><div class="score-bar-wrap"><div class="score-bar" style="width:81%"></div></div></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Hallyu Squad</td>
+              <td>Westview Elem.</td>
+              <td>698</td>
+              <td><div class="score-bar-wrap"><div class="score-bar" style="width:77%"></div></div></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>AI Trainees</td>
+              <td>Maple Grove</td>
+              <td>612</td>
+              <td><div class="score-bar-wrap"><div class="score-bar" style="width:68%"></div></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section id="how-it-works">
+  <p class="section-label">For Educators</p>
+  <h2 class="section-title">How the Game Works</h2>
+  <div class="divider"></div>
+  <p class="section-desc" style="margin-bottom:60px;">
+    Designed for elementary through 8th grade teachers. No singing or dancing required — this is a professional development experience that teaches AI tools through an immersive K-Pop mystery narrative.
+  </p>
+  <div class="steps-grid">
+    <div class="step">
+      <span class="step-number">01</span>
+      <span class="step-icon">📋</span>
+      <p class="step-title">Register Your Team</p>
+      <p class="step-desc">Sign up as a school team. Each team gets a trainee name, group tagline, and access to the investigation portal.</p>
+    </div>
+    <div class="step">
+      <span class="step-number">02</span>
+      <span class="step-icon">🔓</span>
+      <p class="step-title">Weekly Mission Drops</p>
+      <p class="step-desc">Every Monday a new Treasure Trove unlocks. Clues, tools, and mission details are released on a schedule you control.</p>
+    </div>
+    <div class="step">
+      <span class="step-number">03</span>
+      <span class="step-icon">🤖</span>
+      <p class="step-title">Submit & Get AI Scored</p>
+      <p class="step-desc">Upload your artifacts directly to the site. The AI scoring engine evaluates them against the rubric instantly — no manual grading.</p>
+    </div>
+    <div class="step">
+      <span class="step-number">04</span>
+      <span class="step-icon">🔍</span>
+      <p class="step-title">Accuse the Saboteur</p>
+      <p class="step-desc">On the final day, submit your accusation. The team with the highest score AND the correct culprit wins the investigation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== REGISTER CTA ===== -->
+<section id="register">
+  <div class="register-bg"></div>
+  <div style="position:relative; z-index:2;">
+    <p class="section-label" style="text-align:center;">Join the Investigation</p>
+    <h2 class="section-title">Ready to Become<br>a <span style="color:var(--crimson)">Super Sleuth?</span></h2>
+    <div class="divider" style="margin:20px auto 24px;"></div>
+    <p class="section-desc" style="text-align:center; margin:0 auto 36px;">
+      Register your school team to receive access to the investigation portal, weekly mission drops, and the live leaderboard.
+    </p>
+    <div class="register-form">
+      <input type="text" placeholder="Your name / team name" />
+      <input type="email" placeholder="School email address" />
+      <button class="btn-primary" style="white-space:nowrap;">Request Access</button>
+    </div>
+    <p class="register-note">Game start date is set by the organizer. <span>You'll receive an email when your investigation begins.</span></p>
+    <div class="placeholder-badge" style="margin-top:20px; display:inline-block;">⚙ Phase 2: Form connects to database + sends confirmation email</div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-brand">
+    <a class="nav-logo" href="#"><span>TOP</span>KPOP.IO</a>
+    <p>An AI-powered professional development game for educators. Teaching AI through K-Pop culture — for grades K through 8.</p>
+  </div>
+  <div class="footer-links">
+    <h4>Navigation</h4>
+    <ul>
+      <li><a href="#story">The Case</a></li>
+      <li><a href="#suspects">Suspects</a></li>
+      <li><a href="#missions">Missions</a></li>
+      <li><a href="#leaderboard">Leaderboard</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+    </ul>
+  </div>
+  <div class="footer-links">
+    <h4>Resources</h4>
+    <ul>
+      <li><a href="#">Game Rules & FAQ</a></li>
+      <li><a href="#">AI Tools for Teachers</a></li>
+      <li><a href="#">Korean Language Coach GPT</a></li>
+      <li><a href="#">Spanish Language Coach GPT</a></li>
+      <li><a href="#">Admin Dashboard</a></li>
+    </ul>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 TopKpop.io — Top K-Pop Entertainment AI Super Sleuth. All rights reserved.</p>
+    <span class="phase-badge">Phase 1 — Design Mockup</span>
+  </div>
+</footer>
+
+</body>
+</html>
