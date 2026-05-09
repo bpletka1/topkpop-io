@@ -7,10 +7,58 @@
   <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/inner.css" />
   <style>
+    /* ===== MISSIONS PAGE STYLES ===== */
     .missions-intro { max-width: 1200px; margin: 0 auto; padding: 80px 40px 40px; }
     .trove-section { padding: 80px 0; }
     .trove-section:nth-child(even) { background: rgba(8,9,14,0.95); }
     .trove-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+
+    /* Poetic Clue Banner */
+    .poetic-clue {
+      position: relative;
+      margin-bottom: 40px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255,191,0,0.25);
+    }
+    .poetic-clue-bg {
+      position: absolute; inset: 0;
+      background-image: url('/assets/images/poetic_clue_bg.jpg');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.35) saturate(1.2);
+    }
+    .poetic-clue-content {
+      position: relative; z-index: 2;
+      padding: 36px 40px;
+    }
+    .poetic-clue-label {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.52rem;
+      letter-spacing: 0.35em;
+      color: var(--amber);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .poetic-clue-title {
+      font-family: 'Syncopate', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #fff;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .poetic-clue-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1rem;
+      line-height: 1.85;
+      color: rgba(255,220,120,0.9);
+      max-width: 720px;
+    }
+
+    /* Trove Layout */
     .trove-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-top: 40px; }
     .trove-grid.reverse { direction: rtl; }
     .trove-grid.reverse > * { direction: ltr; }
@@ -30,17 +78,185 @@
     .trove-number { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.35em; color: #FFBF00; text-transform: uppercase; margin-bottom: 8px; }
     .trove-title { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1.6rem; text-transform: uppercase; color: #fff; margin-bottom: 16px; line-height: 1.2; }
     .trove-teaser { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: rgba(224,224,224,0.7); line-height: 1.75; margin-bottom: 24px; border-left: 2px solid #E6005C; padding-left: 16px; }
+
+    /* Steps */
     .trove-steps { list-style: none; padding: 0; margin: 24px 0; }
     .trove-steps li { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
     .step-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: rgba(230,0,92,0.15); border: 1px solid rgba(230,0,92,0.4); display: flex; align-items: center; justify-content: center; font-family: 'Syncopate', sans-serif; font-size: 0.55rem; color: #E6005C; font-weight: 700; }
     .step-text { font-size: 0.95rem; line-height: 1.65; color: rgba(224,224,224,0.8); padding-top: 4px; }
+
+    /* Point Chips */
     .trove-points { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
     .point-chip { padding: 6px 14px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase; }
     .chip-crimson { background: rgba(230,0,92,0.12); border: 1px solid rgba(230,0,92,0.3); color: #E6005C; }
     .chip-amber { background: rgba(255,191,0,0.12); border: 1px solid rgba(255,191,0,0.3); color: #FFBF00; }
     .chip-purple { background: rgba(138,43,226,0.12); border: 1px solid rgba(138,43,226,0.3); color: #b06aff; }
-    .phase2-note { margin-top:28px; padding: 20px 24px; background: rgba(230,0,92,0.06); border: 1px dashed rgba(230,0,92,0.25); border-radius: 6px; }
-    @media (max-width: 900px) { .trove-grid { grid-template-columns: 1fr; } .trove-grid.reverse { direction: ltr; } }
+    .chip-green { background: rgba(0,180,100,0.12); border: 1px solid rgba(0,180,100,0.3); color: #00B464; }
+
+    /* AI Competencies */
+    .competencies-block {
+      margin-top: 28px;
+      padding: 20px 24px;
+      background: rgba(138,43,226,0.07);
+      border: 1px solid rgba(138,43,226,0.2);
+      border-radius: 6px;
+    }
+    .competencies-label {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.52rem;
+      letter-spacing: 0.25em;
+      color: var(--purple);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .competency-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .competency-tag {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.48rem;
+      letter-spacing: 0.12em;
+      color: rgba(176,106,255,0.9);
+      background: rgba(138,43,226,0.1);
+      border: 1px solid rgba(138,43,226,0.25);
+      border-radius: 2px;
+      padding: 4px 10px;
+      text-transform: uppercase;
+    }
+
+    /* Submission Portal Block */
+    .submission-block {
+      margin-top: 32px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(230,0,92,0.3);
+    }
+    .submission-block-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+      filter: brightness(0.75) saturate(1.1);
+    }
+    .submission-block-body {
+      padding: 24px;
+      background: rgba(15,16,22,0.9);
+    }
+    .submission-block-title {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      color: #E6005C;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .submission-block p {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: rgba(224,224,224,0.75);
+      margin-bottom: 8px;
+    }
+    .submission-block .optional-note {
+      font-size: 0.8rem;
+      color: rgba(224,224,224,0.45);
+      font-style: italic;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+
+    /* Prompt Box */
+    .prompt-box {
+      margin-top: 24px;
+      padding: 20px 24px;
+      background: rgba(255,191,0,0.05);
+      border: 1px solid rgba(255,191,0,0.2);
+      border-radius: 6px;
+    }
+    .prompt-box-label {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.52rem;
+      letter-spacing: 0.25em;
+      color: var(--amber);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .prompt-example {
+      font-family: 'Inter', monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: rgba(255,220,120,0.85);
+      background: rgba(0,0,0,0.3);
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      border-left: 2px solid rgba(255,191,0,0.4);
+    }
+
+    /* Option Cards (TT2) */
+    .option-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+    .option-card {
+      padding: 20px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(15,16,22,0.8);
+      text-align: center;
+    }
+    .option-card.featured { border-color: rgba(255,191,0,0.35); background: rgba(255,191,0,0.05); }
+    .option-pts {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--amber);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .option-pts-label {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.48rem;
+      letter-spacing: 0.2em;
+      color: rgba(224,224,224,0.5);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .option-title {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      color: #fff;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .option-desc { font-size: 0.8rem; line-height: 1.55; color: rgba(224,224,224,0.6); margin-bottom: 12px; }
+    .option-link { font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.15em; color: var(--crimson); text-decoration: none; text-transform: uppercase; border-bottom: 1px solid rgba(230,0,92,0.3); padding-bottom: 2px; }
+    .option-link:hover { color: #fff; border-color: #fff; }
+
+    /* Video Embed */
+    .video-embed {
+      margin-top: 28px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(138,43,226,0.3);
+      box-shadow: 0 0 30px rgba(138,43,226,0.1);
+    }
+    .video-embed-label {
+      background: rgba(138,43,226,0.12);
+      padding: 10px 20px;
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.52rem;
+      letter-spacing: 0.2em;
+      color: var(--purple);
+      text-transform: uppercase;
+    }
+    .video-embed iframe { display: block; width: 100%; border: none; }
+
+    /* Phase note */
+    .phase3-note { margin-top:28px; padding: 20px 24px; background: rgba(230,0,92,0.06); border: 1px dashed rgba(230,0,92,0.25); border-radius: 6px; }
+
+    @media (max-width: 900px) {
+      .trove-grid { grid-template-columns: 1fr; }
+      .trove-grid.reverse { direction: ltr; }
+      .option-cards { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -56,6 +272,7 @@
   </ul>
   <a href="/#register" class="nav-cta">Register</a>
 </nav>
+
 <div class="page-hero">
   <div class="page-hero-bg" style="background-image: url('/assets/images/missions_hero.jpg');"></div>
   <div class="page-hero-overlay"></div>
@@ -65,14 +282,38 @@
     <p class="page-subtitle">Three Treasure Troves. Three weeks. Each one unlocks new clues and brings you closer to the truth.</p>
   </div>
 </div>
+
+<!-- INTRO -->
 <div class="missions-intro">
   <p class="section-label">Mission Briefings</p>
   <h2 class="section-title">Three Troves. <span class="accent">One Truth.</span></h2>
   <div class="section-divider"></div>
   <p class="section-body">Each Monday morning, a new Treasure Trove unlocks — releasing the full mission details, AI tools, and embedded clues. Complete all three missions to earn your maximum score and qualify to make your Final Accusation. The Treasure Troves are not just assignments — they are pieces of evidence. Every artifact you create contains a clue.</p>
+  <div style="margin-top:28px; padding:20px 28px; background:rgba(0,180,100,0.07); border:1px solid rgba(0,180,100,0.25); border-radius:6px; display:flex; align-items:flex-start; gap:20px;">
+    <div style="flex-shrink:0; margin-top:3px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#00B464; box-shadow:0 0 10px #00B46488;"></div>
+    </div>
+    <div>
+      <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.25em; color:#00B464; text-transform:uppercase; margin-bottom:6px;">Submission Policy — FERPA-Friendly</p>
+      <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.75);">All deliverables are submitted directly through the <strong style="color:#fff;">TopKpop.io portal</strong>. No social media account is required. A private, opt-in Instagram community is available for those who wish to share their work with peers — but it is entirely optional and never required for scoring.</p>
+    </div>
+  </div>
 </div>
+
+<!-- ===== TREASURE TROVE 01 ===== -->
 <div class="trove-section">
   <div class="trove-inner">
+
+    <!-- Poetic Clue -->
+    <div class="poetic-clue">
+      <div class="poetic-clue-bg"></div>
+      <div class="poetic-clue-content">
+        <p class="poetic-clue-label">K-Clue Treasure Trove 01 &nbsp;&middot;&nbsp; Poetic Cipher</p>
+        <p class="poetic-clue-title">The Encore Ghost</p>
+        <p class="poetic-clue-text">In the pulse of the venue, where melodies shimmer and fans hold their breath, a secret challenge awaits. Beneath neon lights, the echo of a vanished idol lingers between harmonies and whispers. Seek the gathering place where voices unite and rhythm binds strangers together to find the K-Clue. Your Mission: follow the clues to Treasure Trove 01.</p>
+      </div>
+    </div>
+
     <div class="trove-grid">
       <div class="trove-img">
         <img src="/assets/images/icon_trove1.png" alt="Treasure Trove 01" />
@@ -84,27 +325,95 @@
         <p class="trove-number">Treasure Trove 01</p>
         <h2 class="trove-title">Create Your K-Pop <span class="accent">Identity</span></h2>
         <p class="trove-teaser">"Before you can investigate the sabotage, you must become part of the world. Build your trainee identity. The industry is watching — and so is the saboteur."</p>
-        <ul class="trove-steps">
-          <li><div class="step-num">1</div><div class="step-text">Use an AI image generator to create your K-Pop idol avatar — a cinematic portrait that captures your trainee persona's style, energy, and visual identity.</div></li>
+
+        <!-- Jeanie's KMZ Video -->
+        <div class="video-embed">
+          <div class="video-embed-label">Your K-Pop Tour Guide: Jeanie from KMZ Reports Live</div>
+          <div style="padding:20px; background:rgba(15,16,22,0.9);">
+            <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">Jeanie from KMZ is reporting live as the sabotage mystery spreads across Top K-Pop. Watch her special investigative exposé to receive your full mission briefing for Treasure Trove 01.</p>
+            <div style="position:relative; padding-top:56.25%; border-radius:4px; overflow:hidden; background:#000;">
+              <iframe
+                src="https://www.youtube.com/embed/placeholder_jeanie_kmz"
+                style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                title="Jeanie KMZ — Treasure Trove 01 Briefing">
+              </iframe>
+            </div>
+            <p style="font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.2em; color:rgba(224,224,224,0.3); margin-top:12px; text-transform:uppercase;">KMZ Special Report &nbsp;&middot;&nbsp; Investigative Exposé &nbsp;&middot;&nbsp; Treasure Trove 01</p>
+          </div>
+        </div>
+
+        <!-- Steps -->
+        <ul class="trove-steps" style="margin-top:28px;">
+          <li><div class="step-num">1</div><div class="step-text">Use an AI image generator (ChatGPT, OpenArt, or Midjourney) to create your K-Pop idol avatar — a cinematic portrait that captures your trainee persona's style, energy, and visual identity.</div></li>
           <li><div class="step-num">2</div><div class="step-text">Design an AI-generated promotional poster for your idol group. Include your trainee name, idol skills, and a group tagline written in both Korean and Spanish.</div></li>
-          <li><div class="step-num">3</div><div class="step-text">Submit your avatar and poster through the portal. Your AI rubric score will be calculated automatically based on visual quality, cultural authenticity, and required elements.</div></li>
+          <li><div class="step-num">3</div><div class="step-text">Submit your avatar and poster through the TopKpop.io portal. The Oracle of the Rubric will evaluate your work and provide formative feedback before your final score is recorded.</div></li>
           <li><div class="step-num">4</div><div class="step-text">Study the clues embedded in the Treasure Trove briefing. They will be essential for your Final Accusation.</div></li>
         </ul>
+
+        <!-- ChatGPT Prompt Templates -->
+        <div class="prompt-box">
+          <p class="prompt-box-label">ChatGPT Prompt Templates — Use These to Get Started</p>
+          <p class="prompt-example">"ChatGPT, create my K-Pop trainee avatar. I want a [style: dark/bright/futuristic] idol with [hair color/style], wearing [clothing description], with [color palette] and a [vibe: fierce/ethereal/mysterious] energy. Cinematic lighting, K-Pop promotional photo style."</p>
+          <p class="prompt-example">"ChatGPT, design a promotional poster for my K-Pop idol group called [Group Name]. Include our group tagline in Korean: [tagline] and Spanish: [tagline]. The style should be [dark neon / bright pastel / cinematic noir]. Include our trainee names and debut date."</p>
+          <p style="font-size:0.82rem; color:rgba(224,224,224,0.5); margin-top:8px;">Replace the brackets with your own details. Experiment with different styles and regenerate until you love the result.</p>
+        </div>
+
+        <!-- Points -->
         <div class="trove-points">
           <span class="point-chip chip-crimson">Avatar — Rubric Scored</span>
           <span class="point-chip chip-amber">Poster — Rubric Scored</span>
-          <span class="point-chip chip-purple">Early Bonus: +100 pts</span>
+          <span class="point-chip chip-purple">Early Submission Bonus: +100 pts</span>
         </div>
-        <div class="phase2-note">
-          <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; color:#E6005C; text-transform:uppercase; margin-bottom:6px;">Phase 2 — Submission Portal Coming</p>
-          <p style="font-size:0.85rem; color:rgba(224,224,224,0.5);">The submission form and automated AI scoring will be wired in during Phase 2 development.</p>
+
+        <!-- AI Competencies -->
+        <div class="competencies-block">
+          <p class="competencies-label">AI Competencies Built in This Trove</p>
+          <div class="competency-tags">
+            <span class="competency-tag">Generative Image Prompting</span>
+            <span class="competency-tag">Image-to-Image Transformation</span>
+            <span class="competency-tag">Compositional Reasoning</span>
+            <span class="competency-tag">Constraint-Based Prompting</span>
+            <span class="competency-tag">Multilingual AI Output</span>
+            <span class="competency-tag">Visual Identity Design</span>
+          </div>
+        </div>
+
+        <!-- Submission Block -->
+        <div class="submission-block">
+          <img src="/assets/images/submission_portal.jpg" alt="Submission Portal" class="submission-block-img" />
+          <div class="submission-block-body">
+            <p class="submission-block-title">How to Submit Trove 01</p>
+            <p>Upload your avatar image and poster image directly through the <strong style="color:#fff;">TopKpop.io portal</strong>. No TikTok, no Instagram, no social media account required.</p>
+            <p>After submission, the Oracle of the Rubric will evaluate your work and return a score with detailed feedback. You may revise and resubmit before the deadline.</p>
+            <p class="optional-note">Optional: Share your avatar and poster with peers in the private TopKpop.io Instagram community. This is never required for scoring.</p>
+          </div>
+        </div>
+
+        <div class="phase3-note">
+          <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; color:#E6005C; text-transform:uppercase; margin-bottom:6px;">Phase 3 — Portal Coming</p>
+          <p style="font-size:0.85rem; color:rgba(224,224,224,0.5);">The live submission form and automated AI scoring will be wired in during Phase 3 development. For now, contact your game organizer to submit.</p>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ===== TREASURE TROVE 02 ===== -->
 <div class="trove-section">
   <div class="trove-inner">
+
+    <!-- Poetic Clue -->
+    <div class="poetic-clue">
+      <div class="poetic-clue-bg"></div>
+      <div class="poetic-clue-content">
+        <p class="poetic-clue-label">K-Clue Treasure Trove 02 &nbsp;&middot;&nbsp; Poetic Cipher</p>
+        <p class="poetic-clue-title">The Blade of Bitterness</p>
+        <p class="poetic-clue-text">Where knives hum and spices rise like smoke, a son stirs dreams his father once broke. In the kitchen's glow, where heat meets hurt, melodies simmer beneath the apron and dirt. Follow the rhythm where recipes fade — for a star is born in the shadows he made. Find the smoke to find the dream he hides — where heat stirs a voice longing to be heard.</p>
+      </div>
+    </div>
+
     <div class="trove-grid reverse">
       <div class="trove-img">
         <img src="/assets/images/icon_trove2.png" alt="Treasure Trove 02" />
@@ -116,23 +425,90 @@
         <p class="trove-number">Treasure Trove 02</p>
         <h2 class="trove-title">Produce the <span class="accent">Evidence Song</span></h2>
         <p class="trove-teaser">"The truth is hidden in the music. Write the song that only a true Detective Recruit could write — one that weaves the clues into every verse, every chorus, every beat."</p>
-        <ul class="trove-steps">
-          <li><div class="step-num">1</div><div class="step-text">Write multilingual song lyrics in English, Korean, and Spanish. The lyrics must weave in the clues collected from Treasure Trove 01 and the investigation briefings.</div></li>
-          <li><div class="step-num">2</div><div class="step-text">Use an AI music generation tool to produce a complete track for your song. The musical style must reflect K-Pop genre conventions.</div></li>
-          <li><div class="step-num">3</div><div class="step-text">Create a music video — either AI-generated visuals or a recorded performance — that brings the song to life.</div></li>
-          <li><div class="step-num">4</div><div class="step-text">Submit your lyrics, audio track, and video link through the portal for AI rubric scoring.</div></li>
+
+        <!-- Three Options -->
+        <p style="font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.25em; color:var(--amber); text-transform:uppercase; margin-bottom:16px;">Choose Your Mission Level</p>
+        <div class="option-cards">
+          <div class="option-card">
+            <span class="option-pts">90</span>
+            <span class="option-pts-label">Points</span>
+            <p class="option-title">Rewrite the Lyrics</p>
+            <p class="option-desc">Use the Multilingual Karaoke Song Rewriter GPT to rewrite the lyrics of an existing K-Pop song in English, Korean, and Spanish. Weave in the investigation clues.</p>
+            <a href="https://chatgpt.com/g/g-multilingual-karaoke" target="_blank" class="option-link">Open GPT Tool &rarr;</a>
+          </div>
+          <div class="option-card featured">
+            <span class="option-pts">100</span>
+            <span class="option-pts-label">Points</span>
+            <p class="option-title">Create a Suno AI Song</p>
+            <p class="option-desc">Write original multilingual lyrics AND generate a full AI music track using Suno AI. Your song must be in K-Pop style and include your investigation clues.</p>
+            <a href="https://suno.com" target="_blank" class="option-link">Open Suno AI &rarr;</a>
+          </div>
+          <div class="option-card featured">
+            <span class="option-pts">100</span>
+            <span class="option-pts-label">Points</span>
+            <p class="option-title">Create a Karaoke Video</p>
+            <p class="option-desc">Rewrite lyrics AND produce a full karaoke-style music video using MyKaraoke.Video. Include synchronized lyrics, K-Pop visuals, and your investigation clues.</p>
+            <a href="https://mykaraoke.video" target="_blank" class="option-link">Open MyKaraoke.Video &rarr;</a>
+          </div>
+        </div>
+
+        <!-- Steps -->
+        <ul class="trove-steps" style="margin-top:28px;">
+          <li><div class="step-num">1</div><div class="step-text">Choose your mission level above (90 pts or 100 pts). All options require multilingual lyrics in English, Korean, and Spanish that weave in the clues from Trove 01.</div></li>
+          <li><div class="step-num">2</div><div class="step-text">Use the Multilingual Karaoke Song Rewriter GPT to help translate and adapt your lyrics. The GPT will guide you through the rewriting process in all three languages.</div></li>
+          <li><div class="step-num">3</div><div class="step-text">If choosing Suno AI or MyKaraoke.Video, generate your track or video using the linked tools. Save all files for submission.</div></li>
+          <li><div class="step-num">4</div><div class="step-text">Submit your lyrics document and audio/video file through the TopKpop.io portal. No social media required.</div></li>
         </ul>
+
+        <!-- Points -->
         <div class="trove-points">
-          <span class="point-chip chip-crimson">Lyrics — Up to 30 pts</span>
-          <span class="point-chip chip-amber">Music Track — Up to 30 pts</span>
-          <span class="point-chip chip-purple">Music Video — Up to 30 pts</span>
+          <span class="point-chip chip-crimson">Lyrics Rewrite — 90 pts</span>
+          <span class="point-chip chip-amber">Suno AI Song — 100 pts</span>
+          <span class="point-chip chip-purple">Karaoke Video — 100 pts</span>
+        </div>
+
+        <!-- AI Competencies -->
+        <div class="competencies-block">
+          <p class="competencies-label">AI Competencies Built in This Trove</p>
+          <div class="competency-tags">
+            <span class="competency-tag">AI Music Generation</span>
+            <span class="competency-tag">Multilingual Text Prompting</span>
+            <span class="competency-tag">Custom GPT Interaction</span>
+            <span class="competency-tag">Creative Constraint Prompting</span>
+            <span class="competency-tag">AI Video Production</span>
+            <span class="competency-tag">Source-of-Truth Thinking</span>
+          </div>
+        </div>
+
+        <!-- Submission Block -->
+        <div class="submission-block">
+          <img src="/assets/images/submission_portal.jpg" alt="Submission Portal" class="submission-block-img" />
+          <div class="submission-block-body">
+            <p class="submission-block-title">How to Submit Trove 02</p>
+            <p>Upload your lyrics document and your audio or video file directly through the <strong style="color:#fff;">TopKpop.io portal</strong>. No TikTok or social media account required.</p>
+            <p>The Oracle of the Rubric will evaluate your multilingual lyrics, musical quality, and clue integration. Formative feedback is returned before your final score is locked.</p>
+            <p class="optional-note">Optional: Share your song with peers in the private TopKpop.io Instagram community. Sharing is never required for scoring.</p>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ===== TREASURE TROVE 03 ===== -->
 <div class="trove-section">
   <div class="trove-inner">
+
+    <!-- Poetic Clue -->
+    <div class="poetic-clue">
+      <div class="poetic-clue-bg"></div>
+      <div class="poetic-clue-content">
+        <p class="poetic-clue-label">K-Clue Treasure Trove 03 &nbsp;&middot;&nbsp; Poetic Cipher</p>
+        <p class="poetic-clue-title">Where Secret Scorn Smolders</p>
+        <p class="poetic-clue-text">Where the overlooked linger at the edge of gentle light, a quiet resentment stirs beneath the calm. Near the pillar where unnoticed footsteps pause, the K-Clue Treasure Trove waits — still and patient. Seek the place where gratitude thins and worth feels forgotten, where someone long dismissed leaves only a shadow behind. There, in the breath between applause and silence, the truth smolders.</p>
+      </div>
+    </div>
+
     <div class="trove-grid">
       <div class="trove-img">
         <img src="/assets/images/icon_trove3.png" alt="Treasure Trove 03" />
@@ -144,21 +520,99 @@
         <p class="trove-number">Treasure Trove 03</p>
         <h2 class="trove-title">Teach the Case — <span class="accent">AI Lesson Plan</span></h2>
         <p class="trove-teaser">"The best investigators don't just solve cases — they teach others how to think. Design a lesson that brings the investigation into the classroom and proves you have mastered the AI tools."</p>
-        <ul class="trove-steps">
-          <li><div class="step-num">1</div><div class="step-text">Unpack an ELA standard and identify a sub-skill. Design an AI-integrated lesson plan that connects K-Pop culture to classroom learning for K-8 students.</div></li>
-          <li><div class="step-num">2</div><div class="step-text">The lesson must incorporate Korean and Spanish language elements, reference the investigation narrative, and include at least one AI tool students will use.</div></li>
-          <li><div class="step-num">3</div><div class="step-text">Your team performs a cultural dance that connects to the lesson's cultural theme. Submit a video link of the performance.</div></li>
-          <li><div class="step-num">4</div><div class="step-text">Submit your lesson plan document and performance video for AI rubric scoring. The final clues to the saboteur's identity are embedded in this Treasure Trove.</div></li>
+
+        <!-- ELA Standard Guide -->
+        <div class="prompt-box">
+          <p class="prompt-box-label">ELA Standard Unpacking Guide</p>
+          <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.75); margin-bottom:12px;">Your lesson plan must be built around a real ELA standard. Use the California 3rd Grade ELA Standard <strong style="color:var(--amber);">RI.3.7</strong> as your model example:</p>
+          <p class="prompt-example">"Use information gained from illustrations (e.g., maps, photographs) and the words in a text to demonstrate understanding of the text (e.g., where, when, why, and how key events occur)."</p>
+          <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.75); margin-bottom:12px;">To unpack this standard for your lesson:</p>
+          <p class="prompt-example">"ChatGPT, help me unpack California ELA Standard RI.3.7 for a K-Pop themed lesson. Identify the key sub-skills, suggest an AI tool students can use to practice the standard, and write a lesson objective that connects to the Top K-Pop investigation narrative."</p>
+          <p style="font-size:0.82rem; color:rgba(224,224,224,0.5); margin-top:8px;">You may use any K-8 ELA standard from your grade level. RI.3.7 is provided as a starting example.</p>
+        </div>
+
+        <!-- Joyce's Choreography Video -->
+        <div class="video-embed" style="margin-top:28px;">
+          <div class="video-embed-label">Cultural Dance Reference: Joyce's Choreography Guide</div>
+          <div style="padding:20px; background:rgba(15,16,22,0.9);">
+            <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">Watch Joyce's choreography video to learn the cultural dance your team will perform as part of Treasure Trove 03. The dance connects to the cultural themes of your lesson plan.</p>
+            <a href="https://drive.google.com/file/d/1M5OYSiUarXNkxARsEjT_LwB7ldVtbDSG/view?usp=drivesdk" target="_blank" style="display:inline-block; padding:12px 24px; background:rgba(138,43,226,0.15); border:1px solid rgba(138,43,226,0.4); border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:var(--purple); text-transform:uppercase; text-decoration:none; transition:all 0.2s;">
+              Watch Joyce's Choreography Video &rarr;
+            </a>
+            <p style="font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.2em; color:rgba(224,224,224,0.3); margin-top:12px; text-transform:uppercase;">Cultural Dance Guide &nbsp;&middot;&nbsp; Treasure Trove 03 &nbsp;&middot;&nbsp; Team Performance</p>
+          </div>
+        </div>
+
+        <!-- Steps -->
+        <ul class="trove-steps" style="margin-top:28px;">
+          <li><div class="step-num">1</div><div class="step-text">Choose a K-8 ELA standard from your grade level. Use the Language Lesson Planner GPT to unpack the standard and identify a sub-skill to teach.</div></li>
+          <li><div class="step-num">2</div><div class="step-text">Design a complete AI-integrated lesson plan that connects K-Pop culture to classroom learning. The lesson must incorporate Korean and Spanish language elements, reference the investigation narrative, and include at least one AI tool students will use.</div></li>
+          <li><div class="step-num">3</div><div class="step-text">Watch Joyce's choreography video above. Your team performs the cultural dance and records a video of the performance.</div></li>
+          <li><div class="step-num">4</div><div class="step-text">Submit your lesson plan document and performance video link through the TopKpop.io portal. The final clues to the saboteur's identity are embedded in this Treasure Trove.</div></li>
         </ul>
+
+        <!-- Points -->
         <div class="trove-points">
           <span class="point-chip chip-crimson">Lesson Plan — Up to 50 pts</span>
-          <span class="point-chip chip-amber">Performance — Up to 50 pts</span>
-          <span class="point-chip chip-purple">Final Clues Unlocked</span>
+          <span class="point-chip chip-amber">Cultural Performance — Up to 50 pts</span>
+          <span class="point-chip chip-green">Final Clues Unlocked</span>
+        </div>
+
+        <!-- AI Competencies -->
+        <div class="competencies-block">
+          <p class="competencies-label">AI Competencies Built in This Trove</p>
+          <div class="competency-tags">
+            <span class="competency-tag">Standards-Based Lesson Design</span>
+            <span class="competency-tag">AI-Integrated Pedagogy</span>
+            <span class="competency-tag">Language Lesson Planning GPT</span>
+            <span class="competency-tag">Culturally Responsive AI Use</span>
+            <span class="competency-tag">Multimodal AI Output</span>
+            <span class="competency-tag">Formative Assessment Design</span>
+          </div>
+        </div>
+
+        <!-- Submission Block -->
+        <div class="submission-block">
+          <img src="/assets/images/submission_portal.jpg" alt="Submission Portal" class="submission-block-img" />
+          <div class="submission-block-body">
+            <p class="submission-block-title">How to Submit Trove 03</p>
+            <p>Upload your lesson plan document and your performance video link directly through the <strong style="color:#fff;">TopKpop.io portal</strong>. No TikTok or social media account required.</p>
+            <p>After all three Troves are submitted, you will unlock the Final Accusation form. Name the saboteur and back up your accusation with evidence from all three Treasure Troves.</p>
+            <p class="optional-note">Optional: Share your lesson plan and performance with peers in the private TopKpop.io Instagram community. Sharing is never required for scoring.</p>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- FINAL ACCUSATION SECTION -->
+<div style="background: rgba(8,9,14,0.98); padding: 80px 0;">
+  <div style="max-width:1200px; margin:0 auto; padding:0 40px; text-align:center;">
+    <p class="section-label">Days 29–32</p>
+    <h2 class="section-title">The <span class="accent">Final Accusation.</span></h2>
+    <div class="section-divider" style="margin:20px auto 40px;"></div>
+    <p class="section-body" style="max-width:700px; margin:0 auto 40px;">After completing all three Treasure Troves, teams collaborate, compare notes, and submit their Final Accusation. Name the saboteur. Back it up with evidence from all three Troves. The team with the highest score AND the correct culprit wins the investigation and saves the debut.</p>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px; max-width:900px; margin:0 auto;">
+      <div style="padding:28px 24px; background:rgba(15,16,22,0.8); border:1px solid rgba(230,0,92,0.2); border-radius:6px; text-align:center;">
+        <p style="font-family:'Syncopate',sans-serif; font-size:1.8rem; font-weight:700; color:var(--crimson); margin-bottom:8px;">Days 29–31</p>
+        <p style="font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:rgba(224,224,224,0.5); text-transform:uppercase; margin-bottom:12px;">Collaboration Window</p>
+        <p style="font-size:0.85rem; line-height:1.6; color:rgba(224,224,224,0.65);">Teams compare clues, review evidence, and prepare their final accusation. Discuss with peers, revisit the suspect dossiers, and build your case.</p>
+      </div>
+      <div style="padding:28px 24px; background:rgba(15,16,22,0.8); border:1px solid rgba(255,191,0,0.25); border-radius:6px; text-align:center;">
+        <p style="font-family:'Syncopate',sans-serif; font-size:1.8rem; font-weight:700; color:var(--amber); margin-bottom:8px;">Day 32</p>
+        <p style="font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:rgba(224,224,224,0.5); text-transform:uppercase; margin-bottom:12px;">Final Accusation Due</p>
+        <p style="font-size:0.85rem; line-height:1.6; color:rgba(224,224,224,0.65);">Submit your Final Accusation through the portal. Name the saboteur and provide your evidence. Only teams who correctly identify the culprit can win.</p>
+      </div>
+      <div style="padding:28px 24px; background:rgba(15,16,22,0.8); border:1px solid rgba(138,43,226,0.2); border-radius:6px; text-align:center;">
+        <p style="font-family:'Syncopate',sans-serif; font-size:1.8rem; font-weight:700; color:var(--purple); margin-bottom:8px;">Day 32+</p>
+        <p style="font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:rgba(224,224,224,0.5); text-transform:uppercase; margin-bottom:12px;">The Reveal</p>
+        <p style="font-size:0.85rem; line-height:1.6; color:rgba(224,224,224,0.65);">The saboteur is unmasked. The leaderboard is finalized. The team with the highest score AND the correct accusation wins.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer>
   <div class="footer-inner">
     <a href="/" class="footer-logo"><span>TOP</span>KPOP.IO</a>
@@ -171,7 +625,7 @@
       <a href="/pages/resources">Resources</a>
     </div>
   </div>
-  <p class="footer-copy">&copy; 2025 Top K-Pop Entertainment &middot; AI Super Sleuth &middot; Phase 1 Design Preview</p>
+  <p class="footer-copy">&copy; 2025 Top K-Pop Entertainment &middot; AI Super Sleuth &middot; Phase 2 Content Complete</p>
 </footer>
 </body>
 </html>

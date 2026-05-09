@@ -25,6 +25,15 @@
     .audience-title { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #fff; margin-bottom: 8px; }
     .audience-body { font-size: 0.9rem; line-height: 1.65; color: rgba(224,224,224,0.7); }
     .timeline-section { max-width: 1100px; margin: 0 auto; padding: 80px 40px; }
+    .oracle-section { background: rgba(8,9,14,0.98); padding: 80px 0; }
+    .oracle-inner { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+    .oracle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-top: 50px; }
+    .oracle-img { border-radius: 8px; overflow: hidden; border: 1px solid rgba(138,43,226,0.3); box-shadow: 0 0 40px rgba(138,43,226,0.15); }
+    .oracle-img img { width: 100%; height: 420px; object-fit: cover; display: block; filter: brightness(0.9) saturate(1.1); }
+    .oracle-step { display: flex; gap: 20px; margin-bottom: 24px; align-items: flex-start; }
+    .oracle-step-num { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: rgba(138,43,226,0.15); border: 1px solid rgba(138,43,226,0.4); display: flex; align-items: center; justify-content: center; font-family: 'Syncopate', sans-serif; font-size: 0.6rem; color: #b06aff; font-weight: 700; }
+    .oracle-step-text { font-size: 0.95rem; line-height: 1.7; color: rgba(224,224,224,0.8); padding-top: 6px; }
+    @media (max-width: 900px) { .oracle-grid { grid-template-columns: 1fr; } }
     .game-timeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-top: 40px; position: relative; }
     .game-timeline::before { content: ''; position: absolute; top: 28px; left: 10%; right: 10%; height: 2px; background: linear-gradient(to right, #E6005C, #8A2BE2, #FFBF00); }
     .timeline-phase { text-align: center; padding: 0 8px; position: relative; }
@@ -76,7 +85,7 @@
       <div class="step-bg-num">02</div>
       <p class="step-label">Step Two</p>
       <h3 class="step-title">Complete the Treasure Troves</h3>
-      <p class="step-body">Each Monday morning for three weeks, a new Treasure Trove unlocks. Your team completes the mission — creating AI-generated artifacts including idol avatars, promotional posters, multilingual song lyrics, AI music tracks, and AI-integrated lesson plans. Every artifact is scored automatically by AI rubric.</p>
+      <p class="step-body">Each Monday morning for three weeks, a new Treasure Trove unlocks. Your team completes the mission — creating AI-generated artifacts including idol avatars, promotional posters, multilingual song lyrics, AI music tracks, and AI-integrated lesson plans. All deliverables are submitted directly through the TopKpop.io portal. No social media account required.</p>
     </div>
     <div class="step-card">
       <div class="step-bg-num">03</div>
@@ -100,29 +109,69 @@
     <p class="section-body">The AI Super Sleuth game was designed specifically for the K-8 educator community. Every mission produces artifacts that participants can use immediately in their own classrooms — making this professional development that pays dividends long after the game ends.</p>
     <div class="audience-grid">
       <div class="audience-card">
-        <img class="audience-img" src="/assets/educator_teacher.jpg" alt="K-8 Teachers" />
+        <img class="audience-img" src="/assets/images/educator_teacher.jpg" alt="K-8 Teachers" />
         <div class="audience-info">
           <h3 class="audience-title">K-8 Teachers</h3>
-          <p class="audience-body">Kindergarten through 8th grade classroom teachers who want to bring AI tools into their instruction through a story-driven, culturally rich learning experience. Walk away with a real AI-integrated lesson plan ready to use.</p>
+          <p class="audience-body">Kindergarten through 8th grade classroom teachers who want to bring AI tools into their instruction through a story-driven, culturally rich learning experience. Leave with lesson plans, AI-generated artifacts, and the confidence to teach AI literacy tomorrow.</p>
         </div>
       </div>
       <div class="audience-card">
-        <img class="audience-img" src="/assets/educator_principal.jpg" alt="Principals and Admins" />
+        <img class="audience-img" src="/assets/images/educator_principal.jpg" alt="Principals and Admins" />
         <div class="audience-info">
           <h3 class="audience-title">Principals &amp; Admins</h3>
-          <p class="audience-body">School leaders and district administrators looking for a scalable, engaging way to build AI literacy across their entire instructional staff. The game can be run district-wide with teams from multiple schools competing together.</p>
+          <p class="audience-body">School leaders and district administrators who need calibrated context for evaluating teacher use of AI — and a scalable, engaging way to build AI literacy across their entire instructional staff. The game can be run district-wide with teams from multiple schools competing together.</p>
         </div>
       </div>
       <div class="audience-card">
-        <img class="audience-img" src="/assets/educator_aide.jpg" alt="Instructional Aides" />
+        <img class="audience-img" src="/assets/images/educator_aide.jpg" alt="Instructional Aides" />
         <div class="audience-info">
           <h3 class="audience-title">Instructional Aides</h3>
-          <p class="audience-body">Instructional coaches and aides ready to deepen their understanding of AI-integrated pedagogy through hands-on, mission-based challenges. No prior AI experience required — the game teaches the tools as you use them.</p>
+          <p class="audience-body">Instructional coaches and aides ready to deepen their understanding of AI-integrated pedagogy through hands-on, mission-based challenges. Build a personal toolkit of AI strategies you can use in any classroom, any grade level. No prior AI experience required.</p>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ORACLE OF THE RUBRIC SECTION -->
+<div class="oracle-section">
+  <div class="oracle-inner">
+    <p class="section-label">The Scoring System</p>
+    <h2 class="section-title">The Oracle of <span class="accent">the Rubric.</span></h2>
+    <div class="section-divider"></div>
+    <p class="section-body">The Oracle of the Rubric is the most pedagogically sophisticated piece of the TopKpop.io experience. It is not just a score generator — it is a model for formative assessment and AI evaluation literacy. Understanding how the Oracle works is essential for every Detective Recruit.</p>
+    <div class="oracle-grid">
+      <div class="oracle-img">
+        <img src="/assets/images/oracle_rubric.jpg" alt="Oracle of the Rubric" />
+      </div>
+      <div>
+        <h3 style="font-family:'Syncopate',sans-serif; font-weight:700; font-size:1.1rem; text-transform:uppercase; color:#fff; margin-bottom:20px; line-height:1.3;">Why the Oracle Matters</h3>
+        <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:1.05rem; color:rgba(224,224,224,0.75); line-height:1.75; margin-bottom:28px; border-left:2px solid var(--purple); padding-left:16px;">"The Oracle externalizes quality criteria. It teaches educators not just how to use AI — but how to evaluate AI output against explicit standards. That is the skill that transfers to every classroom."</p>
+        <div class="oracle-step">
+          <div class="oracle-step-num">1</div>
+          <p class="oracle-step-text"><strong style="color:#fff;">Submit via Portal.</strong> Upload your completed artifact (avatar, poster, lyrics, lesson plan) through the TopKpop.io portal. No social media required.</p>
+        </div>
+        <div class="oracle-step">
+          <div class="oracle-step-num">2</div>
+          <p class="oracle-step-text"><strong style="color:#fff;">Oracle Evaluates.</strong> The Oracle of the Rubric — a Custom GPT trained on the TopKpop.io scoring rubric — analyzes your work against explicit quality criteria. It evaluates visual quality, cultural authenticity, multilingual accuracy, and pedagogical rigor depending on the Trove.</p>
+        </div>
+        <div class="oracle-step">
+          <div class="oracle-step-num">3</div>
+          <p class="oracle-step-text"><strong style="color:#fff;">Receive Formative Feedback.</strong> The Oracle returns detailed feedback before your score is locked. This is the formative revision cycle — the same process you will teach your students. Read the feedback, revise your work, and resubmit.</p>
+        </div>
+        <div class="oracle-step">
+          <div class="oracle-step-num">4</div>
+          <p class="oracle-step-text"><strong style="color:#fff;">Optional: Share on Instagram.</strong> After submission and scoring, you may share your work with peers in the private, opt-in TopKpop.io Instagram community. This is never required for scoring and is entirely optional.</p>
+        </div>
+        <div style="margin-top:28px; padding:20px 24px; background:rgba(138,43,226,0.07); border:1px solid rgba(138,43,226,0.2); border-radius:6px;">
+          <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.25em; color:var(--purple); text-transform:uppercase; margin-bottom:10px;">The Pedagogical Model</p>
+          <p style="font-size:0.88rem; line-height:1.7; color:rgba(224,224,224,0.75);">The Oracle models the same formative feedback cycle that great teachers use in their classrooms. By experiencing it as a learner, educators gain the vocabulary and confidence to apply rubric-mediated feedback in their own instruction — and to teach students how to evaluate AI output critically.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="timeline-section">
   <p class="section-label">Game Timeline</p>
   <h2 class="section-title">The Full <span class="accent">32-Day Arc.</span></h2>
@@ -176,7 +225,7 @@
       <a href="/pages/resources">Resources</a>
     </div>
   </div>
-  <p class="footer-copy">&copy; 2025 Top K-Pop Entertainment &middot; AI Super Sleuth &middot; Phase 1 Design Preview</p>
+  <p class="footer-copy">&copy; 2025 Top K-Pop Entertainment &middot; AI Super Sleuth &middot; Phase 2 Content Complete</p>
 </footer>
 </body>
 </html>
