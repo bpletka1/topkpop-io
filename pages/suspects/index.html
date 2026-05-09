@@ -3,38 +3,214 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Suspects — TopKpop.io</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <title>Suspects — TopKpop.io AI Super Sleuth</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .suspects-intro { max-width: 1200px; margin: 0 auto; padding: 80px 40px 40px; }
+    .suspects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1200px; margin: 0 auto; padding: 0 40px 80px; }
+    .suspect-card { position: relative; border-radius: 8px; overflow: hidden; background: var(--dark); border: 1px solid rgba(230,0,92,0.15); transition: border-color 0.3s, transform 0.3s; }
+    .suspect-card:hover { border-color: rgba(230,0,92,0.6); transform: translateY(-4px); box-shadow: 0 0 30px rgba(230,0,92,0.2); }
+    .suspect-img { width: 100%; height: 320px; object-fit: cover; display: block; filter: saturate(1.1); transition: filter 0.3s; }
+    .suspect-card:hover .suspect-img { filter: saturate(1.3) brightness(1.05); }
+    .suspect-info { padding: 24px; }
+    .suspect-number { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.35em; color: var(--amber); text-transform: uppercase; margin-bottom: 6px; }
+    .suspect-name { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; color: #fff; margin-bottom: 4px; }
+    .suspect-role { font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.2em; color: var(--crimson); text-transform: uppercase; margin-bottom: 14px; }
+    .suspect-motive-label { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.3em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+    .suspect-motive { font-size: 0.9rem; line-height: 1.65; color: rgba(224,224,224,0.75); }
+    .suspect-divider { width: 40px; height: 1px; background: linear-gradient(to right, var(--crimson), transparent); margin: 14px 0; }
+    .suspect-badge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 14px; }
+    .badge-suspect { background: rgba(230,0,92,0.15); color: var(--crimson); border: 1px solid rgba(230,0,92,0.3); }
+    .badge-ally { background: rgba(138,43,226,0.15); color: #b06aff; border: 1px solid rgba(138,43,226,0.3); }
+    .badge-you { background: rgba(255,191,0,0.15); color: var(--amber); border: 1px solid rgba(255,191,0,0.3); }
+    .supporting-section { background: rgba(8,9,14,0.95); padding: 80px 0; }
+    .supporting-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+    .supporting-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 40px; }
+    .supporting-card { border-radius: 8px; overflow: hidden; background: var(--dark); border: 1px solid rgba(138,43,226,0.15); transition: border-color 0.3s, transform 0.3s; }
+    .supporting-card:hover { border-color: rgba(138,43,226,0.5); transform: translateY(-4px); }
+    .supporting-img { width: 100%; height: 260px; object-fit: cover; display: block; filter: saturate(1.0) brightness(0.9); }
+    .supporting-info { padding: 20px; }
+    .supporting-name { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1rem; text-transform: uppercase; color: #fff; margin-bottom: 4px; }
+    .supporting-role { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.2em; color: #b06aff; text-transform: uppercase; margin-bottom: 12px; }
+    .supporting-desc { font-size: 0.9rem; line-height: 1.65; color: rgba(224,224,224,0.7); }
+    .detective-card { border-color: rgba(255,191,0,0.2) !important; }
+    .detective-card:hover { border-color: rgba(255,191,0,0.5) !important; }
+    .detective-img { filter: brightness(0.7) saturate(0.4) !important; }
+    @media (max-width: 900px) { .suspects-grid { grid-template-columns: 1fr 1fr; } .supporting-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .suspects-grid { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-  <nav class="nav">
-    <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/pages/the-case/">The Case</a></li>
-      <li><a href="/pages/suspects/">Suspects</a></li>
-      <li><a href="/pages/missions/">Missions</a></li>
-      <li><a href="/pages/leaderboard/">Leaderboard</a></li>
-      <li><a href="/pages/resources/">Resources</a></li>
-    </ul>
-    <a href="/pages/register/" class="nav-cta">Register Now</a>
-    <div class="nav-hamburger"><span></span><span></span><span></span></div>
-  </nav>
 
-  <section class="page-hero">
-    <p class="section-label">TopKpop.io</p>
-    <h1 class="section-title">Suspects</h1>
-    <div class="divider" style="margin:0 auto 24px;"></div>
-    <span class="phase-badge">Phase 2 — Coming Soon</span>
-  </section>
+<nav>
+  <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
+  <ul class="nav-links">
+    <li><a href="/pages/the-case">The Case</a></li>
+    <li><a href="/pages/suspects" class="active">Suspects</a></li>
+    <li><a href="/pages/missions">Missions</a></li>
+    <li><a href="/pages/leaderboard">Leaderboard</a></li>
+    <li><a href="/pages/how-it-works">How It Works</a></li>
+    <li><a href="/pages/resources">Resources</a></li>
+  </ul>
+  <a href="/#register" class="nav-cta">Register</a>
+</nav>
 
-  <section style="padding:80px 48px; text-align:center;">
-    <div style="max-width:600px; margin:0 auto; background:rgba(15,16,22,0.8); border:1px solid rgba(138,43,226,0.15); border-radius:6px; padding:60px 40px;">
-      <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); line-height:1.8;">This page is reserved for Phase 2 development. Full content, interactive features, and web app integrations will be added in the next build phase.</p>
-      <div style="margin-top:32px;"><a href="/" class="btn-secondary" style="font-size:0.55rem;">← Back to Home</a></div>
+<div class="page-hero">
+  <div class="page-hero-bg" style="background-image: url('/assets/images/evidence_board.jpg');"></div>
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Top K-Pop Entertainment &nbsp;·&nbsp; Investigation Dossiers</p>
+    <h1 class="page-title">The <span class="accent">Suspects.</span></h1>
+    <p class="page-subtitle">Six people. Six motives. One saboteur. Use AI to find the truth.</p>
+  </div>
+</div>
+
+<div class="suspects-intro">
+  <p class="section-label">The Dossiers</p>
+  <h2 class="section-title">Everyone Had a <span class="accent">Reason.</span></h2>
+  <div class="section-divider"></div>
+  <p class="section-body">Each of the six suspects had access, opportunity, and — most critically — a motive. Your mission as a Detective Recruit is to analyze their backgrounds using AI tools, identify inconsistencies in their stories, and build a case that points to the true saboteur. Study each dossier carefully. The truth is in the details.</p>
+</div>
+
+<div class="suspects-grid">
+
+  <div class="suspect-card">
+    <img class="suspect-img" src="/assets/characters/sunny_anna.jpg" alt="Sunny Anna" />
+    <div class="suspect-info">
+      <p class="suspect-number">Suspect 01</p>
+      <h3 class="suspect-name">Sunny Anna</h3>
+      <p class="suspect-role">Host of the Show</p>
+      <div class="suspect-divider"></div>
+      <p class="suspect-motive-label">Known Motive</p>
+      <p class="suspect-motive">Sunny Anna believes she should have won the 100 million won prize last season. She was passed over for a newer, younger host — and she has not forgotten it. Her smile hides a competitive fire that burns hotter than any stage light.</p>
+      <span class="suspect-badge badge-suspect">⚠ Primary Suspect</span>
     </div>
-  </section>
+  </div>
 
-  <script src="/js/nav.js"></script>
+  <div class="suspect-card">
+    <img class="suspect-img" src="/assets/characters/james_paul.jpg" alt="James Paul" />
+    <div class="suspect-info">
+      <p class="suspect-number">Suspect 02</p>
+      <h3 class="suspect-name">James Paul</h3>
+      <p class="suspect-role">Master Makeup Artist</p>
+      <div class="suspect-divider"></div>
+      <p class="suspect-motive-label">Known Motive</p>
+      <p class="suspect-motive">Swedish-Korean heritage and a portfolio of K-beauty secrets that could shake the industry. James Paul guards his techniques fiercely — and someone recently threatened to expose his past. His access to every performer backstage is unmatched.</p>
+      <span class="suspect-badge badge-suspect">⚠ Primary Suspect</span>
+    </div>
+  </div>
+
+  <div class="suspect-card">
+    <img class="suspect-img" src="/assets/characters/nari.jpg" alt="Nari" />
+    <div class="suspect-info">
+      <p class="suspect-number">Suspect 03</p>
+      <h3 class="suspect-name">Nari</h3>
+      <p class="suspect-role">Assistant to Sunny Anna</p>
+      <div class="suspect-divider"></div>
+      <p class="suspect-motive-label">Known Motive</p>
+      <p class="suspect-motive">Nari holds an IOU for $30,000 from someone connected to the debut. She has always dreamed of becoming a K-Pop producer — and she has been quietly building connections behind the scenes. How far would she go to make that dream real?</p>
+      <span class="suspect-badge badge-suspect">⚠ Primary Suspect</span>
+    </div>
+  </div>
+
+  <div class="suspect-card">
+    <img class="suspect-img" src="/assets/characters/emilise.jpg" alt="Emilise" />
+    <div class="suspect-info">
+      <p class="suspect-number">Suspect 04</p>
+      <h3 class="suspect-name">Emilise</h3>
+      <p class="suspect-role">The Choreographer</p>
+      <div class="suspect-divider"></div>
+      <p class="suspect-motive-label">Known Motive</p>
+      <p class="suspect-motive">Half Korean, half Latina — Emilise poured her soul into the E2U choreography that made the group famous. But her credit was stolen. Her name was removed from the official release. She filed a complaint. It was ignored. She did not forget.</p>
+      <span class="suspect-badge badge-suspect">⚠ Primary Suspect</span>
+    </div>
+  </div>
+
+  <div class="suspect-card">
+    <img class="suspect-img" src="/assets/characters/star_tammy.jpg" alt="Star Tammy" />
+    <div class="suspect-info">
+      <p class="suspect-number">Suspect 05</p>
+      <h3 class="suspect-name">Star 별 Tammy</h3>
+      <p class="suspect-role">Fashion Designer</p>
+      <div class="suspect-divider"></div>
+      <p class="suspect-motive-label">Known Motive</p>
+      <p class="suspect-motive">Paris-trained and Seoul-sharp, Star Tammy designed every costume for the sabotaged debut. But three of her original designs were plagiarized by a rival label — and she suspects someone inside Top K-Pop Entertainment leaked them. Her trust is broken.</p>
+      <span class="suspect-badge badge-suspect">⚠ Primary Suspect</span>
+    </div>
+  </div>
+
+  <div class="suspect-card">
+    <img class="suspect-img" src="/assets/characters/hanbit_phil.jpg" alt="Hanbit Phil" />
+    <div class="suspect-info">
+      <p class="suspect-number">Suspect 06</p>
+      <h3 class="suspect-name">Hanbit Phil</h3>
+      <p class="suspect-role">Company Chef</p>
+      <div class="suspect-divider"></div>
+      <p class="suspect-motive-label">Known Motive</p>
+      <p class="suspect-motive">CEO Minseo's own son — hired not for his credentials but for his bloodline, or so the rumors say. Accused of nepotism by the entire staff, Hanbit Phil has spent years trying to prove himself. But the food at the pre-debut dinner made three performers ill. Coincidence?</p>
+      <span class="suspect-badge badge-suspect">⚠ Primary Suspect</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="supporting-section">
+  <div class="supporting-inner">
+    <p class="section-label">The Investigation Team</p>
+    <h2 class="section-title">Your <span class="accent">Allies.</span></h2>
+    <div class="section-divider"></div>
+    <p class="section-body">You are not working alone. H.A.L.O. has assigned two veteran investigators to guide your team — and one critical role belongs to you.</p>
+    <div class="supporting-grid">
+
+      <div class="supporting-card">
+        <img class="supporting-img" src="/assets/characters/anna_im.jpg" alt="Anna Im" />
+        <div class="supporting-info">
+          <h3 class="supporting-name">Anna Im</h3>
+          <p class="supporting-role">H.A.L.O. Lead Investigator</p>
+          <p class="supporting-desc">The best AI investigator in the Hallyu world. Anna Im has cracked seventeen K-Pop industry cases using artificial intelligence tools. She will brief you on each Treasure Trove and guide your use of AI throughout the investigation.</p>
+          <span class="suspect-badge badge-ally" style="margin-top:12px; display:inline-block;">✦ Your Handler</span>
+        </div>
+      </div>
+
+      <div class="supporting-card">
+        <img class="supporting-img" src="/assets/characters/bobby_lee.jpg" alt="Bobby Lee" />
+        <div class="supporting-info">
+          <h3 class="supporting-name">Bobby Lee</h3>
+          <p class="supporting-role">Private Detective</p>
+          <p class="supporting-desc">Old-school instincts, new-school tools. Bobby Lee has been working the K-Pop underground for fifteen years. He knows where the bodies are buried — metaphorically — and he is not afraid to share what he knows with the right Detective Recruits.</p>
+          <span class="suspect-badge badge-ally" style="margin-top:12px; display:inline-block;">✦ Field Contact</span>
+        </div>
+      </div>
+
+      <div class="supporting-card detective-card">
+        <img class="supporting-img detective-img" src="/assets/characters/detective_recruit.jpg" alt="Detective Recruit" />
+        <div class="supporting-info">
+          <h3 class="supporting-name">Detective Recruit</h3>
+          <p class="supporting-role" style="color: var(--amber);">That's You</p>
+          <p class="supporting-desc">Your identity is unwritten. Your badge is waiting. You are an AI-powered educator called to the most important investigation in K-Pop history. The tools are in your hands. The truth is yours to find.</p>
+          <span class="suspect-badge badge-you" style="margin-top:12px; display:inline-block;">★ Register to Begin</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <a href="/" class="footer-logo"><span>TOP</span>KPOP.IO</a>
+    <div class="footer-links">
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/suspects">Suspects</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+    </div>
+  </div>
+  <p class="footer-copy">© 2025 Top K-Pop Entertainment · AI Super Sleuth · Phase 1 Design Preview</p>
+</footer>
+
 </body>
 </html>

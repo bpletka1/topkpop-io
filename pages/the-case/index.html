@@ -3,42 +3,177 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Case — TopKpop.io</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <title>The Case — TopKpop.io AI Super Sleuth</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .story-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-top: 60px; }
+    .story-image { position: relative; border-radius: 8px; overflow: hidden; }
+    .story-image img { width: 100%; height: 480px; object-fit: cover; display: block; filter: brightness(0.9) saturate(1.1); }
+    .story-image-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(11,12,16,0.8) 0%, transparent 60%); }
+    .story-image-caption { position: absolute; bottom: 20px; left: 20px; font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.25em; color: var(--amber); text-transform: uppercase; }
+    .story-text p { font-size: 1.05rem; line-height: 1.85; color: rgba(224,224,224,0.85); margin-bottom: 20px; }
+    .story-text p:first-child::first-letter { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-style: italic; color: var(--crimson); float: left; line-height: 0.8; margin: 6px 12px 0 0; }
+    .quote-block { border-left: 3px solid var(--crimson); padding: 20px 24px; margin: 32px 0; background: rgba(230,0,92,0.06); border-radius: 0 6px 6px 0; }
+    .quote-block p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.15rem; color: #fff; margin: 0; }
+    .quote-block cite { display: block; margin-top: 10px; font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.2em; color: var(--amber); text-transform: uppercase; }
+    .evidence-section { background: rgba(8,9,14,0.95); padding: 90px 0; }
+    .evidence-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+    .evidence-image { width: 100%; border-radius: 8px; overflow: hidden; margin: 40px 0; }
+    .evidence-image img { width: 100%; height: 420px; object-fit: cover; display: block; filter: brightness(0.85); }
+    .timeline { margin-top: 50px; position: relative; }
+    .timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--crimson), var(--purple)); }
+    .timeline-item { display: flex; gap: 40px; margin-bottom: 40px; padding-left: 60px; position: relative; }
+    .timeline-dot { position: absolute; left: 12px; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: var(--crimson); border: 3px solid var(--black); box-shadow: 0 0 12px #E6005C88; }
+    .timeline-label { font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.25em; color: var(--amber); text-transform: uppercase; margin-bottom: 6px; }
+    .timeline-text { font-size: 1rem; line-height: 1.7; color: rgba(224,224,224,0.85); }
+    .ceo-profile { display: grid; grid-template-columns: 280px 1fr; gap: 50px; align-items: start; margin-top: 60px; }
+    .ceo-img { border-radius: 8px; overflow: hidden; border: 1px solid rgba(230,0,92,0.3); }
+    .ceo-img img { width: 100%; height: 360px; object-fit: cover; display: block; }
+    .ceo-name { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1.8rem; text-transform: uppercase; color: #fff; margin-bottom: 6px; }
+    .ceo-title { font-family: 'Syncopate', sans-serif; font-size: 0.62rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 24px; }
+    .btn-primary { display: inline-block; margin-top: 16px; padding: 12px 28px; background: var(--crimson); color: #fff; font-family: 'Syncopate', sans-serif; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; border-radius: 3px; transition: box-shadow 0.2s; }
+    .btn-primary:hover { box-shadow: 0 0 18px #E6005C99; }
+    @media (max-width: 900px) { .story-grid { grid-template-columns: 1fr; } .ceo-profile { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-  <nav class="nav">
-    <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/pages/the-case/" class="active">The Case</a></li>
-      <li><a href="/pages/suspects/">Suspects</a></li>
-      <li><a href="/pages/missions/">Missions</a></li>
-      <li><a href="/pages/leaderboard/">Leaderboard</a></li>
-      <li><a href="/pages/resources/">Resources</a></li>
-    </ul>
-    <a href="/pages/register/" class="nav-cta">Register Now</a>
-    <div class="nav-hamburger"><span></span><span></span><span></span></div>
-  </nav>
 
-  <section class="page-hero">
-    <p class="section-label">Case File 001</p>
-    <h1 class="section-title">The Case</h1>
-    <div class="divider" style="margin:0 auto 24px;"></div>
-    <p class="section-desc" style="max-width:600px; margin:0 auto 32px;">The full story of Top K-Pop Entertainment's sabotage — CEO Minseo's empire, the 71 million subscribers, and the night everything fell apart.</p>
-    <span class="phase-badge">Phase 2 — Coming Soon</span>
-  </section>
+<nav>
+  <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
+  <ul class="nav-links">
+    <li><a href="/pages/the-case" class="active">The Case</a></li>
+    <li><a href="/pages/suspects">Suspects</a></li>
+    <li><a href="/pages/missions">Missions</a></li>
+    <li><a href="/pages/leaderboard">Leaderboard</a></li>
+    <li><a href="/pages/how-it-works">How It Works</a></li>
+    <li><a href="/pages/resources">Resources</a></li>
+  </ul>
+  <a href="/#register" class="nav-cta">Register</a>
+</nav>
 
-  <section style="padding:80px 48px; text-align:center;">
-    <div style="max-width:700px; margin:0 auto; background:rgba(15,16,22,0.8); border:1px solid rgba(230,0,92,0.15); border-radius:6px; padding:60px 40px;">
-      <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:1.2rem; color:rgba(224,224,224,0.7); line-height:1.8;">
-        "71 million subscribers. One historic debut. And someone on the inside who wanted it all to burn."
-      </p>
-      <div class="divider" style="margin:28px auto;"></div>
-      <p style="font-size:0.85rem; color:rgba(224,224,224,0.5);">Full narrative, CEO Minseo's backstory, and the complete case timeline will be available in Phase 2.</p>
+<div class="page-hero">
+  <div class="page-hero-bg" style="background-image: url('/assets/images/case_hero.jpg');"></div>
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Top K-Pop Entertainment &nbsp;·&nbsp; Case File #001</p>
+    <h1 class="page-title">The <span class="accent">Case.</span></h1>
+    <p class="page-subtitle">71 million subscribers. One saboteur. The debut that almost never happened.</p>
+  </div>
+</div>
+
+<!-- THE INCIDENT -->
+<div style="background: var(--black);">
+  <div class="section">
+    <p class="section-label">The Incident</p>
+    <h2 class="section-title">The Debut Is <span class="accent">In Danger.</span></h2>
+    <div class="section-divider"></div>
+    <div class="story-grid">
+      <div class="story-image">
+        <img src="/assets/characters/minseo.jpg" alt="CEO Minseo" />
+        <div class="story-image-overlay"></div>
+        <div class="story-image-caption">CEO Minseo — Top K-Pop Entertainment</div>
+      </div>
+      <div class="story-text">
+        <p>Top K-Pop Entertainment stands at the pinnacle of the global Hallyu wave. With 71 million subscribers and a debut concert that would cement the company's legacy, CEO Minseo had built an empire from nothing — a vision of Korean pop culture that had captured the hearts of fans on every continent.</p>
+        <p>But on the eve of the most anticipated debut in the company's history, something went wrong. Critically wrong. Equipment was tampered with. Choreography files were corrupted. The debut track disappeared from the production server. Someone inside the company had sabotaged everything.</p>
+        <div class="quote-block">
+          <p>"This was not an accident. Someone in this building wanted this debut to fail. I need Detective Recruits who can use AI to find the truth before the lights go down."</p>
+          <cite>— CEO Minseo, Emergency Briefing</cite>
+        </div>
+        <p>CEO Minseo immediately contacted H.A.L.O. — the Hallyu Artificial Intelligence Liaison Organization — and requested their top investigator, Anna Im. Anna assembled a team of AI-powered Detective Recruits: educators trained in artificial intelligence tools who would analyze the evidence, interrogate the suspects, and uncover the saboteur before the debut date.</p>
+        <p>That team is you.</p>
+      </div>
     </div>
-  </section>
+  </div>
+</div>
 
-  <script src="/js/nav.js"></script>
+<!-- EVIDENCE BOARD -->
+<div class="evidence-section">
+  <div class="evidence-inner">
+    <p class="section-label">The Investigation</p>
+    <h2 class="section-title">The <span class="accent">Evidence Board.</span></h2>
+    <div class="section-divider"></div>
+    <p class="section-body">Every Detective Recruit begins with the same evidence board. Six suspects. Three Treasure Troves of clues. Four weeks to crack the case. The saboteur is one of the six people closest to the debut — each with a motive, each with an alibi, and each hiding something the AI tools will help you uncover.</p>
+    <div class="evidence-image">
+      <img src="/assets/images/evidence_board.jpg" alt="Evidence Board — Six Suspects" />
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div>
+          <p class="timeline-label">Week 1 — Treasure Trove 01</p>
+          <p class="timeline-text">Create your AI-generated K-Pop idol avatar and promotional poster. Establish your trainee identity with a name, idol skills, and group tagline in Korean and Spanish. Your first clues are hidden in the mission details.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: var(--purple); box-shadow: 0 0 12px #8A2BE288;"></div>
+        <div>
+          <p class="timeline-label">Week 2 — Treasure Trove 02</p>
+          <p class="timeline-text">Produce the Evidence Song. Write multilingual lyrics in English, Korean, and Spanish that weave in the clues you have collected. Generate an AI music track and create a music video. The song itself is a piece of evidence.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: var(--amber); box-shadow: 0 0 12px #FFBF0088;"></div>
+        <div>
+          <p class="timeline-label">Week 3 — Treasure Trove 03</p>
+          <p class="timeline-text">Teach the Case. Design an AI-integrated ELA lesson plan that unpacks an ELA standard, connects K-Pop culture to classroom learning, and incorporates a team cultural dance performance. The final clues are embedded here.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div>
+          <p class="timeline-label">Days 29–31 — Collaboration &amp; Final Accusation</p>
+          <p class="timeline-text">Teams collaborate, compare notes, and submit their Final Accusation. Name the saboteur. Back it up with evidence from all three Treasure Troves. Only one team can be right — and points alone will not win the game.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: var(--amber); box-shadow: 0 0 12px #FFBF0088;"></div>
+        <div>
+          <p class="timeline-label">Day 32 — The Final Reveal</p>
+          <p class="timeline-text">The saboteur is unmasked. The leaderboard is finalized. The team with the highest score AND the correct accusation wins the investigation and saves the debut.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CEO PROFILE -->
+<div style="background: var(--black);">
+  <div class="section">
+    <p class="section-label">The Client</p>
+    <h2 class="section-title">Meet <span class="accent">CEO Minseo.</span></h2>
+    <div class="section-divider"></div>
+    <div class="ceo-profile">
+      <div class="ceo-img">
+        <img src="/assets/characters/minseo.jpg" alt="CEO Minseo" />
+      </div>
+      <div>
+        <h3 class="ceo-name">CEO Minseo</h3>
+        <p class="ceo-title">Founder &amp; Chief Executive Officer — Top K-Pop Entertainment</p>
+        <p class="section-body">Minseo built Top K-Pop Entertainment from a single recording studio in Seoul into a global entertainment powerhouse with 71 million subscribers. A visionary who understood the Hallyu wave before it crested, he has produced some of the most iconic K-Pop debuts of the past decade.</p>
+        <br/>
+        <p class="section-body">Now, on the eve of his company's most important debut, someone has betrayed him. Minseo is not a man who asks for help easily — but he knows that finding the truth requires tools he does not have. That is why he called H.A.L.O. That is why he called you.</p>
+        <a href="/pages/suspects" class="btn-primary">View All Suspects →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <a href="/" class="footer-logo"><span>TOP</span>KPOP.IO</a>
+    <div class="footer-links">
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/suspects">Suspects</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+    </div>
+  </div>
+  <p class="footer-copy">© 2025 Top K-Pop Entertainment · AI Super Sleuth · Phase 1 Design Preview</p>
+</footer>
+
 </body>
 </html>

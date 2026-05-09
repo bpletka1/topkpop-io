@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How It Works — TopKpop.io AI Super Sleuth</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .hiw-section { max-width: 1100px; margin: 0 auto; padding: 80px 40px; }
+    .steps-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; margin-top: 40px; }
+    .step-card { background: rgba(15,16,22,0.85); border: 1px solid rgba(230,0,92,0.15); border-radius: 8px; padding: 36px; position: relative; overflow: hidden; transition: border-color 0.3s, transform 0.3s; }
+    .step-card:hover { border-color: rgba(230,0,92,0.4); transform: translateY(-3px); }
+    .step-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(to right, #E6005C, transparent); }
+    .step-bg-num { position: absolute; top: 16px; right: 20px; font-family: 'Syncopate', sans-serif; font-size: 4rem; font-weight: 700; color: rgba(230,0,92,0.06); line-height: 1; }
+    .step-label { font-family: 'Syncopate', sans-serif; font-size: 0.52rem; letter-spacing: 0.3em; color: #FFBF00; text-transform: uppercase; margin-bottom: 10px; }
+    .step-title { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; color: #fff; margin-bottom: 14px; line-height: 1.3; }
+    .step-body { font-size: 0.95rem; line-height: 1.75; color: rgba(224,224,224,0.75); }
+    .audience-section { background: rgba(8,9,14,0.95); padding: 80px 0; }
+    .audience-inner { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+    .audience-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 40px; }
+    .audience-card { border-radius: 8px; overflow: hidden; background: var(--dark); border: 1px solid rgba(138,43,226,0.15); }
+    .audience-img { width: 100%; height: 200px; object-fit: cover; display: block; }
+    .audience-info { padding: 20px; }
+    .audience-title { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #fff; margin-bottom: 8px; }
+    .audience-body { font-size: 0.9rem; line-height: 1.65; color: rgba(224,224,224,0.7); }
+    .timeline-section { max-width: 1100px; margin: 0 auto; padding: 80px 40px; }
+    .game-timeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-top: 40px; position: relative; }
+    .game-timeline::before { content: ''; position: absolute; top: 28px; left: 10%; right: 10%; height: 2px; background: linear-gradient(to right, #E6005C, #8A2BE2, #FFBF00); }
+    .timeline-phase { text-align: center; padding: 0 8px; position: relative; }
+    .phase-dot { width: 20px; height: 20px; border-radius: 50%; margin: 0 auto 16px; border: 3px solid #0b0c10; position: relative; z-index: 1; }
+    .phase-dot.crimson { background: #E6005C; box-shadow: 0 0 10px #E6005C88; }
+    .phase-dot.purple { background: #8A2BE2; box-shadow: 0 0 10px #8A2BE288; }
+    .phase-dot.amber { background: #FFBF00; box-shadow: 0 0 10px #FFBF0088; }
+    .phase-label { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(224,224,224,0.5); margin-bottom: 6px; }
+    .phase-name { font-family: 'Syncopate', sans-serif; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #fff; margin-bottom: 6px; }
+    .phase-days { font-size: 0.8rem; color: rgba(224,224,224,0.5); }
+    @media (max-width: 900px) { .steps-grid { grid-template-columns: 1fr; } .audience-grid { grid-template-columns: 1fr; } .game-timeline { grid-template-columns: 1fr; } .game-timeline::before { display: none; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
+  <ul class="nav-links">
+    <li><a href="/pages/the-case">The Case</a></li>
+    <li><a href="/pages/suspects">Suspects</a></li>
+    <li><a href="/pages/missions">Missions</a></li>
+    <li><a href="/pages/leaderboard">Leaderboard</a></li>
+    <li><a href="/pages/how-it-works" class="active">How It Works</a></li>
+    <li><a href="/pages/resources">Resources</a></li>
+  </ul>
+  <a href="/#register" class="nav-cta">Register</a>
+</nav>
+<div class="page-hero">
+  <div class="page-hero-bg" style="background-image: url('/assets/images/howitworks_hero.jpg');"></div>
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Top K-Pop Entertainment &nbsp;&middot;&nbsp; Educator Guide</p>
+    <h1 class="page-title">How It <span class="accent">Works.</span></h1>
+    <p class="page-subtitle">A professional development game that teaches AI through K-Pop culture — no singing, no dancing required.</p>
+  </div>
+</div>
+<div class="hiw-section">
+  <p class="section-label">The Experience</p>
+  <h2 class="section-title">Four Steps to <span class="accent">Crack the Case.</span></h2>
+  <div class="section-divider"></div>
+  <p class="section-body">The AI Super Sleuth game is a 4-week professional development experience designed for K-8 educators. Participants learn AI tools by using them — creating real artifacts that they can take directly back to their classrooms. The K-Pop mystery narrative is the engine that makes the learning irresistible.</p>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-bg-num">01</div>
+      <p class="step-label">Step One</p>
+      <h3 class="step-title">Register Your Team</h3>
+      <p class="step-body">Teams of 2-4 educators register together. Each team chooses a team name and designates a team captain. Registration is open until the game start date — which is set by your school or district administrator. Once registered, your team receives access to the investigation portal and the first briefing from Anna Im.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-bg-num">02</div>
+      <p class="step-label">Step Two</p>
+      <h3 class="step-title">Complete the Treasure Troves</h3>
+      <p class="step-body">Each Monday morning for three weeks, a new Treasure Trove unlocks. Your team completes the mission — creating AI-generated artifacts including idol avatars, promotional posters, multilingual song lyrics, AI music tracks, and AI-integrated lesson plans. Every artifact is scored automatically by AI rubric.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-bg-num">03</div>
+      <p class="step-label">Step Three</p>
+      <h3 class="step-title">Collect the Clues</h3>
+      <p class="step-body">Embedded within each Treasure Trove are clues pointing to the saboteur's identity. Teams must read carefully, analyze the evidence using AI tools, and build their case over the four weeks. The clues reward educators who engage deeply with the AI tools rather than rushing through the missions.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-bg-num">04</div>
+      <p class="step-label">Step Four</p>
+      <h3 class="step-title">Make the Final Accusation</h3>
+      <p class="step-body">On Day 29, the Final Accusation form unlocks. Each team names their suspect and submits their evidence. On Day 32 — the Final Reveal — the saboteur is unmasked. The team with the highest score AND the correct accusation wins. Points alone will not crown a champion.</p>
+    </div>
+  </div>
+</div>
+<div class="audience-section">
+  <div class="audience-inner">
+    <p class="section-label">Who This Is For</p>
+    <h2 class="section-title">Built for <span class="accent">Educators.</span></h2>
+    <div class="section-divider"></div>
+    <p class="section-body">The AI Super Sleuth game was designed specifically for the K-8 educator community. Every mission produces artifacts that participants can use immediately in their own classrooms — making this professional development that pays dividends long after the game ends.</p>
+    <div class="audience-grid">
+      <div class="audience-card">
+        <img class="audience-img" src="/assets/educator_teacher.jpg" alt="K-8 Teachers" />
+        <div class="audience-info">
+          <h3 class="audience-title">K-8 Teachers</h3>
+          <p class="audience-body">Kindergarten through 8th grade classroom teachers who want to bring AI tools into their instruction through a story-driven, culturally rich learning experience. Walk away with a real AI-integrated lesson plan ready to use.</p>
+        </div>
+      </div>
+      <div class="audience-card">
+        <img class="audience-img" src="/assets/educator_principal.jpg" alt="Principals and Admins" />
+        <div class="audience-info">
+          <h3 class="audience-title">Principals &amp; Admins</h3>
+          <p class="audience-body">School leaders and district administrators looking for a scalable, engaging way to build AI literacy across their entire instructional staff. The game can be run district-wide with teams from multiple schools competing together.</p>
+        </div>
+      </div>
+      <div class="audience-card">
+        <img class="audience-img" src="/assets/educator_aide.jpg" alt="Instructional Aides" />
+        <div class="audience-info">
+          <h3 class="audience-title">Instructional Aides</h3>
+          <p class="audience-body">Instructional coaches and aides ready to deepen their understanding of AI-integrated pedagogy through hands-on, mission-based challenges. No prior AI experience required — the game teaches the tools as you use them.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="timeline-section">
+  <p class="section-label">Game Timeline</p>
+  <h2 class="section-title">The Full <span class="accent">32-Day Arc.</span></h2>
+  <div class="section-divider"></div>
+  <p class="section-body">The game runs for 32 days from the start date set by your administrator. The start date can be any Monday — and the entire schedule auto-calculates from there. Games can be launched at any time with as little as two weeks' notice.</p>
+  <div class="game-timeline">
+    <div class="timeline-phase">
+      <div class="phase-dot crimson"></div>
+      <p class="phase-label">Pre-Game</p>
+      <p class="phase-name">Registration</p>
+      <p class="phase-days">Before Day 1</p>
+    </div>
+    <div class="timeline-phase">
+      <div class="phase-dot crimson"></div>
+      <p class="phase-label">Week 1</p>
+      <p class="phase-name">Trove 01 Opens</p>
+      <p class="phase-days">Day 1 — Monday</p>
+    </div>
+    <div class="timeline-phase">
+      <div class="phase-dot purple"></div>
+      <p class="phase-label">Week 2</p>
+      <p class="phase-name">Trove 02 Opens</p>
+      <p class="phase-days">Day 8 — Monday</p>
+    </div>
+    <div class="timeline-phase">
+      <div class="phase-dot purple"></div>
+      <p class="phase-label">Week 3</p>
+      <p class="phase-name">Trove 03 Opens</p>
+      <p class="phase-days">Day 15 — Monday</p>
+    </div>
+    <div class="timeline-phase">
+      <div class="phase-dot amber"></div>
+      <p class="phase-label">Days 29–32</p>
+      <p class="phase-name">Final Reveal</p>
+      <p class="phase-days">Accusation + Winner</p>
+    </div>
+  </div>
+  <div style="margin-top:50px; text-align:center;">
+    <a href="/#register" style="display:inline-block; padding:14px 36px; background:#E6005C; color:#fff; font-family:'Syncopate',sans-serif; font-size:0.62rem; letter-spacing:0.15em; text-transform:uppercase; text-decoration:none; border-radius:3px;">Register Your Team Now</a>
+  </div>
+</div>
+<footer>
+  <div class="footer-inner">
+    <a href="/" class="footer-logo"><span>TOP</span>KPOP.IO</a>
+    <div class="footer-links">
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/suspects">Suspects</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+    </div>
+  </div>
+  <p class="footer-copy">&copy; 2025 Top K-Pop Entertainment &middot; AI Super Sleuth &middot; Phase 1 Design Preview</p>
+</footer>
+</body>
+</html>

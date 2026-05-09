@@ -3,38 +3,192 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resources — TopKpop.io</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <title>Resources — TopKpop.io AI Super Sleuth</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .res-section { max-width: 1100px; margin: 0 auto; padding: 80px 40px; }
+    .tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 40px; }
+    .tool-card { background: rgba(15,16,22,0.85); border: 1px solid rgba(138,43,226,0.15); border-radius: 8px; padding: 28px; transition: border-color 0.3s, transform 0.3s; }
+    .tool-card:hover { border-color: rgba(138,43,226,0.4); transform: translateY(-3px); }
+    .tool-icon { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; margin-bottom: 16px; border: 1px solid rgba(138,43,226,0.2); }
+    .tool-label { font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.25em; color: #b06aff; text-transform: uppercase; margin-bottom: 6px; }
+    .tool-title { font-family: 'Syncopate', sans-serif; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #fff; margin-bottom: 10px; }
+    .tool-body { font-size: 0.88rem; line-height: 1.65; color: rgba(224,224,224,0.7); margin-bottom: 16px; }
+    .tool-link { display: inline-block; padding: 8px 16px; background: rgba(138,43,226,0.12); border: 1px solid rgba(138,43,226,0.3); border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.15em; text-transform: uppercase; color: #b06aff; text-decoration: none; transition: background 0.2s; }
+    .tool-link:hover { background: rgba(138,43,226,0.25); }
+    .faq-section { background: rgba(8,9,14,0.95); padding: 80px 0; }
+    .faq-inner { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+    .faq-item { border-bottom: 1px solid rgba(255,255,255,0.07); padding: 24px 0; }
+    .faq-q { font-family: 'Syncopate', sans-serif; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #fff; margin-bottom: 12px; letter-spacing: 0.08em; display: flex; justify-content: space-between; align-items: center; }
+    .faq-q::after { content: '+'; color: #E6005C; font-size: 1.2rem; font-weight: 300; }
+    .faq-a { font-size: 0.95rem; line-height: 1.75; color: rgba(224,224,224,0.7); }
+    .rules-section { max-width: 900px; margin: 0 auto; padding: 80px 40px; }
+    .rules-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 40px; }
+    .rule-card { background: rgba(15,16,22,0.85); border: 1px solid rgba(230,0,92,0.12); border-radius: 6px; padding: 24px; }
+    .rule-num { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.25em; color: #E6005C; text-transform: uppercase; margin-bottom: 8px; }
+    .rule-title { font-family: 'Syncopate', sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #fff; margin-bottom: 10px; }
+    .rule-body { font-size: 0.9rem; line-height: 1.65; color: rgba(224,224,224,0.7); }
+    @media (max-width: 900px) { .tools-grid { grid-template-columns: 1fr; } .rules-grid { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-  <nav class="nav">
-    <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/pages/the-case/">The Case</a></li>
-      <li><a href="/pages/suspects/">Suspects</a></li>
-      <li><a href="/pages/missions/">Missions</a></li>
-      <li><a href="/pages/leaderboard/">Leaderboard</a></li>
-      <li><a href="/pages/resources/">Resources</a></li>
-    </ul>
-    <a href="/pages/register/" class="nav-cta">Register Now</a>
-    <div class="nav-hamburger"><span></span><span></span><span></span></div>
-  </nav>
-
-  <section class="page-hero">
-    <p class="section-label">TopKpop.io</p>
-    <h1 class="section-title">Resources</h1>
-    <div class="divider" style="margin:0 auto 24px;"></div>
-    <span class="phase-badge">Phase 2 — Coming Soon</span>
-  </section>
-
-  <section style="padding:80px 48px; text-align:center;">
-    <div style="max-width:600px; margin:0 auto; background:rgba(15,16,22,0.8); border:1px solid rgba(138,43,226,0.15); border-radius:6px; padding:60px 40px;">
-      <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); line-height:1.8;">This page is reserved for Phase 2 development. Full content, interactive features, and web app integrations will be added in the next build phase.</p>
-      <div style="margin-top:32px;"><a href="/" class="btn-secondary" style="font-size:0.55rem;">← Back to Home</a></div>
+<nav>
+  <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
+  <ul class="nav-links">
+    <li><a href="/pages/the-case">The Case</a></li>
+    <li><a href="/pages/suspects">Suspects</a></li>
+    <li><a href="/pages/missions">Missions</a></li>
+    <li><a href="/pages/leaderboard">Leaderboard</a></li>
+    <li><a href="/pages/how-it-works">How It Works</a></li>
+    <li><a href="/pages/resources" class="active">Resources</a></li>
+  </ul>
+  <a href="/#register" class="nav-cta">Register</a>
+</nav>
+<div class="page-hero">
+  <div class="page-hero-bg" style="background-image: url('/assets/images/resources_hero.jpg');"></div>
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Top K-Pop Entertainment &nbsp;&middot;&nbsp; Detective Toolkit</p>
+    <h1 class="page-title">The <span class="accent">Resources.</span></h1>
+    <p class="page-subtitle">Every tool you need to complete the investigation — AI rubrics, language coaches, game rules, and the full FAQ.</p>
+  </div>
+</div>
+<div class="res-section">
+  <p class="section-label">AI Tools</p>
+  <h2 class="section-title">Your Detective <span class="accent">Toolkit.</span></h2>
+  <div class="section-divider"></div>
+  <p class="section-body">These AI tools are your weapons in the investigation. Each one was built specifically for the AI Super Sleuth game. Use them to create your artifacts, score your work, and practice the language skills embedded in the missions.</p>
+  <div class="tools-grid">
+    <div class="tool-card">
+      <img class="tool-icon" src="/assets/images/icon_trove1.png" alt="Rubric Evaluator" />
+      <p class="tool-label">Treasure Trove 01</p>
+      <h3 class="tool-title">K-Pop Poster &amp; Avatar Rubric</h3>
+      <p class="tool-body">The Oracle of the Rubric evaluates your idol avatar and promotional poster against the official scoring criteria. Submit your images and receive a detailed score with feedback before your official submission.</p>
+      <a href="https://chatgpt.com/g/g-6924d3bc86388191a51b043fc7adeb42-k-pop-poster-avatar-rubric-evaluator" target="_blank" class="tool-link">Open Rubric Evaluator</a>
     </div>
-  </section>
-
-  <script src="/js/nav.js"></script>
+    <div class="tool-card">
+      <img class="tool-icon" src="/assets/images/icon_trove2.png" alt="Song Rubric" />
+      <p class="tool-label">Treasure Trove 02</p>
+      <h3 class="tool-title">Evidence Song Rubric</h3>
+      <p class="tool-body">Score your multilingual song lyrics, AI music track, and music video against the official rubric. The evaluator checks for required Korean and Spanish elements, clue integration, and K-Pop genre authenticity.</p>
+      <a href="https://chatgpt.com" target="_blank" class="tool-link">Open Song Evaluator</a>
+    </div>
+    <div class="tool-card">
+      <img class="tool-icon" src="/assets/images/icon_trove3.png" alt="Lesson Plan Rubric" />
+      <p class="tool-label">Treasure Trove 03</p>
+      <h3 class="tool-title">AI Lesson Plan Rubric</h3>
+      <p class="tool-body">Evaluate your AI-integrated lesson plan against the ELA standard unpacking rubric. Checks for standard alignment, sub-skill identification, cultural connection, and required language elements.</p>
+      <a href="https://chatgpt.com" target="_blank" class="tool-link">Open Lesson Evaluator</a>
+    </div>
+    <div class="tool-card" style="border-color:rgba(255,191,0,0.15);">
+      <img class="tool-icon" src="/assets/characters/anna_im.jpg" alt="Korean Language Coach" style="border-color:rgba(255,191,0,0.2);" />
+      <p class="tool-label" style="color:#FFBF00;">Language Tool</p>
+      <h3 class="tool-title">Korean Language Coach</h3>
+      <p class="tool-body">Practice the Korean phrases required in your artifacts. This Custom GPT guides you through pronunciation, meaning, and proper usage of the Korean elements embedded in each Treasure Trove mission.</p>
+      <a href="https://chatgpt.com" target="_blank" class="tool-link" style="color:#FFBF00; border-color:rgba(255,191,0,0.3); background:rgba(255,191,0,0.08);">Open Korean Coach</a>
+    </div>
+    <div class="tool-card" style="border-color:rgba(255,191,0,0.15);">
+      <img class="tool-icon" src="/assets/characters/bobby_lee.jpg" alt="Spanish Language Coach" style="border-color:rgba(255,191,0,0.2);" />
+      <p class="tool-label" style="color:#FFBF00;">Language Tool</p>
+      <h3 class="tool-title">Spanish Language Coach</h3>
+      <p class="tool-body">Practice the Spanish phrases required in your artifacts. This Custom GPT guides you through the Spanish elements embedded in each mission — from idol group taglines to lesson plan cultural connections.</p>
+      <a href="https://chatgpt.com" target="_blank" class="tool-link" style="color:#FFBF00; border-color:rgba(255,191,0,0.3); background:rgba(255,191,0,0.08);">Open Spanish Coach</a>
+    </div>
+    <div class="tool-card" style="border-color:rgba(0,255,136,0.15);">
+      <img class="tool-icon" src="/assets/characters/detective_recruit.jpg" alt="Free ChatGPT" style="border-color:rgba(0,255,136,0.2);" />
+      <p class="tool-label" style="color:#00ff88;">Free Access</p>
+      <h3 class="tool-title">Free ChatGPT for Educators</h3>
+      <p class="tool-body">Don't have a ChatGPT account? Access the free tier to complete your missions. All AI Super Sleuth tasks are designed to work with the free version — no paid subscription required.</p>
+      <a href="https://chatgpt.com" target="_blank" class="tool-link" style="color:#00ff88; border-color:rgba(0,255,136,0.3); background:rgba(0,255,136,0.06);">Open ChatGPT Free</a>
+    </div>
+  </div>
+</div>
+<div class="faq-section">
+  <div class="faq-inner">
+    <p class="section-label">Frequently Asked Questions</p>
+    <h2 class="section-title">Got <span class="accent">Questions?</span></h2>
+    <div class="section-divider"></div>
+    <div class="faq-item">
+      <p class="faq-q">Do I need prior AI experience to play?</p>
+      <p class="faq-a">No prior AI experience is required. The game is designed to teach AI tools through the process of completing the missions. Each Treasure Trove introduces new tools progressively — you learn by doing, not by studying.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">Do I need to sing or dance?</p>
+      <p class="faq-a">No. While Treasure Trove 03 includes a team cultural dance performance, this is a celebration of cultural learning — not a performance competition. The dance is evaluated on cultural connection and participation, not technical skill. The music in Treasure Trove 02 is AI-generated, not performed.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">How are teams formed?</p>
+      <p class="faq-a">Teams of 2-4 educators register together. You can form teams with colleagues from the same school or across different schools in the same district. Each team designates a team captain who manages submissions and the final accusation.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">How is scoring handled?</p>
+      <p class="faq-a">In Phase 2, scoring will be fully automated — your artifacts are evaluated by the AI rubric engine the moment you submit, and your score appears on the leaderboard within seconds. During Phase 1, scoring is handled manually by the game administrator.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">What happens if two teams tie on points?</p>
+      <p class="faq-a">The tie-breaker is the Final Accusation. If two teams have equal points and both name the correct saboteur, the team that submitted their Treasure Trove 01 earliest wins. If neither team names the correct saboteur, neither team wins.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">When does the game start?</p>
+      <p class="faq-a">The start date is set by your school or district administrator. Games can begin on any Monday with as little as two weeks of advance registration. There is no fixed annual calendar — each game is run on-demand for your district.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">Can the game be run for an entire school district?</p>
+      <p class="faq-a">Yes — the game is designed to scale to district-wide professional development. Teams from multiple schools compete on the same leaderboard. Contact us through the registration form to discuss district licensing and facilitation options.</p>
+    </div>
+  </div>
+</div>
+<div class="rules-section">
+  <p class="section-label">Official Rules</p>
+  <h2 class="section-title">The <span class="accent">Rules of Engagement.</span></h2>
+  <div class="section-divider"></div>
+  <div class="rules-grid">
+    <div class="rule-card">
+      <p class="rule-num">Rule 01</p>
+      <h3 class="rule-title">Register Before Day 1</h3>
+      <p class="rule-body">All team members must be registered before the game start date. Late registrations are not accepted once the first Treasure Trove has unlocked.</p>
+    </div>
+    <div class="rule-card">
+      <p class="rule-num">Rule 02</p>
+      <h3 class="rule-title">Artifacts Must Be AI-Generated</h3>
+      <p class="rule-body">All submitted artifacts must be created using AI tools. Hand-drawn or manually produced artifacts are not eligible for scoring.</p>
+    </div>
+    <div class="rule-card">
+      <p class="rule-num">Rule 03</p>
+      <h3 class="rule-title">Korean and Spanish Are Required</h3>
+      <p class="rule-body">Each artifact must include the required Korean and Spanish language elements as specified in the Treasure Trove briefing. Missing language elements result in point deductions.</p>
+    </div>
+    <div class="rule-card">
+      <p class="rule-num">Rule 04</p>
+      <h3 class="rule-title">The Accusation Is Final</h3>
+      <p class="rule-body">Once the Final Accusation is submitted, it cannot be changed. Teams have the full collaboration period (Days 29-31) to review their evidence. Choose wisely.</p>
+    </div>
+    <div class="rule-card">
+      <p class="rule-num">Rule 05</p>
+      <h3 class="rule-title">Points Alone Do Not Win</h3>
+      <p class="rule-body">The winning team must have both the highest score AND the correct accusation. A perfect-scoring team that names the wrong saboteur does not win.</p>
+    </div>
+    <div class="rule-card">
+      <p class="rule-num">Rule 06</p>
+      <h3 class="rule-title">Admin Decisions Are Final</h3>
+      <p class="rule-body">The game administrator reserves the right to award manual bonus points, disqualify submissions that violate the rules, and make final determinations on tie-breaker scenarios.</p>
+    </div>
+  </div>
+</div>
+<footer>
+  <div class="footer-inner">
+    <a href="/" class="footer-logo"><span>TOP</span>KPOP.IO</a>
+    <div class="footer-links">
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/suspects">Suspects</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+    </div>
+  </div>
+  <p class="footer-copy">&copy; 2025 Top K-Pop Entertainment &middot; AI Super Sleuth &middot; Phase 1 Design Preview</p>
+</footer>
 </body>
 </html>

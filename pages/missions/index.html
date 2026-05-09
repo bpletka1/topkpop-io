@@ -3,38 +3,175 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Missions — TopKpop.io</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <title>Missions — TopKpop.io AI Super Sleuth</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .missions-intro { max-width: 1200px; margin: 0 auto; padding: 80px 40px 40px; }
+    .trove-section { padding: 80px 0; }
+    .trove-section:nth-child(even) { background: rgba(8,9,14,0.95); }
+    .trove-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+    .trove-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-top: 40px; }
+    .trove-grid.reverse { direction: rtl; }
+    .trove-grid.reverse > * { direction: ltr; }
+    .trove-img { border-radius: 8px; overflow: hidden; border: 1px solid rgba(230,0,92,0.2); position: relative; }
+    .trove-img img { width: 100%; height: 380px; object-fit: cover; display: block; filter: brightness(0.9) saturate(1.1); }
+    .trove-img-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(11,12,16,0.7) 0%, transparent 50%); }
+    .trove-week { position: absolute; top: 16px; right: 16px; padding: 4px 12px; background: rgba(230,0,92,0.2); border: 1px solid rgba(230,0,92,0.4); border-radius: 2px; font-family: 'Syncopate', sans-serif; font-size: 0.52rem; letter-spacing: 0.2em; color: #E6005C; text-transform: uppercase; }
+    .trove-week.locked { background: rgba(138,43,226,0.15); border-color: rgba(138,43,226,0.3); color: #b06aff; }
+    .trove-status { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .status-dot.active { background: #00ff88; box-shadow: 0 0 8px #00ff8888; animation: pulse 2s infinite; }
+    .status-dot.locked { background: rgba(224,224,224,0.3); }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+    .status-text { font-family: 'Syncopate', sans-serif; font-size: 0.52rem; letter-spacing: 0.2em; text-transform: uppercase; }
+    .status-text.active { color: #00ff88; }
+    .status-text.locked { color: rgba(224,224,224,0.4); }
+    .trove-number { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.35em; color: #FFBF00; text-transform: uppercase; margin-bottom: 8px; }
+    .trove-title { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1.6rem; text-transform: uppercase; color: #fff; margin-bottom: 16px; line-height: 1.2; }
+    .trove-teaser { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: rgba(224,224,224,0.7); line-height: 1.75; margin-bottom: 24px; border-left: 2px solid #E6005C; padding-left: 16px; }
+    .trove-steps { list-style: none; padding: 0; margin: 24px 0; }
+    .trove-steps li { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
+    .step-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: rgba(230,0,92,0.15); border: 1px solid rgba(230,0,92,0.4); display: flex; align-items: center; justify-content: center; font-family: 'Syncopate', sans-serif; font-size: 0.55rem; color: #E6005C; font-weight: 700; }
+    .step-text { font-size: 0.95rem; line-height: 1.65; color: rgba(224,224,224,0.8); padding-top: 4px; }
+    .trove-points { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+    .point-chip { padding: 6px 14px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase; }
+    .chip-crimson { background: rgba(230,0,92,0.12); border: 1px solid rgba(230,0,92,0.3); color: #E6005C; }
+    .chip-amber { background: rgba(255,191,0,0.12); border: 1px solid rgba(255,191,0,0.3); color: #FFBF00; }
+    .chip-purple { background: rgba(138,43,226,0.12); border: 1px solid rgba(138,43,226,0.3); color: #b06aff; }
+    .phase2-note { margin-top:28px; padding: 20px 24px; background: rgba(230,0,92,0.06); border: 1px dashed rgba(230,0,92,0.25); border-radius: 6px; }
+    @media (max-width: 900px) { .trove-grid { grid-template-columns: 1fr; } .trove-grid.reverse { direction: ltr; } }
+  </style>
 </head>
 <body>
-  <nav class="nav">
-    <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/pages/the-case/">The Case</a></li>
-      <li><a href="/pages/suspects/">Suspects</a></li>
-      <li><a href="/pages/missions/">Missions</a></li>
-      <li><a href="/pages/leaderboard/">Leaderboard</a></li>
-      <li><a href="/pages/resources/">Resources</a></li>
-    </ul>
-    <a href="/pages/register/" class="nav-cta">Register Now</a>
-    <div class="nav-hamburger"><span></span><span></span><span></span></div>
-  </nav>
-
-  <section class="page-hero">
-    <p class="section-label">TopKpop.io</p>
-    <h1 class="section-title">Missions</h1>
-    <div class="divider" style="margin:0 auto 24px;"></div>
-    <span class="phase-badge">Phase 2 — Coming Soon</span>
-  </section>
-
-  <section style="padding:80px 48px; text-align:center;">
-    <div style="max-width:600px; margin:0 auto; background:rgba(15,16,22,0.8); border:1px solid rgba(138,43,226,0.15); border-radius:6px; padding:60px 40px;">
-      <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); line-height:1.8;">This page is reserved for Phase 2 development. Full content, interactive features, and web app integrations will be added in the next build phase.</p>
-      <div style="margin-top:32px;"><a href="/" class="btn-secondary" style="font-size:0.55rem;">← Back to Home</a></div>
+<nav>
+  <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
+  <ul class="nav-links">
+    <li><a href="/pages/the-case">The Case</a></li>
+    <li><a href="/pages/suspects">Suspects</a></li>
+    <li><a href="/pages/missions" class="active">Missions</a></li>
+    <li><a href="/pages/leaderboard">Leaderboard</a></li>
+    <li><a href="/pages/how-it-works">How It Works</a></li>
+    <li><a href="/pages/resources">Resources</a></li>
+  </ul>
+  <a href="/#register" class="nav-cta">Register</a>
+</nav>
+<div class="page-hero">
+  <div class="page-hero-bg" style="background-image: url('/assets/images/missions_hero.jpg');"></div>
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Top K-Pop Entertainment &nbsp;&middot;&nbsp; Mission Briefings</p>
+    <h1 class="page-title">The <span class="accent">Missions.</span></h1>
+    <p class="page-subtitle">Three Treasure Troves. Three weeks. Each one unlocks new clues and brings you closer to the truth.</p>
+  </div>
+</div>
+<div class="missions-intro">
+  <p class="section-label">Mission Briefings</p>
+  <h2 class="section-title">Three Troves. <span class="accent">One Truth.</span></h2>
+  <div class="section-divider"></div>
+  <p class="section-body">Each Monday morning, a new Treasure Trove unlocks — releasing the full mission details, AI tools, and embedded clues. Complete all three missions to earn your maximum score and qualify to make your Final Accusation. The Treasure Troves are not just assignments — they are pieces of evidence. Every artifact you create contains a clue.</p>
+</div>
+<div class="trove-section">
+  <div class="trove-inner">
+    <div class="trove-grid">
+      <div class="trove-img">
+        <img src="/assets/images/icon_trove1.png" alt="Treasure Trove 01" />
+        <div class="trove-img-overlay"></div>
+        <div class="trove-week">Week 1 — Active</div>
+      </div>
+      <div>
+        <div class="trove-status"><div class="status-dot active"></div><span class="status-text active">Active — Submit Now</span></div>
+        <p class="trove-number">Treasure Trove 01</p>
+        <h2 class="trove-title">Create Your K-Pop <span class="accent">Identity</span></h2>
+        <p class="trove-teaser">"Before you can investigate the sabotage, you must become part of the world. Build your trainee identity. The industry is watching — and so is the saboteur."</p>
+        <ul class="trove-steps">
+          <li><div class="step-num">1</div><div class="step-text">Use an AI image generator to create your K-Pop idol avatar — a cinematic portrait that captures your trainee persona's style, energy, and visual identity.</div></li>
+          <li><div class="step-num">2</div><div class="step-text">Design an AI-generated promotional poster for your idol group. Include your trainee name, idol skills, and a group tagline written in both Korean and Spanish.</div></li>
+          <li><div class="step-num">3</div><div class="step-text">Submit your avatar and poster through the portal. Your AI rubric score will be calculated automatically based on visual quality, cultural authenticity, and required elements.</div></li>
+          <li><div class="step-num">4</div><div class="step-text">Study the clues embedded in the Treasure Trove briefing. They will be essential for your Final Accusation.</div></li>
+        </ul>
+        <div class="trove-points">
+          <span class="point-chip chip-crimson">Avatar — Rubric Scored</span>
+          <span class="point-chip chip-amber">Poster — Rubric Scored</span>
+          <span class="point-chip chip-purple">Early Bonus: +100 pts</span>
+        </div>
+        <div class="phase2-note">
+          <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; color:#E6005C; text-transform:uppercase; margin-bottom:6px;">Phase 2 — Submission Portal Coming</p>
+          <p style="font-size:0.85rem; color:rgba(224,224,224,0.5);">The submission form and automated AI scoring will be wired in during Phase 2 development.</p>
+        </div>
+      </div>
     </div>
-  </section>
-
-  <script src="/js/nav.js"></script>
+  </div>
+</div>
+<div class="trove-section">
+  <div class="trove-inner">
+    <div class="trove-grid reverse">
+      <div class="trove-img">
+        <img src="/assets/images/icon_trove2.png" alt="Treasure Trove 02" />
+        <div class="trove-img-overlay"></div>
+        <div class="trove-week locked">Week 2 — Locked</div>
+      </div>
+      <div>
+        <div class="trove-status"><div class="status-dot locked"></div><span class="status-text locked">Unlocks Monday — Week 2</span></div>
+        <p class="trove-number">Treasure Trove 02</p>
+        <h2 class="trove-title">Produce the <span class="accent">Evidence Song</span></h2>
+        <p class="trove-teaser">"The truth is hidden in the music. Write the song that only a true Detective Recruit could write — one that weaves the clues into every verse, every chorus, every beat."</p>
+        <ul class="trove-steps">
+          <li><div class="step-num">1</div><div class="step-text">Write multilingual song lyrics in English, Korean, and Spanish. The lyrics must weave in the clues collected from Treasure Trove 01 and the investigation briefings.</div></li>
+          <li><div class="step-num">2</div><div class="step-text">Use an AI music generation tool to produce a complete track for your song. The musical style must reflect K-Pop genre conventions.</div></li>
+          <li><div class="step-num">3</div><div class="step-text">Create a music video — either AI-generated visuals or a recorded performance — that brings the song to life.</div></li>
+          <li><div class="step-num">4</div><div class="step-text">Submit your lyrics, audio track, and video link through the portal for AI rubric scoring.</div></li>
+        </ul>
+        <div class="trove-points">
+          <span class="point-chip chip-crimson">Lyrics — Up to 30 pts</span>
+          <span class="point-chip chip-amber">Music Track — Up to 30 pts</span>
+          <span class="point-chip chip-purple">Music Video — Up to 30 pts</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="trove-section">
+  <div class="trove-inner">
+    <div class="trove-grid">
+      <div class="trove-img">
+        <img src="/assets/images/icon_trove3.png" alt="Treasure Trove 03" />
+        <div class="trove-img-overlay"></div>
+        <div class="trove-week locked">Week 3 — Locked</div>
+      </div>
+      <div>
+        <div class="trove-status"><div class="status-dot locked"></div><span class="status-text locked">Unlocks Monday — Week 3</span></div>
+        <p class="trove-number">Treasure Trove 03</p>
+        <h2 class="trove-title">Teach the Case — <span class="accent">AI Lesson Plan</span></h2>
+        <p class="trove-teaser">"The best investigators don't just solve cases — they teach others how to think. Design a lesson that brings the investigation into the classroom and proves you have mastered the AI tools."</p>
+        <ul class="trove-steps">
+          <li><div class="step-num">1</div><div class="step-text">Unpack an ELA standard and identify a sub-skill. Design an AI-integrated lesson plan that connects K-Pop culture to classroom learning for K-8 students.</div></li>
+          <li><div class="step-num">2</div><div class="step-text">The lesson must incorporate Korean and Spanish language elements, reference the investigation narrative, and include at least one AI tool students will use.</div></li>
+          <li><div class="step-num">3</div><div class="step-text">Your team performs a cultural dance that connects to the lesson's cultural theme. Submit a video link of the performance.</div></li>
+          <li><div class="step-num">4</div><div class="step-text">Submit your lesson plan document and performance video for AI rubric scoring. The final clues to the saboteur's identity are embedded in this Treasure Trove.</div></li>
+        </ul>
+        <div class="trove-points">
+          <span class="point-chip chip-crimson">Lesson Plan — Up to 50 pts</span>
+          <span class="point-chip chip-amber">Performance — Up to 50 pts</span>
+          <span class="point-chip chip-purple">Final Clues Unlocked</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>
+  <div class="footer-inner">
+    <a href="/" class="footer-logo"><span>TOP</span>KPOP.IO</a>
+    <div class="footer-links">
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/suspects">Suspects</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+    </div>
+  </div>
+  <p class="footer-copy">&copy; 2025 Top K-Pop Entertainment &middot; AI Super Sleuth &middot; Phase 1 Design Preview</p>
+</footer>
 </body>
 </html>
