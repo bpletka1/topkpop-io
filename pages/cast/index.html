@@ -127,13 +127,13 @@
     .char-img-wrap {
       position: relative;
       overflow: hidden;
-      height: 320px;
+      height: 360px;
     }
     .char-img-wrap img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: top center;
+      object-position: center 15%;
       transition: transform 0.4s;
     }
     .char-card:hover .char-img-wrap img {
@@ -211,7 +211,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: top center;
+      object-position: center 15%;
     }
     .ceo-body {
       padding: 36px 36px 36px 0;
@@ -267,7 +267,7 @@
       .ceo-body { padding: 24px; }
       .cast-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
       .cast-grid.two-col { grid-template-columns: 1fr; }
-      .char-img-wrap { height: 240px; }
+      .char-img-wrap { height: 280px; }
     }
     @media (max-width: 480px) {
       .cast-grid { grid-template-columns: 1fr; }

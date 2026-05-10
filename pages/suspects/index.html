@@ -11,7 +11,7 @@
     .suspects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1200px; margin: 0 auto; padding: 0 40px 80px; }
     .suspect-card { position: relative; border-radius: 8px; overflow: hidden; background: var(--dark); border: 1px solid rgba(230,0,92,0.15); transition: border-color 0.3s, transform 0.3s; }
     .suspect-card:hover { border-color: rgba(230,0,92,0.6); transform: translateY(-4px); box-shadow: 0 0 30px rgba(230,0,92,0.2); }
-    .suspect-img { width: 100%; height: 320px; object-fit: cover; display: block; filter: saturate(1.1); transition: filter 0.3s; }
+    .suspect-img { width: 100%; height: 360px; object-fit: cover; object-position: center 15%; display: block; filter: saturate(1.1); transition: filter 0.3s; }
     .suspect-card:hover .suspect-img { filter: saturate(1.3) brightness(1.05); }
     .suspect-info { padding: 24px; }
     .suspect-number { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.35em; color: var(--amber); text-transform: uppercase; margin-bottom: 6px; }
@@ -29,7 +29,7 @@
     .supporting-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 40px; }
     .supporting-card { border-radius: 8px; overflow: hidden; background: var(--dark); border: 1px solid rgba(138,43,226,0.15); transition: border-color 0.3s, transform 0.3s; }
     .supporting-card:hover { border-color: rgba(138,43,226,0.5); transform: translateY(-4px); }
-    .supporting-img { width: 100%; height: 260px; object-fit: cover; display: block; filter: saturate(1.0) brightness(0.9); }
+    .supporting-img { width: 100%; height: 300px; object-fit: cover; object-position: center 15%; display: block; filter: saturate(1.0) brightness(0.9); }
     .supporting-info { padding: 20px; }
     .supporting-name { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1rem; text-transform: uppercase; color: #fff; margin-bottom: 4px; }
     .supporting-role { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.2em; color: #b06aff; text-transform: uppercase; margin-bottom: 12px; }
