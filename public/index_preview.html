@@ -31,8 +31,7 @@
       position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
       background: rgba(255,191,0,0.95); color: #0B0C10;
       text-align: center; padding: 8px 20px;
-      font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.2em;
-      text-transform: uppercase;
+      font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
     }
 
     /* NAV */
@@ -49,6 +48,8 @@
     .nav-links a { font-family: 'Syncopate', sans-serif; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--silver); text-decoration: none; transition: color 0.2s; }
     .nav-links a:hover { color: var(--crimson); }
     .nav-cta { background: var(--crimson); color: #fff !important; padding: 8px 20px; border-radius: 3px; font-size: 0.58rem !important; letter-spacing: 0.2em !important; box-shadow: var(--glow-r); }
+    .nav-hamburger { display: none; flex-direction: column; gap: 6px; cursor: pointer; background: none; border: none; padding: 8px; z-index: 1001; }
+    .nav-hamburger span { display: block; width: 26px; height: 2px; background: #E0E0E0; border-radius: 2px; }
 
     /* HERO */
     #hero {
@@ -56,32 +57,41 @@
       display: flex; align-items: center; justify-content: center; text-align: center;
       overflow: hidden; padding-top: 106px;
     }
-    .hero-bg {
-      position: absolute; inset: 0;
-      background: url('/assets/images/hero_bg.jpg') center center / cover no-repeat;
-      filter: brightness(0.85) saturate(1.1);
-    }
+    .hero-bg { position: absolute; inset: 0; background: url('/assets/images/hero_bg.jpg') center center / cover no-repeat; filter: brightness(0.85) saturate(1.1); }
     .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(11,12,16,0.45) 0%, rgba(11,12,16,0.6) 60%, rgba(11,12,16,0.92) 100%); }
-    .hero-content { position: relative; z-index: 2; max-width: 860px; padding: 0 24px; animation: fadeUp 1s ease both; }
+    .hero-content { position: relative; z-index: 2; max-width: 900px; padding: 0 24px; animation: fadeUp 1s ease both; }
     .hero-eyebrow { font-family: 'Syncopate', sans-serif; font-size: 0.62rem; letter-spacing: 0.4em; color: var(--crimson); text-transform: uppercase; margin-bottom: 20px; }
     .hero-title { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: clamp(2.4rem, 7vw, 5.2rem); text-transform: uppercase; letter-spacing: 0.04em; color: #fff; line-height: 1.05; margin-bottom: 24px; text-shadow: 0 0 60px rgba(230,0,92,0.3); }
     .hero-title .accent { color: var(--crimson); }
     .hero-subtitle { font-family: 'Playfair Display', serif; font-style: italic; font-size: clamp(1rem, 2vw, 1.25rem); color: rgba(224,224,224,0.85); max-width: 640px; margin: 0 auto 28px; line-height: 1.7; }
     .hero-stat { display: inline-block; font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.35em; color: var(--amber); border: 1px solid rgba(255,191,0,0.4); padding: 8px 24px; border-radius: 2px; margin-bottom: 36px; text-transform: uppercase; }
     .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-    .btn-primary { background: var(--crimson); color: #fff; padding: 14px 32px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; box-shadow: var(--glow-r); transition: box-shadow 0.3s, transform 0.2s; }
+    .btn-primary { background: var(--crimson); color: #fff; padding: 14px 32px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; box-shadow: var(--glow-r); transition: box-shadow 0.3s, transform 0.2s; border: none; cursor: pointer; }
     .btn-primary:hover { box-shadow: 0 0 30px #E6005Ccc; transform: translateY(-2px); }
-    .btn-secondary { background: transparent; color: #fff; padding: 14px 32px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); transition: border-color 0.3s; }
-    .btn-secondary:hover { border-color: var(--crimson); color: var(--crimson); }
+    .btn-secondary { background: transparent; color: #fff; padding: 14px 32px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); transition: border-color 0.3s, color 0.3s; }
+    .btn-secondary:hover { border-color: var(--amber); color: var(--amber); }
+    .btn-outline-amber { background: transparent; color: var(--amber); padding: 14px 32px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; border: 1px solid rgba(255,191,0,0.5); transition: border-color 0.3s, box-shadow 0.3s; }
+    .btn-outline-amber:hover { border-color: var(--amber); box-shadow: var(--glow-a); }
 
     /* STATS BAR */
-    .stats-bar {
-      background: var(--dark); border-top: 1px solid rgba(230,0,92,0.2); border-bottom: 1px solid rgba(230,0,92,0.2);
-      padding: 48px 40px;
-    }
+    .stats-bar { background: var(--dark); border-top: 1px solid rgba(230,0,92,0.2); border-bottom: 1px solid rgba(230,0,92,0.2); padding: 48px 40px; }
     .stats-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; text-align: center; }
     .stat-num { font-family: 'Syncopate', sans-serif; font-size: clamp(2rem,5vw,3.2rem); font-weight: 700; color: var(--crimson); display: block; text-shadow: var(--glow-r); }
     .stat-label { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.25em; color: rgba(224,224,224,0.6); text-transform: uppercase; margin-top: 6px; display: block; }
+
+    /* SOCIAL PROOF QUOTE */
+    .quote-section {
+      background: linear-gradient(135deg, rgba(11,12,16,0.98) 0%, rgba(20,14,30,0.98) 100%);
+      border-top: 1px solid rgba(138,43,226,0.2); border-bottom: 1px solid rgba(138,43,226,0.2);
+      padding: 70px 40px;
+    }
+    .quote-inner { max-width: 860px; margin: 0 auto; display: flex; gap: 40px; align-items: flex-start; }
+    .quote-bar { width: 4px; min-height: 120px; background: linear-gradient(to bottom, var(--crimson), var(--purple)); border-radius: 2px; flex-shrink: 0; box-shadow: var(--glow-r); }
+    .quote-body { flex: 1; }
+    .quote-label { font-family: 'Syncopate', sans-serif; font-size: 0.52rem; letter-spacing: 0.35em; color: var(--crimson); text-transform: uppercase; margin-bottom: 18px; }
+    .quote-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: clamp(1.1rem,2.2vw,1.5rem); color: rgba(224,224,224,0.92); line-height: 1.75; margin-bottom: 20px; }
+    .quote-attribution { font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.2em; color: rgba(224,224,224,0.45); text-transform: uppercase; }
+    .quote-attribution strong { color: var(--amber); }
 
     /* VIDEO */
     .video-section { background: #080909; padding: 80px 40px; text-align: center; }
@@ -92,7 +102,7 @@
     .video-frame-inner { padding-top: 56.25%; position: relative; }
     .video-frame iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-    /* AUDIENCE — COMPRESSED */
+    /* AUDIENCE */
     .audience-section {
       background: linear-gradient(135deg, rgba(138,43,226,0.1) 0%, rgba(230,0,92,0.07) 50%, rgba(255,191,0,0.05) 100%);
       border-top: 1px solid rgba(138,43,226,0.2); border-bottom: 1px solid rgba(230,0,92,0.2);
@@ -108,40 +118,26 @@
     .badge-amber { background: rgba(255,191,0,0.08); border: 1px solid rgba(255,191,0,0.3); color: var(--amber); }
     .badge-amber .dot { width:8px; height:8px; border-radius:50%; background:var(--amber); }
     .audience-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
-    .audience-card { background: rgba(15,16,22,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 24px 22px; }
-    .audience-card-role { font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 10px; }
-    .audience-card-title { font-family: 'Syncopate', sans-serif; font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
-    .audience-card-desc { font-size: 0.82rem; line-height: 1.65; color: rgba(224,224,224,0.7); }
-    .audience-card-outcome { font-size: 0.78rem; color: var(--amber); margin-top: 12px; font-style: italic; }
+    .audience-card { background: rgba(15,16,22,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 28px 24px; transition: border-color 0.3s; }
+    .audience-card:hover { border-color: rgba(230,0,92,0.3); }
+    .audience-card-role { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 10px; }
+    .audience-card-title { font-family: 'Syncopate', sans-serif; font-size: 0.82rem; font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .audience-card-desc { font-size: 0.82rem; line-height: 1.65; color: rgba(224,224,224,0.7); margin-bottom: 14px; }
+    .audience-card-outcome { font-size: 0.78rem; color: var(--amber); font-style: italic; border-top: 1px solid rgba(255,191,0,0.15); padding-top: 12px; }
 
-    /* 32-DAY TIMELINE */
+    /* TIMELINE */
     .timeline-section { background: var(--black); padding: 80px 40px; }
     .timeline-inner { max-width: 1060px; margin: 0 auto; }
-    .timeline-track {
-      display: grid; grid-template-columns: repeat(4,1fr);
-      gap: 0; position: relative; margin-top: 52px;
-    }
-    .timeline-track::before {
-      content: ''; position: absolute; top: 28px; left: 12.5%; right: 12.5%;
-      height: 2px; background: linear-gradient(to right, var(--crimson), var(--purple), var(--amber), var(--crimson));
-      box-shadow: 0 0 12px rgba(230,0,92,0.4);
-    }
+    .timeline-track { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; position: relative; margin-top: 52px; }
+    .timeline-track::before { content: ''; position: absolute; top: 28px; left: 12.5%; right: 12.5%; height: 2px; background: linear-gradient(to right, var(--crimson), var(--purple), var(--amber), gold); box-shadow: 0 0 12px rgba(230,0,92,0.4); }
     .timeline-node { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 12px; position: relative; }
-    .timeline-dot {
-      width: 56px; height: 56px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem; position: relative; z-index: 2; margin-bottom: 18px;
-      border: 2px solid; transition: box-shadow 0.3s;
-    }
+    .timeline-dot { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; position: relative; z-index: 2; margin-bottom: 18px; border: 2px solid; }
     .dot-crimson { background: rgba(230,0,92,0.15); border-color: var(--crimson); box-shadow: 0 0 20px rgba(230,0,92,0.4); }
     .dot-purple  { background: rgba(138,43,226,0.15); border-color: var(--purple); box-shadow: 0 0 20px rgba(138,43,226,0.4); }
     .dot-amber   { background: rgba(255,191,0,0.12); border-color: var(--amber); box-shadow: 0 0 20px rgba(255,191,0,0.4); }
     .dot-gold    { background: rgba(255,215,0,0.15); border-color: gold; box-shadow: 0 0 20px rgba(255,215,0,0.5); }
     .timeline-week { font-family: 'Syncopate', sans-serif; font-size: 0.52rem; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 6px; }
-    .timeline-week.w1 { color: var(--crimson); }
-    .timeline-week.w2 { color: var(--purple); }
-    .timeline-week.w3 { color: var(--amber); }
-    .timeline-week.w4 { color: gold; }
+    .w1 { color: var(--crimson); } .w2 { color: var(--purple); } .w3 { color: var(--amber); } .w4 { color: gold; }
     .timeline-event { font-family: 'Syncopate', sans-serif; font-size: 0.68rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
     .timeline-detail { font-size: 0.76rem; color: rgba(224,224,224,0.6); line-height: 1.5; }
     .timeline-days { display: inline-block; margin-top: 8px; font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.2em; padding: 3px 10px; border-radius: 2px; text-transform: uppercase; }
@@ -150,6 +146,20 @@
     .days-amber   { background: rgba(255,191,0,0.1); border: 1px solid rgba(255,191,0,0.3); color: var(--amber); }
     .days-gold    { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); color: gold; }
 
+    /* WHITE PAPER STRIP */
+    .whitepaper-strip {
+      background: linear-gradient(135deg, rgba(138,43,226,0.12) 0%, rgba(230,0,92,0.08) 100%);
+      border-top: 1px solid rgba(138,43,226,0.25); border-bottom: 1px solid rgba(230,0,92,0.2);
+      padding: 44px 40px;
+    }
+    .whitepaper-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+    .whitepaper-text h3 { font-family: 'Syncopate', sans-serif; font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .whitepaper-text p { font-size: 0.85rem; color: rgba(224,224,224,0.65); line-height: 1.6; max-width: 500px; }
+    .whitepaper-stats { display: flex; gap: 28px; flex-wrap: wrap; }
+    .wp-stat { text-align: center; }
+    .wp-stat-num { font-family: 'Syncopate', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--amber); display: block; }
+    .wp-stat-label { font-size: 0.7rem; color: rgba(224,224,224,0.5); display: block; margin-top: 2px; }
+
     /* REGISTER */
     #register {
       position: relative; padding: 100px 40px;
@@ -157,41 +167,38 @@
       border-top: 1px solid rgba(230,0,92,0.2); text-align: center;
     }
     .register-title { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: clamp(1.6rem,4vw,2.8rem); text-transform: uppercase; letter-spacing: 0.04em; color: #fff; margin-bottom: 16px; }
-    .register-desc { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: rgba(224,224,224,0.75); max-width: 580px; margin: 0 auto 36px; line-height: 1.7; }
-    .register-form { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; max-width: 700px; margin: 0 auto 20px; }
-    .register-form input { flex: 1; min-width: 200px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; padding: 14px 18px; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
-    .register-form input:focus { border-color: var(--crimson); }
+    .register-desc { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: rgba(224,224,224,0.75); max-width: 580px; margin: 0 auto 40px; line-height: 1.7; }
+    .register-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 760px; margin: 0 auto 16px; text-align: left; }
+    .register-form input,
+    .register-form select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; padding: 14px 18px; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.88rem; outline: none; transition: border-color 0.2s; width: 100%; }
+    .register-form input:focus,
+    .register-form select:focus { border-color: var(--crimson); }
     .register-form input::placeholder { color: rgba(255,255,255,0.35); }
-    .register-note { font-size: 0.8rem; color: rgba(224,224,224,0.45); margin-top: 14px; }
-    .contact-line { margin-top: 24px; font-size: 0.82rem; color: rgba(224,224,224,0.5); }
+    .register-form select { color: rgba(255,255,255,0.55); appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+    .register-form select option { background: #111318; color: #fff; }
+    .register-form-full { grid-column: 1 / -1; }
+    .register-submit { grid-column: 1 / -1; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+    .register-note { font-size: 0.8rem; color: rgba(224,224,224,0.4); margin-top: 14px; }
+    .contact-line { margin-top: 18px; font-size: 0.82rem; color: rgba(224,224,224,0.45); }
     .contact-line a { color: var(--amber); text-decoration: none; }
     .contact-line a:hover { text-decoration: underline; }
 
     /* FOOTER */
-    footer {
-      background: #080909; border-top: 1px solid rgba(255,255,255,0.06);
-      padding: 60px 40px 0;
-      display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px;
-    }
+    footer { background: #080909; border-top: 1px solid rgba(255,255,255,0.06); padding: 60px 40px 0; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; }
     .footer-brand p { font-size: 0.82rem; color: rgba(224,224,224,0.5); margin-top: 14px; line-height: 1.7; max-width: 280px; }
     .footer-links h4 { font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--crimson); margin-bottom: 18px; }
     .footer-links ul { list-style: none; }
     .footer-links li { margin-bottom: 10px; }
     .footer-links a { font-size: 0.82rem; color: rgba(224,224,224,0.5); text-decoration: none; transition: color 0.2s; }
     .footer-links a:hover { color: var(--crimson); }
-    .footer-bottom {
-      grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,0.06);
-      padding: 24px 0 28px;
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 12px;
-    }
-    .footer-bottom-left { display: flex; flex-direction: column; gap: 6px; }
+    .footer-bottom { grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,0.06); padding: 24px 0 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .footer-bottom-left { display: flex; flex-direction: column; gap: 5px; }
     .footer-copyright { font-size: 0.75rem; color: rgba(224,224,224,0.3); }
-    .footer-blockchain { font-size: 0.7rem; color: rgba(224,224,224,0.22); font-style: italic; }
+    .footer-blockchain { font-size: 0.7rem; color: rgba(224,224,224,0.2); font-style: italic; }
     .footer-bottom-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
     .footer-phase { font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.2em; color: var(--amber); border: 1px solid rgba(255,191,0,0.3); padding: 4px 12px; border-radius: 2px; text-transform: uppercase; }
-    .footer-admin { font-size: 0.62rem; color: rgba(255,255,255,0.22); text-decoration: none; letter-spacing: 0.1em; transition: color 0.3s; border: 1px solid rgba(255,255,255,0.1); padding: 5px 14px; border-radius: 2px; }
-    .footer-admin:hover { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.25); }
+    .footer-admin { font-size: 0.62rem; color: rgba(255,255,255,0.3); text-decoration: none; letter-spacing: 0.1em; transition: color 0.3s, border-color 0.3s; border: 1px solid rgba(255,255,255,0.15); padding: 6px 16px; border-radius: 2px; }
+    .footer-admin:hover { color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.35); }
 
     @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
 
@@ -200,9 +207,18 @@
       .audience-grid { grid-template-columns: 1fr; }
       .timeline-track { grid-template-columns: 1fr; gap: 32px; }
       .timeline-track::before { display: none; }
+      .register-form { grid-template-columns: 1fr; }
+      .whitepaper-inner { flex-direction: column; }
       footer { grid-template-columns: 1fr; gap: 32px; }
       .footer-bottom { flex-direction: column; align-items: flex-start; }
       .footer-bottom-right { align-items: flex-start; }
+      .nav-links { display: none !important; }
+      .nav-links.open { display: flex !important; flex-direction: column; position: fixed; top: 106px; left: 0; right: 0; background: rgba(11,12,16,0.98); padding: 32px 24px 40px; gap: 0; border-bottom: 1px solid rgba(230,0,92,0.2); z-index: 9999; list-style: none; }
+      .nav-links.open li { border-bottom: 1px solid rgba(255,255,255,0.05); }
+      .nav-links.open a { display: block; padding: 16px 0; font-size: 0.75rem; letter-spacing: 0.2em; color: #E0E0E0; text-decoration: none; }
+      .nav-hamburger { display: flex; }
+      .quote-inner { flex-direction: column; gap: 20px; }
+      .quote-bar { width: 100%; height: 4px; min-height: unset; }
     }
   </style>
 </head>
@@ -223,6 +239,7 @@
     <li><a href="/pages/how-it-works">How It Works</a></li>
     <li><a href="#register" class="nav-cta">Register</a></li>
   </ul>
+  <button class="nav-hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
 </nav>
 
 <!-- HERO -->
@@ -232,13 +249,11 @@
   <div class="hero-content">
     <p class="hero-eyebrow">Top K-Pop Entertainment &nbsp;·&nbsp; AI Super Sleuth</p>
     <h1 class="hero-title">The Debut Is<br><span class="accent">In Danger.</span></h1>
-    <p class="hero-subtitle">
-      71 million subscribers are waiting. Someone inside Top K-Pop Entertainment has sabotaged the debut.
-      You are the Detective Recruit. Use AI to uncover the truth.
-    </p>
+    <p class="hero-subtitle">71 million subscribers are waiting. Someone inside Top K-Pop Entertainment has sabotaged the debut. You are the Detective Recruit. Use AI to uncover the truth.</p>
     <div class="hero-stat">Sabotage Detected — Investigation Open</div>
     <div class="hero-buttons">
       <a href="#register" class="btn-primary">Register as a Super Sleuth</a>
+      <a href="/assets/TopKpopWhitePaperEducatorPD.pdf" target="_blank" class="btn-outline-amber">Download the White Paper</a>
       <a href="/pages/the-case" class="btn-secondary">Read the Case File</a>
     </div>
   </div>
@@ -262,6 +277,18 @@
   </div>
 </div>
 
+<!-- SOCIAL PROOF QUOTE -->
+<section class="quote-section">
+  <div class="quote-inner">
+    <div class="quote-bar"></div>
+    <div class="quote-body">
+      <p class="quote-label">Pilot Program — Fullerton Unified School District</p>
+      <p class="quote-text">&ldquo;We couldn&rsquo;t stop. Teachers kept resubmitting just to get a better score &mdash; not because they had to, but because they wanted to. By the end we knew our teammates in a completely different way. We gained confidence we didn&rsquo;t expect.&rdquo;</p>
+      <p class="quote-attribution"><strong>K&ndash;6 Teachers</strong> &nbsp;&middot;&nbsp; Fullerton Unified School District &nbsp;&middot;&nbsp; Pilot Cohort</p>
+    </div>
+  </div>
+</section>
+
 <!-- INTRO VIDEO -->
 <section class="video-section">
   <p class="section-eyebrow">Recruitment Briefing</p>
@@ -279,7 +306,7 @@
   </div>
 </section>
 
-<!-- AUDIENCE — COMPRESSED 3 CARDS -->
+<!-- AUDIENCE — 3 COMPRESSED CARDS -->
 <section class="audience-section">
   <div class="audience-inner">
     <p class="section-eyebrow" style="text-align:center; color:var(--amber);">Designed For Educators</p>
@@ -294,20 +321,20 @@
       <div class="audience-card">
         <p class="audience-card-role">For Teachers</p>
         <p class="audience-card-title">Classroom Educators</p>
-        <p class="audience-card-desc">Leave with a complete AI-integrated lesson plan, a scored K-Pop avatar portfolio, and a multilingual evidence song — all built during the game.</p>
-        <p class="audience-card-outcome">You leave with: 3 AI artifacts + lesson plan</p>
+        <p class="audience-card-desc">Leave with a complete AI-integrated lesson plan, a scored K-Pop avatar portfolio, and a multilingual evidence song — all built during the game. The Oracle of the Rubric gives you formative feedback at every step.</p>
+        <p class="audience-card-outcome">You leave with: 3 AI artifacts + a standards-aligned lesson plan</p>
       </div>
       <div class="audience-card">
         <p class="audience-card-role">For Principals</p>
         <p class="audience-card-title">School Leaders</p>
-        <p class="audience-card-desc">Gain calibrated context for evaluating teacher AI use — and a scalable, engaging way to build AI literacy across your entire instructional staff.</p>
-        <p class="audience-card-outcome">You leave with: AI evaluation framework</p>
+        <p class="audience-card-desc">Gain calibrated context for evaluating teacher AI use — and a scalable, engaging way to build AI literacy across your entire instructional staff. A team-building experience your staff will actually remember.</p>
+        <p class="audience-card-outcome">You leave with: AI evaluation framework + staff cohesion</p>
       </div>
       <div class="audience-card">
         <p class="audience-card-role">For Instructional Aides</p>
         <p class="audience-card-title">Support Staff</p>
-        <p class="audience-card-desc">Build a personal AI toolkit you can use immediately in the classroom — no prior tech experience required. The game teaches the tools as you play.</p>
-        <p class="audience-card-outcome">You leave with: Personal AI toolkit</p>
+        <p class="audience-card-desc">Build a personal AI toolkit you can use immediately in the classroom — no prior tech experience required. The game teaches the tools as you play, and your team is right beside you the whole way.</p>
+        <p class="audience-card-outcome">You leave with: Personal AI toolkit + new confidence</p>
       </div>
     </div>
   </div>
@@ -319,48 +346,53 @@
     <p class="section-eyebrow" style="text-align:center;">The Investigation Arc</p>
     <h2 class="section-title-lg" style="text-align:center;">32 Days. Three Troves. <span style="color:var(--crimson);">One Saboteur.</span></h2>
     <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:1rem; color:rgba(224,224,224,0.65); max-width:580px; margin:16px auto 0; line-height:1.7; text-align:center;">Each week a new Treasure Trove unlocks automatically. Complete all three missions — then name the saboteur. The team with the highest score AND the correct accusation wins.</p>
-
     <div class="timeline-track">
-
-      <!-- Week 1 -->
       <div class="timeline-node">
         <div class="timeline-dot dot-crimson">🎭</div>
         <p class="timeline-week w1">Week 1</p>
         <p class="timeline-event">Trove 01 Opens</p>
-        <p class="timeline-detail">K-Pop Identity<br>Create your AI avatar<br>& debut poster</p>
+        <p class="timeline-detail">K-Pop Identity<br>AI avatar &amp; debut poster</p>
         <span class="timeline-days days-crimson">Days 1–7</span>
       </div>
-
-      <!-- Week 2 -->
       <div class="timeline-node">
         <div class="timeline-dot dot-purple">🎵</div>
         <p class="timeline-week w2">Week 2</p>
         <p class="timeline-event">Trove 02 Opens</p>
-        <p class="timeline-detail">Evidence Song<br>Rewrite lyrics or create<br>an AI music track</p>
+        <p class="timeline-detail">Evidence Song<br>Rewrite lyrics or AI music</p>
         <span class="timeline-days days-purple">Days 8–14</span>
       </div>
-
-      <!-- Week 3 -->
       <div class="timeline-node">
         <div class="timeline-dot dot-amber">📚</div>
         <p class="timeline-week w3">Week 3</p>
         <p class="timeline-event">Trove 03 Opens</p>
-        <p class="timeline-detail">AI Lesson Plan<br>Unpack a standard using<br>cultural dance as context</p>
+        <p class="timeline-detail">AI Lesson Plan<br>Standards + cultural context</p>
         <span class="timeline-days days-amber">Days 15–21</span>
       </div>
-
-      <!-- Week 4 -->
       <div class="timeline-node">
         <div class="timeline-dot dot-gold">⚖️</div>
         <p class="timeline-week w4">Week 4</p>
         <p class="timeline-event">Final Accusation</p>
-        <p class="timeline-detail">Name the saboteur<br>Highest score + correct<br>accusation wins</p>
+        <p class="timeline-detail">Name the saboteur<br>Correct + highest score wins</p>
         <span class="timeline-days days-gold">Days 22–32</span>
       </div>
-
     </div>
+    <p style="text-align:center; margin-top:44px; font-size:0.8rem; color:rgba(224,224,224,0.35); font-style:italic;">You can lead the leaderboard and still lose. The accusation is everything.</p>
+  </div>
+</section>
 
-    <p style="text-align:center; margin-top:44px; font-size:0.8rem; color:rgba(224,224,224,0.4); font-style:italic;">You can lead the leaderboard and still lose. The accusation is everything.</p>
+<!-- WHITE PAPER STRIP -->
+<section class="whitepaper-strip">
+  <div class="whitepaper-inner">
+    <div class="whitepaper-text">
+      <h3>The Research Behind the Game</h3>
+      <p>Download the TopKpop.io Educator White Paper — the pedagogical framework, AI competency standards, and assessment design behind the K-Pop AI Super Sleuth experience.</p>
+    </div>
+    <div class="whitepaper-stats">
+      <div class="wp-stat"><span class="wp-stat-num">6+</span><span class="wp-stat-label">AI Tools</span></div>
+      <div class="wp-stat"><span class="wp-stat-num">32</span><span class="wp-stat-label">Days</span></div>
+      <div class="wp-stat"><span class="wp-stat-num">K–8</span><span class="wp-stat-label">Grade Levels</span></div>
+    </div>
+    <a href="/assets/TopKpopWhitePaperEducatorPD.pdf" target="_blank" class="btn-outline-amber" style="white-space:nowrap;">Download White Paper &rarr;</a>
   </div>
 </section>
 
@@ -369,13 +401,52 @@
   <p class="section-eyebrow">Join the Investigation</p>
   <h2 class="register-title">Ready to Become<br>a <span style="color:var(--crimson);">Super Sleuth?</span></h2>
   <p class="register-desc">Register your school team to receive access to the investigation portal, weekly mission drops, and the live leaderboard.</p>
+
   <div class="register-form">
-    <input type="text" placeholder="Your name / team name" />
-    <input type="email" placeholder="School email address" />
-    <button class="btn-primary" style="white-space:nowrap; border:none; cursor:pointer;">Request Access</button>
+    <input type="text" placeholder="First &amp; Last Name *" />
+    <input type="email" placeholder="School Email Address *" />
+    <input type="text" placeholder="School Name *" />
+    <input type="text" placeholder="School District *" />
+    <input type="text" placeholder="Team Name (your K-Pop group name) *" />
+    <select>
+      <option value="" disabled selected>Grade Level(s) You Teach *</option>
+      <option>Kindergarten</option>
+      <option>1st Grade</option>
+      <option>2nd Grade</option>
+      <option>3rd Grade</option>
+      <option>4th Grade</option>
+      <option>5th Grade</option>
+      <option>6th Grade</option>
+      <option>7th Grade</option>
+      <option>8th Grade</option>
+      <option>Multiple Grades</option>
+      <option>Administration / Coach</option>
+    </select>
+    <select>
+      <option value="" disabled selected>Your Role *</option>
+      <option>Classroom Teacher</option>
+      <option>Instructional Aide</option>
+      <option>Principal / Vice Principal</option>
+      <option>Instructional Coach</option>
+      <option>District Administrator</option>
+      <option>Other</option>
+    </select>
+    <select>
+      <option value="" disabled selected>How did you hear about us?</option>
+      <option>Colleague / Word of Mouth</option>
+      <option>District PD Announcement</option>
+      <option>Social Media</option>
+      <option>Conference or Event</option>
+      <option>Email Newsletter</option>
+      <option>Other</option>
+    </select>
+    <div class="register-submit">
+      <button class="btn-primary">Request Access &rarr;</button>
+    </div>
   </div>
-  <p class="register-note">Game start date is set by the organizer. You'll receive a welcome email when your investigation begins.</p>
-  <p class="contact-line">Questions? Contact the organizer: <a href="mailto:bpletka@bcsleadership.com">bpletka@bcsleadership.com</a></p>
+
+  <p class="register-note">Game start date is set by the organizer. You will receive a welcome email from Anna Im, Lead Detective, when your investigation begins.</p>
+  <p class="contact-line">Questions? Contact the organizer: <a href="mailto:bpletka@bcsleadership.org">bpletka@bcsleadership.org</a></p>
 </section>
 
 <!-- FOOTER -->
@@ -399,8 +470,8 @@
     <ul>
       <li><a href="/pages/resources">Game Rules &amp; FAQ</a></li>
       <li><a href="/pages/resources">AI Tools for Teachers</a></li>
-      <li><a href="/pages/resources">White Paper Download</a></li>
-      <li><a href="/pages/emails">Email Templates</a></li>
+      <li><a href="/assets/TopKpopWhitePaperEducatorPD.pdf" target="_blank">White Paper Download</a></li>
+      <li><a href="mailto:bpletka@bcsleadership.org">Contact Organizer</a></li>
     </ul>
   </div>
   <div class="footer-bottom">
