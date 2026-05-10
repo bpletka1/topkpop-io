@@ -54,8 +54,8 @@ nav {
   text-decoration: none; transition: box-shadow 0.2s;
 }
 .nav-cta:hover { box-shadow: var(--glow-r); }
-.nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
-.nav-hamburger span { width: 24px; height: 2px; background: var(--silver); }
+.nav-hamburger { display: none; flex-direction: column; gap: 6px; cursor: pointer; background: none; border: none; padding: 8px; z-index: 1001; }
+.nav-hamburger span { display: block; width: 26px; height: 2px; background: var(--silver); border-radius: 2px; }
 
 /* ===== PAGE HERO ===== */
 .page-hero {
