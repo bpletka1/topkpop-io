@@ -221,9 +221,14 @@
               <th>Team Name</th>
               <th>School / Org</th>
               <th>Trove 01</th>
+              <th>T01 Pts</th>
               <th>Trove 02</th>
+              <th>T02 Pts</th>
               <th>Trove 03</th>
-              <th>Score</th>
+              <th>T03 Pts</th>
+              <th>Accusation</th>
+              <th>Total</th>
+              <th>Next Step</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -232,31 +237,46 @@
               <td><span class="team-name">Neon Detectives</span></td>
               <td>Lincoln Elementary</td>
               <td><span class="trove-dot done"></span> Scored</td>
+              <td style="color:#00B464;">285</td>
               <td><span class="trove-dot pending"></span> Pending</td>
+              <td style="color:rgba(255,191,0,0.5);">—</td>
               <td><span class="trove-dot none"></span> —</td>
+              <td style="color:rgba(224,224,224,0.3);">—</td>
+              <td style="color:rgba(224,224,224,0.35); font-style:italic; font-size:0.8rem;">Not submitted</td>
               <td><span class="team-score">285</span></td>
+              <td style="font-size:0.8rem; color:var(--amber);">Await T02 Oracle score</td>
               <td><button class="team-action">View</button></td>
             </tr>
             <tr>
               <td><span class="team-name">K-Pop Sleuths</span></td>
               <td>Jefferson Middle</td>
               <td><span class="trove-dot done"></span> Scored</td>
+              <td style="color:#00B464;">190</td>
               <td><span class="trove-dot done"></span> Scored</td>
+              <td style="color:#00B464;">200</td>
               <td><span class="trove-dot none"></span> —</td>
+              <td style="color:rgba(224,224,224,0.3);">—</td>
+              <td style="color:rgba(224,224,224,0.35); font-style:italic; font-size:0.8rem;">Not submitted</td>
               <td><span class="team-score">390</span></td>
+              <td style="font-size:0.8rem; color:#b06aff;">Trove 03 unlocks Week 3</td>
               <td><button class="team-action">View</button></td>
             </tr>
             <tr>
               <td><span class="team-name">Stage Shadows</span></td>
               <td>Westview K-8</td>
               <td><span class="trove-dot done"></span> Scored</td>
+              <td style="color:#00B464;">180</td>
               <td><span class="trove-dot none"></span> —</td>
+              <td style="color:rgba(224,224,224,0.3);">—</td>
               <td><span class="trove-dot none"></span> —</td>
+              <td style="color:rgba(224,224,224,0.3);">—</td>
+              <td style="color:rgba(224,224,224,0.35); font-style:italic; font-size:0.8rem;">Not submitted</td>
               <td><span class="team-score">180</span></td>
+              <td style="font-size:0.8rem; color:var(--crimson);">Submit Trove 02 now</td>
               <td><button class="team-action">View</button></td>
             </tr>
             <tr>
-              <td colspan="7" style="text-align:center; padding:20px; color:rgba(224,224,224,0.2); font-style:italic; font-size:0.82rem;">Sample data — live team records will appear here in Phase 3</td>
+              <td colspan="12" style="text-align:center; padding:20px; color:rgba(224,224,224,0.2); font-style:italic; font-size:0.82rem;">Sample data — live team records will appear here in Phase 3</td>
             </tr>
           </tbody>
         </table>
@@ -393,6 +413,10 @@
           <a href="/" target="_blank" style="display:block; padding:20px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:6px; text-decoration:none; text-align:center;">
             <p style="font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.15em; color:rgba(224,224,224,0.6); text-transform:uppercase; margin-bottom:6px;">Home Page</p>
             <p style="font-size:0.78rem; color:rgba(224,224,224,0.4);">View public site</p>
+          </a>
+          <a href="/pages/emails" target="_blank" style="display:block; padding:20px; background:rgba(0,180,100,0.07); border:1px solid rgba(0,180,100,0.2); border-radius:6px; text-decoration:none; text-align:center; grid-column: span 3;">
+            <p style="font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.15em; color:#00B464; text-transform:uppercase; margin-bottom:6px;">Email Templates</p>
+            <p style="font-size:0.78rem; color:rgba(224,224,224,0.4);">Preview all 6 automated emails &mdash; Welcome, Trove 01&ndash;03, Reminder, Winner Reveal</p>
           </a>
         </div>
       </div>

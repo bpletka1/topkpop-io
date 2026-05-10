@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Templates — TopKpop.io Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .emails-wrap { max-width: 900px; margin: 0 auto; padding: 60px 40px 100px; }
+    .email-card { background: rgba(15,16,22,0.85); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 28px 32px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 24px; transition: border-color 0.2s; }
+    .email-card:hover { border-color: rgba(230,0,92,0.3); }
+    .email-num { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1.8rem; color: rgba(224,224,224,0.15); min-width: 48px; }
+    .email-info { flex: 1; }
+    .email-trigger { font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 6px; }
+    .email-title { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; margin-bottom: 6px; }
+    .email-desc { font-size: 0.85rem; color: rgba(224,224,224,0.55); line-height: 1.5; }
+    .email-actions { display: flex; gap: 12px; flex-shrink: 0; }
+    .btn-preview { padding: 10px 20px; background: rgba(230,0,92,0.12); border: 1px solid rgba(230,0,92,0.3); border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.15em; text-transform: uppercase; color: #E6005C; text-decoration: none; transition: all 0.2s; }
+    .btn-preview:hover { background: rgba(230,0,92,0.2); }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .dot-auto { background: #00B464; }
+    .dot-day { background: #FFBF00; }
+    @media (max-width: 700px) {
+      .email-card { flex-direction: column; align-items: flex-start; }
+      .email-actions { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
+  <ul class="nav-links">
+    <li><a href="/pages/the-case">The Case</a></li>
+    <li><a href="/pages/suspects">Suspects</a></li>
+    <li><a href="/pages/missions">Missions</a></li>
+    <li><a href="/pages/leaderboard">Leaderboard</a></li>
+    <li><a href="/pages/how-it-works">How It Works</a></li>
+    <li><a href="/pages/resources">Resources</a></li>
+  </ul>
+  <a href="/#register" class="nav-cta">Register</a>
+</nav>
+
+<div class="page-hero" style="height:32vh; min-height:240px;">
+  <div class="page-hero-bg" style="background-image: url('/assets/images/hero_bg.jpg');"></div>
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Organizer Access &nbsp;&middot;&nbsp; Email System</p>
+    <h1 class="page-title">Email <span class="accent">Templates</span></h1>
+  </div>
+</div>
+
+<div class="emails-wrap">
+  <p class="section-label">Automated Email Sequence</p>
+  <h2 class="section-title">6 Emails. <span class="accent">Fully Automated.</span></h2>
+  <div class="section-divider"></div>
+  <p class="section-body" style="max-width:700px; margin-bottom:48px;">All six emails are stored here and ready to import into Mailchimp. Each email is triggered automatically by a participant action — registration, Trove submission, or a scheduled date. Click Preview to see exactly what participants will receive.</p>
+
+  <!-- Email 1 -->
+  <div class="email-card">
+    <span class="email-num">01</span>
+    <div class="email-info">
+      <p class="email-trigger" style="color:#00B464;"><span class="status-dot dot-auto"></span>Triggered: On Registration</p>
+      <p class="email-title">Welcome — Investigative Briefing</p>
+      <p class="email-desc">Sent immediately after a team registers. Covers how the game works, K-Pop idol roles (Singer, Rapper, Dancer, Visual, Leader), K-Pop prep resource links, game start date, and links to the Suspects and Missions pages.</p>
+    </div>
+    <div class="email-actions">
+      <a href="/pages/emails/email1_welcome" class="btn-preview" target="_blank">Preview</a>
+    </div>
+  </div>
+
+  <!-- Email 2 -->
+  <div class="email-card">
+    <span class="email-num">02</span>
+    <div class="email-info">
+      <p class="email-trigger" style="color:#00B464;"><span class="status-dot dot-auto"></span>Triggered: Trove 01 Submission Confirmed</p>
+      <p class="email-title">Trove 01 Complete — Identity Confirmed</p>
+      <p class="email-desc">Sent after the Oracle scores Trove 01. Shows the team's score, confirms their identity is logged, teases the Trove 02 poetic cipher, and links to the Missions page.</p>
+    </div>
+    <div class="email-actions">
+      <a href="/pages/emails/email2_trove01" class="btn-preview" target="_blank">Preview</a>
+    </div>
+  </div>
+
+  <!-- Email 3 -->
+  <div class="email-card">
+    <span class="email-num">03</span>
+    <div class="email-info">
+      <p class="email-trigger" style="color:#00B464;"><span class="status-dot dot-auto"></span>Triggered: Trove 02 Submission Confirmed</p>
+      <p class="email-title">Trove 02 Complete — Evidence Logged</p>
+      <p class="email-desc">Sent after the Oracle scores Trove 02. Shows running total score, teases the Trove 03 poetic cipher, reminds teams that clues are accumulating, and links to the Leaderboard.</p>
+    </div>
+    <div class="email-actions">
+      <a href="/pages/emails/email3_trove02" class="btn-preview" target="_blank">Preview</a>
+    </div>
+  </div>
+
+  <!-- Email 4 -->
+  <div class="email-card">
+    <span class="email-num">04</span>
+    <div class="email-info">
+      <p class="email-trigger" style="color:#00B464;"><span class="status-dot dot-auto"></span>Triggered: Trove 03 Submission Confirmed</p>
+      <p class="email-title">Trove 03 Complete — All Evidence Collected</p>
+      <p class="email-desc">Sent after the Oracle scores Trove 03. Shows final mission score, opens the Final Accusation phase, and critically reminds teams: highest score + correct accusation = winner. You can lose with the most points.</p>
+    </div>
+    <div class="email-actions">
+      <a href="/pages/emails/email4_trove03" class="btn-preview" target="_blank">Preview</a>
+    </div>
+  </div>
+
+  <!-- Email 5 -->
+  <div class="email-card">
+    <span class="email-num">05</span>
+    <div class="email-info">
+      <p class="email-trigger" style="color:#FFBF00;"><span class="status-dot dot-day"></span>Triggered: Day 30 (2 days before deadline)</p>
+      <p class="email-title">Reminder — Final Accusation Due Tomorrow</p>
+      <p class="email-desc">Sent automatically on Day 30. Urgent tone. Reminds teams of the deadline, their current score, and the win condition. Links to the Final Accusation form.</p>
+    </div>
+    <div class="email-actions">
+      <a href="/pages/emails/email5_reminder" class="btn-preview" target="_blank">Preview</a>
+    </div>
+  </div>
+
+  <!-- Email 6 -->
+  <div class="email-card">
+    <span class="email-num">06</span>
+    <div class="email-info">
+      <p class="email-trigger" style="color:#b06aff;"><span class="status-dot" style="background:#b06aff;"></span>Triggered: Day 32+ (Organizer Sends)</p>
+      <p class="email-title">Case Closed — The Saboteur Revealed</p>
+      <p class="email-desc">Sent by the organizer after all accusations are processed. Reveals the saboteur's identity, announces the winning team, and links to the final Leaderboard.</p>
+    </div>
+    <div class="email-actions">
+      <a href="/pages/emails/email6_winner" class="btn-preview" target="_blank">Preview</a>
+    </div>
+  </div>
+
+  <!-- Mailchimp Setup Note -->
+  <div style="margin-top:48px; padding:28px 32px; background:rgba(0,180,100,0.06); border:1px solid rgba(0,180,100,0.2); border-radius:8px;">
+    <p style="font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:#00B464; text-transform:uppercase; margin-bottom:12px;">Mailchimp Setup — How to Activate</p>
+    <ol style="font-size:0.88rem; line-height:1.75; color:rgba(224,224,224,0.7); padding-left:20px; margin:0;">
+      <li style="margin-bottom:8px;">Create a free Mailchimp account at <a href="https://mailchimp.com" target="_blank" style="color:#00B464;">mailchimp.com</a></li>
+      <li style="margin-bottom:8px;">Go to <strong style="color:#fff;">Campaigns → Email Templates → Create Template → Paste HTML</strong></li>
+      <li style="margin-bottom:8px;">Copy the HTML source from each Preview above and paste it into Mailchimp's HTML editor</li>
+      <li style="margin-bottom:8px;">Set the From Name to <strong style="color:#fff;">Anna Im, Lead Detective</strong> and the From Email to your game email address</li>
+      <li style="margin-bottom:8px;">In <strong style="color:#fff;">Automations</strong>, create a Customer Journey for each trigger (registration, form submission, date-based)</li>
+      <li>In Phase 3, the TopKpop.io portal will connect to Mailchimp via API and trigger all emails automatically</li>
+    </ol>
+  </div>
+
+  <div style="margin-top:24px; text-align:center;">
+    <a href="/pages/admin" style="display:inline-block; padding:12px 28px; background:rgba(230,0,92,0.12); border:1px solid rgba(230,0,92,0.3); border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.18em; text-transform:uppercase; color:#E6005C; text-decoration:none;">Back to Admin Dashboard</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <a href="/" class="footer-logo"><span>TOP</span>KPOP.IO</a>
+    <div class="footer-links">
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/suspects">Suspects</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+    </div>
+  </div>
+  <p class="footer-copy">&copy; 2025 Top K-Pop Entertainment &middot; Email Templates &middot; Organizer Access</p>
+</footer>
+</body>
+</html>
