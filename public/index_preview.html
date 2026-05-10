@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TopKpop.io — AI Super Sleuth [PREVIEW]</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:   #0B0C10;
+      --dark:    #111318;
+      --panel:   rgba(15,16,22,0.82);
+      --crimson: #E6005C;
+      --purple:  #8A2BE2;
+      --amber:   #FFBF00;
+      --silver:  #E0E0E0;
+      --muted:   #888;
+      --glow-r:  0 0 18px #E6005C99, 0 0 40px #E6005C44;
+      --glow-p:  0 0 18px #8A2BE299, 0 0 40px #8A2BE244;
+      --glow-a:  0 0 18px #FFBF0099, 0 0 40px #FFBF0044;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--silver); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--crimson); border-radius: 3px; }
+
+    /* PREVIEW BANNER */
+    .preview-banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+      background: rgba(255,191,0,0.95); color: #0B0C10;
+      text-align: center; padding: 8px 20px;
+      font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 36px; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; height: 70px;
+      background: rgba(11,12,16,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(230,0,92,0.25);
+    }
+    .nav-logo { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: 0.12em; color: #fff; text-decoration: none; }
+    .nav-logo span { color: var(--crimson); }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a { font-family: 'Syncopate', sans-serif; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--silver); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--crimson); }
+    .nav-cta { background: var(--crimson); color: #fff !important; padding: 8px 20px; border-radius: 3px; font-size: 0.58rem !important; letter-spacing: 0.2em !important; box-shadow: var(--glow-r); }
+
+    /* HERO */
+    #hero {
+      position: relative; height: 100vh; min-height: 700px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      overflow: hidden; padding-top: 106px;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: url('/assets/images/hero_bg.jpg') center center / cover no-repeat;
+      filter: brightness(0.85) saturate(1.1);
+    }
+    .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(11,12,16,0.45) 0%, rgba(11,12,16,0.6) 60%, rgba(11,12,16,0.92) 100%); }
+    .hero-content { position: relative; z-index: 2; max-width: 860px; padding: 0 24px; animation: fadeUp 1s ease both; }
+    .hero-eyebrow { font-family: 'Syncopate', sans-serif; font-size: 0.62rem; letter-spacing: 0.4em; color: var(--crimson); text-transform: uppercase; margin-bottom: 20px; }
+    .hero-title { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: clamp(2.4rem, 7vw, 5.2rem); text-transform: uppercase; letter-spacing: 0.04em; color: #fff; line-height: 1.05; margin-bottom: 24px; text-shadow: 0 0 60px rgba(230,0,92,0.3); }
+    .hero-title .accent { color: var(--crimson); }
+    .hero-subtitle { font-family: 'Playfair Display', serif; font-style: italic; font-size: clamp(1rem, 2vw, 1.25rem); color: rgba(224,224,224,0.85); max-width: 640px; margin: 0 auto 28px; line-height: 1.7; }
+    .hero-stat { display: inline-block; font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.35em; color: var(--amber); border: 1px solid rgba(255,191,0,0.4); padding: 8px 24px; border-radius: 2px; margin-bottom: 36px; text-transform: uppercase; }
+    .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { background: var(--crimson); color: #fff; padding: 14px 32px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; box-shadow: var(--glow-r); transition: box-shadow 0.3s, transform 0.2s; }
+    .btn-primary:hover { box-shadow: 0 0 30px #E6005Ccc; transform: translateY(-2px); }
+    .btn-secondary { background: transparent; color: #fff; padding: 14px 32px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); transition: border-color 0.3s; }
+    .btn-secondary:hover { border-color: var(--crimson); color: var(--crimson); }
+
+    /* STATS BAR */
+    .stats-bar {
+      background: var(--dark); border-top: 1px solid rgba(230,0,92,0.2); border-bottom: 1px solid rgba(230,0,92,0.2);
+      padding: 48px 40px;
+    }
+    .stats-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; text-align: center; }
+    .stat-num { font-family: 'Syncopate', sans-serif; font-size: clamp(2rem,5vw,3.2rem); font-weight: 700; color: var(--crimson); display: block; text-shadow: var(--glow-r); }
+    .stat-label { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.25em; color: rgba(224,224,224,0.6); text-transform: uppercase; margin-top: 6px; display: block; }
+
+    /* VIDEO */
+    .video-section { background: #080909; padding: 80px 40px; text-align: center; }
+    .section-eyebrow { font-family: 'Syncopate', sans-serif; font-size: 0.6rem; letter-spacing: 0.4em; color: var(--crimson); text-transform: uppercase; margin-bottom: 14px; }
+    .section-title-lg { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: clamp(1.4rem,3vw,2.2rem); text-transform: uppercase; letter-spacing: 0.06em; color: #fff; margin-bottom: 16px; }
+    .section-subtitle { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1rem; color: rgba(224,224,224,0.7); max-width: 600px; margin: 0 auto 40px; line-height: 1.7; }
+    .video-frame { position: relative; width: 100%; max-width: 860px; margin: 0 auto; border: 1px solid rgba(230,0,92,0.3); border-radius: 6px; overflow: hidden; box-shadow: 0 0 40px rgba(230,0,92,0.15); }
+    .video-frame-inner { padding-top: 56.25%; position: relative; }
+    .video-frame iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+    /* AUDIENCE — COMPRESSED */
+    .audience-section {
+      background: linear-gradient(135deg, rgba(138,43,226,0.1) 0%, rgba(230,0,92,0.07) 50%, rgba(255,191,0,0.05) 100%);
+      border-top: 1px solid rgba(138,43,226,0.2); border-bottom: 1px solid rgba(230,0,92,0.2);
+      padding: 70px 40px;
+    }
+    .audience-inner { max-width: 1000px; margin: 0 auto; }
+    .audience-badges { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 44px; }
+    .badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; }
+    .badge-green { background: rgba(0,180,100,0.1); border: 1px solid rgba(0,180,100,0.35); color: #00B464; }
+    .badge-green .dot { width:8px; height:8px; border-radius:50%; background:#00B464; }
+    .badge-purple { background: rgba(138,43,226,0.1); border: 1px solid rgba(138,43,226,0.35); color: var(--purple); }
+    .badge-purple .dot { width:8px; height:8px; border-radius:50%; background:var(--purple); }
+    .badge-amber { background: rgba(255,191,0,0.08); border: 1px solid rgba(255,191,0,0.3); color: var(--amber); }
+    .badge-amber .dot { width:8px; height:8px; border-radius:50%; background:var(--amber); }
+    .audience-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .audience-card { background: rgba(15,16,22,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 24px 22px; }
+    .audience-card-role { font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 10px; }
+    .audience-card-title { font-family: 'Syncopate', sans-serif; font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .audience-card-desc { font-size: 0.82rem; line-height: 1.65; color: rgba(224,224,224,0.7); }
+    .audience-card-outcome { font-size: 0.78rem; color: var(--amber); margin-top: 12px; font-style: italic; }
+
+    /* 32-DAY TIMELINE */
+    .timeline-section { background: var(--black); padding: 80px 40px; }
+    .timeline-inner { max-width: 1060px; margin: 0 auto; }
+    .timeline-track {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 0; position: relative; margin-top: 52px;
+    }
+    .timeline-track::before {
+      content: ''; position: absolute; top: 28px; left: 12.5%; right: 12.5%;
+      height: 2px; background: linear-gradient(to right, var(--crimson), var(--purple), var(--amber), var(--crimson));
+      box-shadow: 0 0 12px rgba(230,0,92,0.4);
+    }
+    .timeline-node { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 12px; position: relative; }
+    .timeline-dot {
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; position: relative; z-index: 2; margin-bottom: 18px;
+      border: 2px solid; transition: box-shadow 0.3s;
+    }
+    .dot-crimson { background: rgba(230,0,92,0.15); border-color: var(--crimson); box-shadow: 0 0 20px rgba(230,0,92,0.4); }
+    .dot-purple  { background: rgba(138,43,226,0.15); border-color: var(--purple); box-shadow: 0 0 20px rgba(138,43,226,0.4); }
+    .dot-amber   { background: rgba(255,191,0,0.12); border-color: var(--amber); box-shadow: 0 0 20px rgba(255,191,0,0.4); }
+    .dot-gold    { background: rgba(255,215,0,0.15); border-color: gold; box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+    .timeline-week { font-family: 'Syncopate', sans-serif; font-size: 0.52rem; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 6px; }
+    .timeline-week.w1 { color: var(--crimson); }
+    .timeline-week.w2 { color: var(--purple); }
+    .timeline-week.w3 { color: var(--amber); }
+    .timeline-week.w4 { color: gold; }
+    .timeline-event { font-family: 'Syncopate', sans-serif; font-size: 0.68rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .timeline-detail { font-size: 0.76rem; color: rgba(224,224,224,0.6); line-height: 1.5; }
+    .timeline-days { display: inline-block; margin-top: 8px; font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.2em; padding: 3px 10px; border-radius: 2px; text-transform: uppercase; }
+    .days-crimson { background: rgba(230,0,92,0.12); border: 1px solid rgba(230,0,92,0.3); color: var(--crimson); }
+    .days-purple  { background: rgba(138,43,226,0.12); border: 1px solid rgba(138,43,226,0.3); color: var(--purple); }
+    .days-amber   { background: rgba(255,191,0,0.1); border: 1px solid rgba(255,191,0,0.3); color: var(--amber); }
+    .days-gold    { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); color: gold; }
+
+    /* REGISTER */
+    #register {
+      position: relative; padding: 100px 40px;
+      background: linear-gradient(135deg, rgba(230,0,92,0.08) 0%, rgba(138,43,226,0.06) 100%);
+      border-top: 1px solid rgba(230,0,92,0.2); text-align: center;
+    }
+    .register-title { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: clamp(1.6rem,4vw,2.8rem); text-transform: uppercase; letter-spacing: 0.04em; color: #fff; margin-bottom: 16px; }
+    .register-desc { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: rgba(224,224,224,0.75); max-width: 580px; margin: 0 auto 36px; line-height: 1.7; }
+    .register-form { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; max-width: 700px; margin: 0 auto 20px; }
+    .register-form input { flex: 1; min-width: 200px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; padding: 14px 18px; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+    .register-form input:focus { border-color: var(--crimson); }
+    .register-form input::placeholder { color: rgba(255,255,255,0.35); }
+    .register-note { font-size: 0.8rem; color: rgba(224,224,224,0.45); margin-top: 14px; }
+    .contact-line { margin-top: 24px; font-size: 0.82rem; color: rgba(224,224,224,0.5); }
+    .contact-line a { color: var(--amber); text-decoration: none; }
+    .contact-line a:hover { text-decoration: underline; }
+
+    /* FOOTER */
+    footer {
+      background: #080909; border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 60px 40px 0;
+      display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px;
+    }
+    .footer-brand p { font-size: 0.82rem; color: rgba(224,224,224,0.5); margin-top: 14px; line-height: 1.7; max-width: 280px; }
+    .footer-links h4 { font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--crimson); margin-bottom: 18px; }
+    .footer-links ul { list-style: none; }
+    .footer-links li { margin-bottom: 10px; }
+    .footer-links a { font-size: 0.82rem; color: rgba(224,224,224,0.5); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--crimson); }
+    .footer-bottom {
+      grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 24px 0 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-bottom-left { display: flex; flex-direction: column; gap: 6px; }
+    .footer-copyright { font-size: 0.75rem; color: rgba(224,224,224,0.3); }
+    .footer-blockchain { font-size: 0.7rem; color: rgba(224,224,224,0.22); font-style: italic; }
+    .footer-bottom-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .footer-phase { font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.2em; color: var(--amber); border: 1px solid rgba(255,191,0,0.3); padding: 4px 12px; border-radius: 2px; text-transform: uppercase; }
+    .footer-admin { font-size: 0.62rem; color: rgba(255,255,255,0.22); text-decoration: none; letter-spacing: 0.1em; transition: color 0.3s; border: 1px solid rgba(255,255,255,0.1); padding: 5px 14px; border-radius: 2px; }
+    .footer-admin:hover { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.25); }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+
+    @media (max-width: 900px) {
+      .stats-inner { grid-template-columns: 1fr; gap: 24px; }
+      .audience-grid { grid-template-columns: 1fr; }
+      .timeline-track { grid-template-columns: 1fr; gap: 32px; }
+      .timeline-track::before { display: none; }
+      footer { grid-template-columns: 1fr; gap: 32px; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; }
+      .footer-bottom-right { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PREVIEW BANNER -->
+<div class="preview-banner">&#9733; Preview Only — Proposed Home Page Redesign — Not Live Yet &#9733;</div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/"><span>TOP</span>KPOP.IO</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/pages/the-case">The Case</a></li>
+    <li><a href="/pages/cast">Cast</a></li>
+    <li><a href="/pages/missions">Missions</a></li>
+    <li><a href="/pages/leaderboard">Leaderboard</a></li>
+    <li><a href="/pages/how-it-works">How It Works</a></li>
+    <li><a href="#register" class="nav-cta">Register</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Top K-Pop Entertainment &nbsp;·&nbsp; AI Super Sleuth</p>
+    <h1 class="hero-title">The Debut Is<br><span class="accent">In Danger.</span></h1>
+    <p class="hero-subtitle">
+      71 million subscribers are waiting. Someone inside Top K-Pop Entertainment has sabotaged the debut.
+      You are the Detective Recruit. Use AI to uncover the truth.
+    </p>
+    <div class="hero-stat">Sabotage Detected — Investigation Open</div>
+    <div class="hero-buttons">
+      <a href="#register" class="btn-primary">Register as a Super Sleuth</a>
+      <a href="/pages/the-case" class="btn-secondary">Read the Case File</a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div>
+      <span class="stat-num">32</span>
+      <span class="stat-label">Days of Investigation</span>
+    </div>
+    <div>
+      <span class="stat-num">6+</span>
+      <span class="stat-label">AI Tools Mastered</span>
+    </div>
+    <div>
+      <span class="stat-num">K–8</span>
+      <span class="stat-label">Grade Levels Served</span>
+    </div>
+  </div>
+</div>
+
+<!-- INTRO VIDEO -->
+<section class="video-section">
+  <p class="section-eyebrow">Recruitment Briefing</p>
+  <h2 class="section-title-lg">Watch the <span style="color:var(--crimson);">Case Drop.</span></h2>
+  <p class="section-subtitle">Anna Im and the H.A.L.O. team are recruiting. Watch the official introduction to the Top K-Pop sabotage investigation before you register.</p>
+  <div class="video-frame">
+    <div class="video-frame-inner">
+      <iframe
+        src="https://player.vimeo.com/video/1137278192?badge=0&amp;byline=0&amp;portrait=0&amp;title=0&amp;autoplay=0&amp;controls=1"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowfullscreen
+        title="Top K-Pop AI Super Sleuth — Recruitment Briefing">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+<!-- AUDIENCE — COMPRESSED 3 CARDS -->
+<section class="audience-section">
+  <div class="audience-inner">
+    <p class="section-eyebrow" style="text-align:center; color:var(--amber);">Designed For Educators</p>
+    <h2 class="section-title-lg" style="text-align:center; margin-bottom:14px;">Your Classroom Just Got a <span style="color:var(--crimson);">Case to Crack.</span></h2>
+    <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:1rem; color:rgba(224,224,224,0.75); max-width:640px; margin:0 auto 28px; line-height:1.7; text-align:center;">A professional development experience built for the educators shaping the next generation. No singing required. No dance moves graded.</p>
+    <div class="audience-badges">
+      <div class="badge badge-green"><div class="dot"></div>FERPA-Friendly</div>
+      <div class="badge badge-purple"><div class="dot"></div>No Social Media Required</div>
+      <div class="badge badge-amber"><div class="dot"></div>Submit Directly on This Site</div>
+    </div>
+    <div class="audience-grid">
+      <div class="audience-card">
+        <p class="audience-card-role">For Teachers</p>
+        <p class="audience-card-title">Classroom Educators</p>
+        <p class="audience-card-desc">Leave with a complete AI-integrated lesson plan, a scored K-Pop avatar portfolio, and a multilingual evidence song — all built during the game.</p>
+        <p class="audience-card-outcome">You leave with: 3 AI artifacts + lesson plan</p>
+      </div>
+      <div class="audience-card">
+        <p class="audience-card-role">For Principals</p>
+        <p class="audience-card-title">School Leaders</p>
+        <p class="audience-card-desc">Gain calibrated context for evaluating teacher AI use — and a scalable, engaging way to build AI literacy across your entire instructional staff.</p>
+        <p class="audience-card-outcome">You leave with: AI evaluation framework</p>
+      </div>
+      <div class="audience-card">
+        <p class="audience-card-role">For Instructional Aides</p>
+        <p class="audience-card-title">Support Staff</p>
+        <p class="audience-card-desc">Build a personal AI toolkit you can use immediately in the classroom — no prior tech experience required. The game teaches the tools as you play.</p>
+        <p class="audience-card-outcome">You leave with: Personal AI toolkit</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 32-DAY VISUAL TIMELINE -->
+<section class="timeline-section">
+  <div class="timeline-inner">
+    <p class="section-eyebrow" style="text-align:center;">The Investigation Arc</p>
+    <h2 class="section-title-lg" style="text-align:center;">32 Days. Three Troves. <span style="color:var(--crimson);">One Saboteur.</span></h2>
+    <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:1rem; color:rgba(224,224,224,0.65); max-width:580px; margin:16px auto 0; line-height:1.7; text-align:center;">Each week a new Treasure Trove unlocks automatically. Complete all three missions — then name the saboteur. The team with the highest score AND the correct accusation wins.</p>
+
+    <div class="timeline-track">
+
+      <!-- Week 1 -->
+      <div class="timeline-node">
+        <div class="timeline-dot dot-crimson">🎭</div>
+        <p class="timeline-week w1">Week 1</p>
+        <p class="timeline-event">Trove 01 Opens</p>
+        <p class="timeline-detail">K-Pop Identity<br>Create your AI avatar<br>& debut poster</p>
+        <span class="timeline-days days-crimson">Days 1–7</span>
+      </div>
+
+      <!-- Week 2 -->
+      <div class="timeline-node">
+        <div class="timeline-dot dot-purple">🎵</div>
+        <p class="timeline-week w2">Week 2</p>
+        <p class="timeline-event">Trove 02 Opens</p>
+        <p class="timeline-detail">Evidence Song<br>Rewrite lyrics or create<br>an AI music track</p>
+        <span class="timeline-days days-purple">Days 8–14</span>
+      </div>
+
+      <!-- Week 3 -->
+      <div class="timeline-node">
+        <div class="timeline-dot dot-amber">📚</div>
+        <p class="timeline-week w3">Week 3</p>
+        <p class="timeline-event">Trove 03 Opens</p>
+        <p class="timeline-detail">AI Lesson Plan<br>Unpack a standard using<br>cultural dance as context</p>
+        <span class="timeline-days days-amber">Days 15–21</span>
+      </div>
+
+      <!-- Week 4 -->
+      <div class="timeline-node">
+        <div class="timeline-dot dot-gold">⚖️</div>
+        <p class="timeline-week w4">Week 4</p>
+        <p class="timeline-event">Final Accusation</p>
+        <p class="timeline-detail">Name the saboteur<br>Highest score + correct<br>accusation wins</p>
+        <span class="timeline-days days-gold">Days 22–32</span>
+      </div>
+
+    </div>
+
+    <p style="text-align:center; margin-top:44px; font-size:0.8rem; color:rgba(224,224,224,0.4); font-style:italic;">You can lead the leaderboard and still lose. The accusation is everything.</p>
+  </div>
+</section>
+
+<!-- REGISTER CTA -->
+<section id="register">
+  <p class="section-eyebrow">Join the Investigation</p>
+  <h2 class="register-title">Ready to Become<br>a <span style="color:var(--crimson);">Super Sleuth?</span></h2>
+  <p class="register-desc">Register your school team to receive access to the investigation portal, weekly mission drops, and the live leaderboard.</p>
+  <div class="register-form">
+    <input type="text" placeholder="Your name / team name" />
+    <input type="email" placeholder="School email address" />
+    <button class="btn-primary" style="white-space:nowrap; border:none; cursor:pointer;">Request Access</button>
+  </div>
+  <p class="register-note">Game start date is set by the organizer. You'll receive a welcome email when your investigation begins.</p>
+  <p class="contact-line">Questions? Contact the organizer: <a href="mailto:bpletka@bcsleadership.com">bpletka@bcsleadership.com</a></p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <a class="nav-logo" href="/"><span>TOP</span>KPOP.IO</a>
+    <p>An AI-powered professional development game for educators. Teaching AI through K-Pop culture — for grades K through 8.</p>
+  </div>
+  <div class="footer-links">
+    <h4>Navigation</h4>
+    <ul>
+      <li><a href="/pages/the-case">The Case</a></li>
+      <li><a href="/pages/cast">Cast</a></li>
+      <li><a href="/pages/missions">Missions</a></li>
+      <li><a href="/pages/leaderboard">Leaderboard</a></li>
+      <li><a href="/pages/how-it-works">How It Works</a></li>
+    </ul>
+  </div>
+  <div class="footer-links">
+    <h4>Resources</h4>
+    <ul>
+      <li><a href="/pages/resources">Game Rules &amp; FAQ</a></li>
+      <li><a href="/pages/resources">AI Tools for Teachers</a></li>
+      <li><a href="/pages/resources">White Paper Download</a></li>
+      <li><a href="/pages/emails">Email Templates</a></li>
+    </ul>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-bottom-left">
+      <p class="footer-copyright">© 2025 TopKpop.io — Top K-Pop Entertainment AI Super Sleuth. All rights reserved.</p>
+      <p class="footer-blockchain">A Blockchain Spirits LLC production</p>
+    </div>
+    <div class="footer-bottom-right">
+      <span class="footer-phase">Phase 2 — Content Complete</span>
+      <a href="/pages/admin" class="footer-admin">&#9679; Organizer Access</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/nav.js"></script>
+</body>
+</html>
