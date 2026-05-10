@@ -26,17 +26,9 @@
     ::-webkit-scrollbar-track { background: var(--black); }
     ::-webkit-scrollbar-thumb { background: var(--crimson); border-radius: 3px; }
 
-    /* PREVIEW BANNER */
-    .preview-banner {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
-      background: rgba(255,191,0,0.95); color: #0B0C10;
-      text-align: center; padding: 8px 20px;
-      font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
-    }
-
     /* NAV */
     nav {
-      position: fixed; top: 36px; left: 0; right: 0; z-index: 1000;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 40px; height: 70px;
       background: rgba(11,12,16,0.92); backdrop-filter: blur(12px);
@@ -55,7 +47,7 @@
     #hero {
       position: relative; height: 100vh; min-height: 700px;
       display: flex; align-items: center; justify-content: center; text-align: center;
-      overflow: hidden; padding-top: 106px;
+      overflow: hidden; padding-top: 70px;
     }
     .hero-bg { position: absolute; inset: 0; background: url('/assets/images/hero_bg.jpg') center center / cover no-repeat; filter: brightness(0.85) saturate(1.1); }
     .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(11,12,16,0.45) 0%, rgba(11,12,16,0.6) 60%, rgba(11,12,16,0.92) 100%); }
@@ -228,9 +220,6 @@
 </head>
 <body>
 
-<!-- PREVIEW BANNER -->
-<div class="preview-banner">&#9733; Preview Only — Proposed Home Page Redesign — Not Live Yet &#9733;</div>
-
 <!-- NAV -->
 <nav>
   <a class="nav-logo" href="/"><span>TOP</span>KPOP.IO</a>
@@ -257,7 +246,6 @@
     <div class="hero-stat">Sabotage Detected — Investigation Open</div>
     <div class="hero-buttons">
       <a href="#register" class="btn-primary">Register as a Super Sleuth</a>
-      <a href="/assets/TopKpopWhitePaperEducatorPD.pdf" target="_blank" class="btn-outline-amber">Download the White Paper</a>
       <a href="/pages/the-case" class="btn-secondary">Read the Case File</a>
     </div>
   </div>
