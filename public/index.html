@@ -109,7 +109,7 @@
       padding: 70px 40px;
     }
     .audience-inner { max-width: 1000px; margin: 0 auto; }
-    .audience-badges { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 44px; }
+    .audience-badges { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 44px; display: none; }
     .badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; }
     .badge-green { background: rgba(0,180,100,0.1); border: 1px solid rgba(0,180,100,0.35); color: #00B464; }
     .badge-green .dot { width:8px; height:8px; border-radius:50%; background:#00B464; }
@@ -118,7 +118,11 @@
     .badge-amber { background: rgba(255,191,0,0.08); border: 1px solid rgba(255,191,0,0.3); color: var(--amber); }
     .badge-amber .dot { width:8px; height:8px; border-radius:50%; background:var(--amber); }
     .audience-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
-    .audience-card { background: rgba(15,16,22,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 28px 24px; transition: border-color 0.3s; }
+    .audience-card { background: rgba(15,16,22,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; transition: border-color 0.3s; }
+    .audience-card-img { width: 100%; height: 200px; overflow: hidden; }
+    .audience-card-img img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; transition: transform 0.4s; }
+    .audience-card:hover .audience-card-img img { transform: scale(1.04); }
+    .audience-card-body { padding: 24px; }
     .audience-card:hover { border-color: rgba(230,0,92,0.3); }
     .audience-card-role { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 10px; }
     .audience-card-title { font-family: 'Syncopate', sans-serif; font-size: 0.82rem; font-weight: 700; color: #fff; margin-bottom: 12px; }
@@ -319,22 +323,31 @@
     </div>
     <div class="audience-grid">
       <div class="audience-card">
-        <p class="audience-card-role">For Teachers</p>
-        <p class="audience-card-title">Classroom Educators</p>
-        <p class="audience-card-desc">Leave with a complete AI-integrated lesson plan, a scored K-Pop avatar portfolio, and a multilingual evidence song — all built during the game. The Oracle of the Rubric gives you formative feedback at every step.</p>
-        <p class="audience-card-outcome">You leave with: 3 AI artifacts + a standards-aligned lesson plan</p>
+        <div class="audience-card-img"><img src="/assets/images/educator_teacher.jpg" alt="Teachers" /></div>
+        <div class="audience-card-body">
+          <p class="audience-card-role">For Teachers</p>
+          <p class="audience-card-title">Classroom Educators</p>
+          <p class="audience-card-desc">Leave with a complete AI-integrated lesson plan, a scored K-Pop avatar portfolio, and a multilingual evidence song — all built during the game. The Oracle of the Rubric gives you formative feedback at every step.</p>
+          <p class="audience-card-outcome">You leave with: 3 AI artifacts + a standards-aligned lesson plan</p>
+        </div>
       </div>
       <div class="audience-card">
-        <p class="audience-card-role">For Principals</p>
-        <p class="audience-card-title">School Leaders</p>
-        <p class="audience-card-desc">Gain calibrated context for evaluating teacher AI use — and a scalable, engaging way to build AI literacy across your entire instructional staff. A team-building experience your staff will actually remember.</p>
-        <p class="audience-card-outcome">You leave with: AI evaluation framework + staff cohesion</p>
+        <div class="audience-card-img"><img src="/assets/images/educator_principal.jpg" alt="Principals" /></div>
+        <div class="audience-card-body">
+          <p class="audience-card-role">For Principals</p>
+          <p class="audience-card-title">School Leaders</p>
+          <p class="audience-card-desc">Gain calibrated context for evaluating teacher AI use — and a scalable, engaging way to build AI literacy across your entire instructional staff. A team-building experience your staff will actually remember.</p>
+          <p class="audience-card-outcome">You leave with: AI evaluation framework + staff cohesion</p>
+        </div>
       </div>
       <div class="audience-card">
-        <p class="audience-card-role">For Instructional Aides</p>
-        <p class="audience-card-title">Support Staff</p>
-        <p class="audience-card-desc">Build a personal AI toolkit you can use immediately in the classroom — no prior tech experience required. The game teaches the tools as you play, and your team is right beside you the whole way.</p>
-        <p class="audience-card-outcome">You leave with: Personal AI toolkit + new confidence</p>
+        <div class="audience-card-img"><img src="/assets/images/educator_aide.jpg" alt="Instructional Aides" /></div>
+        <div class="audience-card-body">
+          <p class="audience-card-role">For Instructional Aides</p>
+          <p class="audience-card-title">Support Staff</p>
+          <p class="audience-card-desc">Build a personal AI toolkit you can use immediately in the classroom — no prior tech experience required. The game teaches the tools as you play, and your team is right beside you the whole way.</p>
+          <p class="audience-card-outcome">You leave with: Personal AI toolkit + new confidence</p>
+        </div>
       </div>
     </div>
   </div>
@@ -393,6 +406,32 @@
       <div class="wp-stat"><span class="wp-stat-num">K–8</span><span class="wp-stat-label">Grade Levels</span></div>
     </div>
     <a href="/assets/TopKpopWhitePaperEducatorPD.pdf" target="_blank" class="btn-outline-amber" style="white-space:nowrap;">Download White Paper &rarr;</a>
+  </div>
+</section>
+
+<!-- DETECTIVE RECRUIT TEASER -->
+<section style="background: var(--black); padding: 70px 40px; text-align: center; border-top: 1px solid rgba(230,0,92,0.15);">
+  <div style="max-width: 480px; margin: 0 auto;">
+    <p style="font-family:'Syncopate',sans-serif; font-size:0.58rem; letter-spacing:0.35em; color:var(--crimson); text-transform:uppercase; margin-bottom:24px;">Your Badge Is Waiting</p>
+    <div style="width:180px; height:180px; border-radius:50%; overflow:hidden; border:2px dashed rgba(230,0,92,0.6); box-shadow:0 0 30px rgba(230,0,92,0.3); margin:0 auto 24px;">
+      <img src="/assets/characters/detective_recruit.jpg" alt="Detective Recruit" style="width:100%; height:100%; object-fit:cover; object-position:center 20%;" />
+    </div>
+    <p style="font-family:'Syncopate',sans-serif; font-weight:700; font-size:0.9rem; color:#fff; margin-bottom:10px; letter-spacing:0.06em;">Detective Recruit</p>
+    <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:0.95rem; color:rgba(224,224,224,0.65); line-height:1.7;">Your identity is unwritten. Your badge is waiting. Register below to step into the investigation and become the sleuth who cracks the K-Pop case of the century.</p>
+    <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:24px;">
+      <div style="background:rgba(0,180,100,0.1); border:1px solid rgba(0,180,100,0.35); border-radius:3px; padding:7px 18px; display:inline-flex; align-items:center; gap:8px;">
+        <div style="width:7px; height:7px; border-radius:50%; background:#00B464;"></div>
+        <span style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.18em; color:#00B464; text-transform:uppercase;">FERPA-Friendly</span>
+      </div>
+      <div style="background:rgba(138,43,226,0.1); border:1px solid rgba(138,43,226,0.35); border-radius:3px; padding:7px 18px; display:inline-flex; align-items:center; gap:8px;">
+        <div style="width:7px; height:7px; border-radius:50%; background:var(--purple);"></div>
+        <span style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.18em; color:var(--purple); text-transform:uppercase;">No Social Media Required</span>
+      </div>
+      <div style="background:rgba(255,191,0,0.08); border:1px solid rgba(255,191,0,0.3); border-radius:3px; padding:7px 18px; display:inline-flex; align-items:center; gap:8px;">
+        <div style="width:7px; height:7px; border-radius:50%; background:var(--amber);"></div>
+        <span style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.18em; color:var(--amber); text-transform:uppercase;">Submit on This Site</span>
+      </div>
+    </div>
   </div>
 </section>
 
