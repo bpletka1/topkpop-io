@@ -9,7 +9,7 @@
   <style>
     .story-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-top: 60px; }
     .story-image { position: relative; border-radius: 8px; overflow: hidden; }
-    .story-image img { width: 100%; height: 480px; object-fit: cover; display: block; filter: brightness(0.9) saturate(1.1); }
+    .story-image img { width: 100%; height: 480px; object-fit: cover; object-position: center 20%; display: block; filter: brightness(0.9) saturate(1.1); }
     .story-image-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(11,12,16,0.8) 0%, transparent 60%); }
     .story-image-caption { position: absolute; bottom: 20px; left: 20px; font-family: 'Syncopate', sans-serif; font-size: 0.58rem; letter-spacing: 0.25em; color: var(--amber); text-transform: uppercase; }
     .story-text p { font-size: 1.05rem; line-height: 1.85; color: rgba(224,224,224,0.85); margin-bottom: 20px; }
@@ -20,7 +20,7 @@
     .evidence-section { background: rgba(8,9,14,0.95); padding: 90px 0; }
     .evidence-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
     .evidence-image { width: 100%; border-radius: 8px; overflow: hidden; margin: 40px 0; }
-    .evidence-image img { width: 100%; height: 420px; object-fit: cover; display: block; filter: brightness(0.85); }
+    .evidence-image img { width: 100%; height: 420px; object-fit: cover; object-position: center 20%; display: block; filter: brightness(0.85); }
     .timeline { margin-top: 50px; position: relative; }
     .timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--crimson), var(--purple)); }
     .timeline-item { display: flex; gap: 40px; margin-bottom: 40px; padding-left: 60px; position: relative; }
@@ -29,7 +29,7 @@
     .timeline-text { font-size: 1rem; line-height: 1.7; color: rgba(224,224,224,0.85); }
     .ceo-profile { display: grid; grid-template-columns: 280px 1fr; gap: 50px; align-items: start; margin-top: 60px; }
     .ceo-img { border-radius: 8px; overflow: hidden; border: 1px solid rgba(230,0,92,0.3); }
-    .ceo-img img { width: 100%; height: 360px; object-fit: cover; display: block; }
+    .ceo-img img { width: 100%; height: 360px; object-fit: cover; object-position: center 20%; display: block; }
     .ceo-name { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1.8rem; text-transform: uppercase; color: #fff; margin-bottom: 6px; }
     .ceo-title { font-family: 'Syncopate', sans-serif; font-size: 0.62rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 24px; }
     .btn-primary { display: inline-block; margin-top: 16px; padding: 12px 28px; background: var(--crimson); color: #fff; font-family: 'Syncopate', sans-serif; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; border-radius: 3px; transition: box-shadow 0.2s; }
@@ -44,7 +44,6 @@
   <ul class="nav-links">
     <li><a href="/">Home</a></li>
     <li><a href="/pages/the-case" class="active">The Case</a></li>
-    <li><a href="/pages/suspects">Suspects</a></li>
     <li><a href="/pages/cast">Cast</a></li>
     <li><a href="/pages/missions">Missions</a></li>
     <li><a href="/pages/leaderboard">Leaderboard</a></li>
@@ -170,7 +169,7 @@
     <a href="/" class="footer-logo"><span>TOP</span>KPOP.IO</a>
     <div class="footer-links">
       <a href="/pages/the-case">The Case</a>
-      <a href="/pages/suspects">Suspects</a>
+      
       <a href="/pages/missions">Missions</a>
       <a href="/pages/leaderboard">Leaderboard</a>
       <a href="/pages/how-it-works">How It Works</a>
