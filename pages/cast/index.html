@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cast & Characters — TopKpop.io AI Super Sleuth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/inner.css">
+  <style>
+    /* ===== CAST PAGE STYLES ===== */
+    .cast-section {
+      padding: 80px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .cast-section-label {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.55rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--crimson);
+      margin-bottom: 10px;
+    }
+    .cast-section-title {
+      font-family: 'Syncopate', sans-serif;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+    .cast-section-subtitle {
+      font-size: 0.95rem;
+      color: rgba(224,224,224,0.65);
+      max-width: 600px;
+      line-height: 1.7;
+      margin-bottom: 56px;
+    }
+    .cast-divider {
+      border: none;
+      border-top: 1px solid rgba(230,0,92,0.15);
+      margin: 0 40px;
+    }
+
+    /* ===== CHARACTER CARD GRID ===== */
+    .cast-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 32px;
+    }
+    .cast-grid.two-col {
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
+
+    /* ===== CHARACTER CARD ===== */
+    .char-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 4px;
+      overflow: hidden;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      position: relative;
+    }
+    .char-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(230,0,92,0.35);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 24px rgba(230,0,92,0.08);
+    }
+    .char-card.suspect {
+      border-top: 2px solid var(--crimson);
+    }
+    .char-card.detective {
+      border-top: 2px solid #00C2FF;
+    }
+    .char-card.host {
+      border-top: 2px solid #FFB800;
+    }
+    .char-card.supporting {
+      border-top: 2px solid rgba(255,255,255,0.2);
+    }
+
+    /* Suspect badge */
+    .suspect-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: var(--crimson);
+      color: #fff;
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.42rem;
+      letter-spacing: 0.2em;
+      padding: 4px 10px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      z-index: 2;
+    }
+    .detective-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: #00C2FF;
+      color: #0b0c10;
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.42rem;
+      letter-spacing: 0.2em;
+      padding: 4px 10px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      z-index: 2;
+    }
+    .host-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: #FFB800;
+      color: #0b0c10;
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.42rem;
+      letter-spacing: 0.2em;
+      padding: 4px 10px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      z-index: 2;
+    }
+
+    .char-img-wrap {
+      position: relative;
+      overflow: hidden;
+      height: 320px;
+    }
+    .char-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      transition: transform 0.4s;
+    }
+    .char-card:hover .char-img-wrap img {
+      transform: scale(1.04);
+    }
+    .char-img-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 60%;
+      background: linear-gradient(to top, rgba(11,12,16,0.95) 0%, transparent 100%);
+    }
+
+    .char-body {
+      padding: 20px 22px 24px;
+    }
+    .char-role {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.48rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--crimson);
+      margin-bottom: 6px;
+    }
+    .char-card.detective .char-role { color: #00C2FF; }
+    .char-card.host .char-role { color: #FFB800; }
+    .char-card.supporting .char-role { color: rgba(224,224,224,0.5); }
+
+    .char-name {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .char-bio {
+      font-size: 0.82rem;
+      color: rgba(224,224,224,0.68);
+      line-height: 1.7;
+    }
+    .char-motive {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: rgba(230,0,92,0.06);
+      border-left: 2px solid var(--crimson);
+      font-size: 0.78rem;
+      color: rgba(224,224,224,0.75);
+      line-height: 1.6;
+      font-style: italic;
+    }
+    .char-motive strong {
+      font-style: normal;
+      color: var(--crimson);
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.48rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* ===== CEO FEATURE CARD ===== */
+    .ceo-card {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 40px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top: 2px solid var(--gold);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 56px;
+    }
+    .ceo-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+    .ceo-body {
+      padding: 36px 36px 36px 0;
+    }
+    .ceo-label {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.48rem;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .ceo-name {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .ceo-bio {
+      font-size: 0.88rem;
+      color: rgba(224,224,224,0.72);
+      line-height: 1.8;
+    }
+
+    /* ===== SECTION DIVIDERS ===== */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin: 0 0 48px;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+    }
+    .section-divider span {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.5rem;
+      letter-spacing: 0.3em;
+      color: rgba(224,224,224,0.3);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+      .cast-section { padding: 60px 20px; }
+      .ceo-card { grid-template-columns: 1fr; }
+      .ceo-card img { height: 300px; }
+      .ceo-body { padding: 24px; }
+      .cast-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+      .cast-grid.two-col { grid-template-columns: 1fr; }
+      .char-img-wrap { height: 240px; }
+    }
+    @media (max-width: 480px) {
+      .cast-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== NAVIGATION ===== -->
+<nav>
+  <a class="nav-logo" href="/"><span>TOP</span>KPOP.IO</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/pages/the-case">The Case</a></li>
+    <li><a href="/pages/suspects">Suspects</a></li>
+    <li><a href="/pages/cast" class="active">Cast</a></li>
+    <li><a href="/pages/missions">Missions</a></li>
+    <li><a href="/pages/leaderboard">Leaderboard</a></li>
+    <li><a href="/pages/how-it-works">How It Works</a></li>
+    <li><a href="/pages/resources">Resources</a></li>
+  </ul>
+  <a href="/#register" class="nav-cta">Register</a>
+  <button class="nav-hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- ===== PAGE HERO ===== -->
+<div class="page-hero" style="background-image: url('/assets/images/case_hero.jpg');">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-hero-label">Top K-Pop Entertainment</p>
+    <h1 class="page-hero-title">Cast &amp; Characters</h1>
+    <p class="page-hero-sub">Every suspect. Every detective. Every witness. The full roster of the K-Pop AI Super Sleuth investigation.</p>
+  </div>
+</div>
+
+<!-- ===== CEO SECTION ===== -->
+<section style="background: rgba(255,255,255,0.01); border-bottom: 1px solid rgba(255,255,255,0.05);">
+  <div class="cast-section">
+    <p class="cast-section-label">The Empire</p>
+    <h2 class="cast-section-title">The Man at the Center</h2>
+    <p class="cast-section-subtitle">The sabotage did not happen in a vacuum. It happened inside the empire of one man — and his story is the key to everything.</p>
+
+    <div class="ceo-card">
+      <img src="/assets/characters/minseo.jpg" alt="CEO Minseo">
+      <div class="ceo-body">
+        <p class="ceo-label">Chairman &amp; Producer · Top K-Pop Entertainment</p>
+        <h3 class="ceo-name">CEO Minseo</h3>
+        <p class="ceo-bio">Minseo rose to global fame in the late 1990s as the lead vocalist of a groundbreaking boy group that became the first Korean act to chart in the United States. After a celebrated solo career spanning two decades, he transitioned from performer to philanthropist — founding scholarship programs for underprivileged youth in Seoul, Busan, and Los Angeles before establishing Top K-Pop Entertainment.</p>
+        <p class="ceo-bio" style="margin-top:14px;">Now chairman and executive producer of the most-watched K-Pop competition in history, Minseo commands 71 million subscribers and the loyalty of an entire industry. But with the debut sabotaged and his empire on the line, the question is no longer who will win — it is who wanted him to lose.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="cast-divider">
+
+<!-- ===== SUSPECTS SECTION ===== -->
+<section>
+  <div class="cast-section">
+    <p class="cast-section-label">Six Suspects · One Saboteur</p>
+    <h2 class="cast-section-title">The Suspects</h2>
+    <p class="cast-section-subtitle">Every member of the inner circle had motive, means, and opportunity. Study their profiles carefully — only one is guilty, but all of them are hiding something.</p>
+
+    <div class="cast-grid">
+
+      <!-- Sunny Anna -->
+      <div class="char-card suspect">
+        <span class="suspect-badge">Suspect</span>
+        <div class="char-img-wrap">
+          <img src="/assets/characters/sunny_anna.jpg" alt="Sunny Anna">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">Host of the Show</p>
+          <h3 class="char-name">Sunny Anna</h3>
+          <p class="char-bio">Runner-up in last season's competition. Now the host. She believes she should have won the 100,000,000 won prize and become a top idol. Charismatic on camera. Calculating off it.</p>
+          <div class="char-motive"><strong>Motive</strong>She was robbed of the crown. Now she holds the microphone — but is that enough?</div>
+        </div>
+      </div>
+
+      <!-- James Paul -->
+      <div class="char-card suspect">
+        <span class="suspect-badge">Suspect</span>
+        <div class="char-img-wrap">
+          <img src="/assets/characters/james_paul.jpg" alt="James Paul">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">Master Makeup Artist</p>
+          <h3 class="char-name">James Paul</h3>
+          <p class="char-bio">Swedish-Korean heritage. Mentored by his Korean great-grandmother in the art of K-beauty. Blends tradition with modern artistry. But what secrets does he hide behind the brush?</p>
+          <div class="char-motive"><strong>Motive</strong>His grandmother's techniques were commercialized without credit. The debt has never been repaid.</div>
+        </div>
+      </div>
+
+      <!-- Emilise -->
+      <div class="char-card suspect">
+        <span class="suspect-badge">Suspect</span>
+        <div class="char-img-wrap">
+          <img src="/assets/characters/emilise.jpg" alt="Emilise">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">The Choreographer</p>
+          <h3 class="char-name">Emilise</h3>
+          <p class="char-bio">Half Korean, half Latina. Founder of E2U dance company. Her groundbreaking fusion of cultural rhythms revolutionized K-Pop — but her credit was stolen by a former partner.</p>
+          <div class="char-motive"><strong>Motive</strong>Her choreography files were corrupted. Was it sabotage — or was she the one who corrupted them?</div>
+        </div>
+      </div>
+
+      <!-- Star Tammy -->
+      <div class="char-card suspect">
+        <span class="suspect-badge">Suspect</span>
+        <div class="char-img-wrap">
+          <img src="/assets/characters/star_tammy.jpg" alt="Star Tammy">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">Fashion Designer</p>
+          <h3 class="char-name">Star 별 Tammy</h3>
+          <p class="char-bio">Paris-trained at École de la Chambre Syndicale. Commands the K-Pop fashion stage with avant-garde precision. The debut costumes were destroyed — and she designed every one of them.</p>
+          <div class="char-motive"><strong>Motive</strong>Her designs were plagiarized by a rival label with ties to Top K-Pop Entertainment.</div>
+        </div>
+      </div>
+
+      <!-- Hanbit Phil -->
+      <div class="char-card suspect">
+        <span class="suspect-badge">Suspect</span>
+        <div class="char-img-wrap">
+          <img src="/assets/characters/hanbit_phil.jpg" alt="Hanbit Phil">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">Company Chef</p>
+          <h3 class="char-name">Hanbit Phil</h3>
+          <p class="char-bio">CEO Minseo's son. Accused of nepotism by the entire production staff. He swears he didn't poison the catering — that someone tampered with it specifically to get him fired.</p>
+          <div class="char-motive"><strong>Motive</strong>Desperate to prove himself. Or desperate to burn it all down and start over?</div>
+        </div>
+      </div>
+
+      <!-- Nari -->
+      <div class="char-card suspect">
+        <span class="suspect-badge">Suspect</span>
+        <div class="char-img-wrap">
+          <img src="/assets/characters/nari.jpg" alt="Nari">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">Assistant to Sunny</p>
+          <h3 class="char-name">Nari</h3>
+          <p class="char-bio">Driven, ambitious, and holding an IOU for $30,000. Wesley Womans University Media Communications graduate. On a steadfast path to becoming a K-Pop producer — at any cost.</p>
+          <div class="char-motive"><strong>Motive</strong>She is owed money, owed credit, and owed a seat at the table. She is done waiting.</div>
+        </div>
+      </div>
+
+    </div><!-- /cast-grid suspects -->
+  </div>
+</section>
+
+<hr class="cast-divider">
+
+<!-- ===== HOST & PRESS SECTION ===== -->
+<section style="background: rgba(255,183,0,0.02);">
+  <div class="cast-section">
+    <p class="cast-section-label">The Show · KMZ Entertainment</p>
+    <h2 class="cast-section-title">Host &amp; Press</h2>
+    <p class="cast-section-subtitle">The show must go on — and Jeannie 지니 makes sure the world is watching every second of it.</p>
+
+    <div class="cast-grid two-col">
+
+      <!-- Jeannie -->
+      <div class="char-card host">
+        <span class="host-badge">Host · Press</span>
+        <div class="char-img-wrap" style="height: 380px;">
+          <img src="/assets/characters/jeannie.jpg" alt="Jeannie KMZ Reporter">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">KMZ Entertainment Reporter · Show Host</p>
+          <h3 class="char-name">Jeannie 지니</h3>
+          <p class="char-bio">Jeannie is a trailblazing K-Pop reporter whose unique path to journalism sets her apart in the world of entertainment media. Despite her unconventional journey — beginning with a rigorous education in medicine at Harvard — Jeannie chose to follow her heart into the vibrant realm of K-Pop. This Harvard-trained intellect turned her back on a prestigious medical career to become the voice of a generation.</p>
+          <p class="char-bio" style="margin-top:10px;">Now the face of KMZ Entertainment and the official host of Top K-Pop Entertainment's debut competition, Jeannie is always one step ahead of the story. She knows every secret in the building — and she is deciding which ones to report.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="cast-divider">
+
+<!-- ===== DETECTIVES SECTION ===== -->
+<section style="background: rgba(0,194,255,0.02);">
+  <div class="cast-section">
+    <p class="cast-section-label">H.A.L.O. Investigation Unit</p>
+    <h2 class="cast-section-title">The Detectives</h2>
+    <p class="cast-section-subtitle">The H.A.L.O. task force was called in the moment the sabotage was confirmed. These are the investigators leading the case — and the recruits they are counting on.</p>
+
+    <div class="cast-grid">
+
+      <!-- Anna Im -->
+      <div class="char-card detective">
+        <span class="detective-badge">Lead Detective</span>
+        <div class="char-img-wrap">
+          <img src="/assets/characters/anna_im.jpg" alt="Anna Im">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">Lead Detective · H.A.L.O.</p>
+          <h3 class="char-name">Anna Im</h3>
+          <p class="char-bio">Lead Detective of H.A.L.O. — an elite investigative task force specializing in cases at the intersection of entertainment, media influence, and artificial intelligence. Anna Im has closed 23 consecutive cases. This is her most personal yet.</p>
+        </div>
+      </div>
+
+      <!-- Bobby Lee -->
+      <div class="char-card detective">
+        <span class="detective-badge">Detective</span>
+        <div class="char-img-wrap">
+          <img src="/assets/characters/bobby_lee.jpg" alt="Bobby Lee">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">Private Detective</p>
+          <h3 class="char-name">Bobby Lee</h3>
+          <p class="char-bio">A sharp-witted investigator wrapped in neon glow. Bobby Lee walks the line between idol-level charisma and hard-boiled mystery — a former rising K-Pop star turned detective who knows the industry from the inside out.</p>
+        </div>
+      </div>
+
+      <!-- Detective Recruit -->
+      <div class="char-card detective">
+        <span class="detective-badge">That's You</span>
+        <div class="char-img-wrap">
+          <img src="/assets/characters/detective_recruit.jpg" alt="Detective Recruit">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">Detective Recruit</p>
+          <h3 class="char-name">You</h3>
+          <p class="char-bio">Your identity is unwritten. Your badge is waiting. Register your team to step into the investigation and become the sleuth who cracks the K-Pop case of the century. The truth depends on you.</p>
+        </div>
+      </div>
+
+    </div><!-- /cast-grid detectives -->
+  </div>
+</section>
+
+<hr class="cast-divider">
+
+<!-- ===== SUPPORTING CAST SECTION ===== -->
+<section>
+  <div class="cast-section">
+    <p class="cast-section-label">Behind the Scenes</p>
+    <h2 class="cast-section-title">Supporting Cast</h2>
+    <p class="cast-section-subtitle">Every investigation has witnesses. Every crime scene has bystanders. These characters move through the story — and some of them know more than they let on.</p>
+
+    <div class="cast-grid two-col">
+
+      <!-- Jax J -->
+      <div class="char-card supporting">
+        <div class="char-img-wrap" style="height: 380px;">
+          <img src="/assets/characters/jax_j.jpg" alt="Jax J">
+          <div class="char-img-overlay"></div>
+        </div>
+        <div class="char-body">
+          <p class="char-role">Dance Demonstrator · E2U Company</p>
+          <h3 class="char-name">Jax J</h3>
+          <p class="char-bio">Jax J is Emilise's right-hand and a Korean American dynamo who met her back in junior high in Atlanta. Inspired by Jay Park and Usher, Jax has carved out his niche in the dance world, blending R&amp;B's smoothness with hip hop's raw edge.</p>
+          <p class="char-bio" style="margin-top:10px;">Now an integral part of E2U — Emilise's global dance company — Jax demonstrates the choreography sequences for the competition trainees. He is fiercely loyal to Emilise. And when her files were corrupted, he was the first one in the room.</p>
+          <div class="char-motive" style="border-left-color: rgba(255,255,255,0.2);"><strong style="color: rgba(224,224,224,0.5);">Connection</strong>Emilise's love interest and most trusted collaborator. Knows every move she makes — on and off the stage.</div>
+        </div>
+      </div>
+
+    </div><!-- /cast-grid supporting -->
+
+    <!-- Register CTA -->
+    <div style="margin-top: 72px; text-align: center; padding: 56px 40px; background: rgba(230,0,92,0.04); border: 1px solid rgba(230,0,92,0.12); border-radius: 4px;">
+      <p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.3em; color:var(--crimson); text-transform:uppercase; margin-bottom:12px;">Your Role Awaits</p>
+      <h3 style="font-family:'Syncopate',sans-serif; font-size:clamp(1.2rem,3vw,1.8rem); color:#fff; margin-bottom:16px; line-height:1.3;">You Are the Missing Detective.</h3>
+      <p style="font-size:0.9rem; color:rgba(224,224,224,0.65); max-width:520px; margin:0 auto 32px; line-height:1.7;">Register your team to join the investigation. Study the suspects. Complete the Troves. Make your accusation. Only one team can close the case.</p>
+      <a href="/#register" style="display:inline-block; background:var(--crimson); color:#fff; font-family:'Syncopate',sans-serif; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; padding:16px 36px; border-radius:3px; text-decoration:none; box-shadow:0 0 24px rgba(230,0,92,0.4); transition:box-shadow 0.3s;">Register Your Team →</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <p class="footer-logo"><span>TOP</span>KPOP.IO</p>
+      <p class="footer-tagline">K-Pop AI Super Sleuth · Professional Development</p>
+    </div>
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/suspects">Suspects</a>
+      <a href="/pages/cast">Cast</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+    </div>
+  </div>
+  <p class="footer-copy">&copy; 2025 TopKpop.io · Mystery Marvels · All rights reserved.</p>
+</footer>
+
+<script src="/js/nav.js"></script>
+</body>
+</html>
