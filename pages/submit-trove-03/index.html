@@ -96,11 +96,11 @@
       <h2 class="form-section-title">Team Information</h2>
       <div class="field-group">
         <label class="field-label" for="teamName">Team Name <span class="field-required">*</span></label>
-        <input class="field-input" type="text" id="teamName" name="teamName" placeholder="The K-Detectives" required />
+        <input class="field-input" type="text" id="teamName" name="team_name" placeholder="The K-Detectives" required />
       </div>
       <div class="field-group">
         <label class="field-label" for="captainEmail">Team Captain Email <span class="field-required">*</span></label>
-        <input class="field-input" type="email" id="captainEmail" name="captainEmail" placeholder="captain@school.edu" required />
+        <input class="field-input" type="email" id="captainEmail" name="captain_email" placeholder="captain@school.edu" required />
       </div>
     </div>
 
@@ -113,7 +113,7 @@
       <div class="field-group">
         <label class="field-label">Lesson Plan File <span class="field-required">*</span></label>
         <div class="upload-zone" id="lessonZone">
-          <input type="file" name="lessonFile" id="lessonFile" accept=".doc,.docx,.pdf" required />
+          <input type="file" name="file1" id="file1" accept=".doc,.docx,.pdf" required />
           <div class="upload-icon">📚</div>
           <p class="upload-text">Click or drag to upload your lesson plan</p>
           <p class="upload-sub">DOC, DOCX, PDF &nbsp;&middot;&nbsp; Max 20MB</p>
@@ -160,7 +160,7 @@
       <h2 class="form-section-title">Oracle Feedback Screenshot</h2>
       <div class="field-group">
         <div class="upload-zone" id="oracleZone">
-          <input type="file" name="oracleFeedback" id="oracleFeedback" accept="image/*,.pdf" />
+          <input type="file" name="file2" id="file2" accept="image/*,.pdf" />
           <div class="upload-icon">🔮</div>
           <p class="upload-text">Click or drag to upload Oracle feedback</p>
           <p class="upload-sub">JPG, PNG, PDF &nbsp;&middot;&nbsp; Max 10MB</p>
@@ -200,8 +200,8 @@
     zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
     zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('dragover'); if (e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; filename.textContent = '✓ ' + e.dataTransfer.files[0].name; filename.style.display = 'block'; zone.style.borderColor = 'var(--crimson)'; } });
   }
-  setupUpload('lessonFile', 'lessonFilename', 'lessonZone');
-  setupUpload('oracleFeedback', 'oracleFilename', 'oracleZone');
+  setupUpload('file1', 'lessonFilename', 'lessonZone');
+  setupUpload('file2', 'oracleFilename', 'oracleZone');
 
   document.getElementById('submitForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -212,7 +212,7 @@
       const res = await fetch('/api/submit/trove-03', { method: 'POST', body: formData });
       const data = await res.json();
       if (res.ok && data.success) { document.getElementById('submitForm').style.display = 'none'; document.getElementById('successMsg').style.display = 'block'; }
-      else { btn.disabled = false; btn.textContent = 'Submit Trove 03 — Lock My Score →'; alert(data.message || 'Submission failed.'); }
+      else { btn.disabled = false; btn.textContent = 'Submit Trove 03 — Lock My Score →'; alert(data.error || data.message || 'Submission failed.'); }
     } catch (err) { btn.disabled = false; btn.textContent = 'Submit Trove 03 — Lock My Score →'; alert('Network error. Please try again.'); }
   });
 </script>

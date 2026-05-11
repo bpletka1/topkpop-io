@@ -443,23 +443,34 @@
 </footer>
 
 <script>
-const ADMIN_PASSCODE = 'kidsfishon18';
+// Admin password stored in session
+let ADMIN_PASS = '';
 
 function checkPass() {
   const val = document.getElementById('admin-pass').value;
-  if (val === ADMIN_PASSCODE) {
-    document.getElementById('admin-gate').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    sessionStorage.setItem('topkpop_admin', '1');
-    loadDashboard();
-  } else {
-    document.getElementById('gate-error').style.display = 'block';
-    document.getElementById('admin-pass').value = '';
-  }
+  // Verify against API
+  fetch('/api/admin/settings', { headers: { password: val } })
+    .then(r => {
+      if (r.ok) {
+        ADMIN_PASS = val;
+        document.getElementById('admin-gate').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        sessionStorage.setItem('topkpop_admin', val);
+        loadDashboard();
+      } else {
+        document.getElementById('gate-error').style.display = 'block';
+        document.getElementById('admin-pass').value = '';
+      }
+    })
+    .catch(() => {
+      document.getElementById('gate-error').style.display = 'block';
+      document.getElementById('admin-pass').value = '';
+    });
 }
 
 function lockDashboard() {
   sessionStorage.removeItem('topkpop_admin');
+  ADMIN_PASS = '';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('admin-gate').style.display = 'flex';
   document.getElementById('admin-pass').value = '';
@@ -468,38 +479,102 @@ function lockDashboard() {
 document.addEventListener('DOMContentLoaded', function() {
   const passInput = document.getElementById('admin-pass');
   if (passInput) passInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') checkPass(); });
-  if (sessionStorage.getItem('topkpop_admin') === '1') {
+  const saved = sessionStorage.getItem('topkpop_admin');
+  if (saved) {
+    ADMIN_PASS = saved;
     document.getElementById('admin-gate').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
     loadDashboard();
   }
 });
 
-function loadDashboard() {
-  const savedStart = localStorage.getItem('tk_game_start');
-  const savedT02   = localStorage.getItem('tk_trove02_date');
-  const savedT03   = localStorage.getItem('tk_trove03_date');
-  const savedAcc   = localStorage.getItem('tk_accusation_date');
-  if (savedStart) document.getElementById('game-start-date').value = savedStart;
-  if (savedT02)   document.getElementById('trove02-date').value = savedT02;
-  if (savedT03)   document.getElementById('trove03-date').value = savedT03;
-  if (savedAcc)   document.getElementById('accusation-date').value = savedAcc;
-  if (savedAcc) {
-    const diff = Math.ceil((new Date(savedAcc) - new Date()) / 86400000);
-    document.getElementById('stat-days').textContent = diff > 0 ? diff : 0;
+async function loadDashboard() {
+  try {
+    // Load game settings
+    const settingsRes = await fetch('/api/admin/settings', { headers: { password: ADMIN_PASS } });
+    if (settingsRes.ok) {
+      const { data } = await settingsRes.json();
+      if (data.game_start_date) document.getElementById('game-start-date').value = data.game_start_date.slice(0,16);
+      if (data.trove2_unlock)   document.getElementById('trove02-date').value = data.trove2_unlock.slice(0,16);
+      if (data.trove3_unlock)   document.getElementById('trove03-date').value = data.trove3_unlock.slice(0,16);
+      if (data.accusation_close) document.getElementById('accusation-date').value = data.accusation_close.slice(0,16);
+      if (data.accusation_close) {
+        const diff = Math.ceil((new Date(data.accusation_close) - new Date()) / 86400000);
+        document.getElementById('stat-days').textContent = diff > 0 ? diff : 0;
+      }
+    }
+    // Load registrations
+    const regRes = await fetch('/api/admin/registrations', { headers: { password: ADMIN_PASS } });
+    if (regRes.ok) {
+      const { data } = await regRes.json();
+      document.getElementById('stat-teams').textContent = data.length;
+      document.getElementById('teams-count-badge').textContent = data.length + ' Teams';
+      populateTeamTable(data);
+    }
+    // Load submissions
+    const subRes = await fetch('/api/admin/submissions', { headers: { password: ADMIN_PASS } });
+    if (subRes.ok) {
+      const { data } = await subRes.json();
+      document.getElementById('stat-submissions').textContent = data.length;
+      const pending = data.filter(s => !s.score).length;
+      document.getElementById('stat-pending').textContent = pending;
+    }
+  } catch (err) {
+    console.error('Dashboard load error:', err);
   }
 }
 
-function saveDates() {
+function populateTeamTable(teams) {
+  const tbody = document.querySelector('.team-table tbody');
+  if (!tbody || !teams.length) return;
+  tbody.innerHTML = teams.map(t => `
+    <tr>
+      <td><span class="team-name">${t.team_name}</span></td>
+      <td>${t.school_name || '&mdash;'}</td>
+      <td><span class="trove-dot none"></span> &mdash;</td>
+      <td style="color:rgba(224,224,224,0.3)">&mdash;</td>
+      <td><span class="trove-dot none"></span> &mdash;</td>
+      <td style="color:rgba(224,224,224,0.3)">&mdash;</td>
+      <td><span class="trove-dot none"></span> &mdash;</td>
+      <td style="color:rgba(224,224,224,0.3)">&mdash;</td>
+      <td style="color:rgba(224,224,224,0.35);font-style:italic;font-size:0.8rem">Not submitted</td>
+      <td><span class="team-score">0</span></td>
+      <td style="font-size:0.8rem;color:var(--amber)">${t.status}</td>
+      <td><button class="team-action" onclick="viewTeam('${t.id}')">View</button></td>
+    </tr>
+  `).join('');
+}
+
+function viewTeam(id) {
+  alert('Team ID: ' + id + '\n\nFull team detail view available once scoring begins.');
+}
+
+async function saveDates() {
   const start = document.getElementById('game-start-date').value;
   const t02   = document.getElementById('trove02-date').value;
   const t03   = document.getElementById('trove03-date').value;
   const acc   = document.getElementById('accusation-date').value;
-  if (start) localStorage.setItem('tk_game_start', start);
-  if (t02)   localStorage.setItem('tk_trove02_date', t02);
-  if (t03)   localStorage.setItem('tk_trove03_date', t03);
-  if (acc)   localStorage.setItem('tk_accusation_date', acc);
-  alert('Dates saved.\n\nIn Phase 3, these will sync to the server and update the Missions page for all visitors automatically.');
+  try {
+    const res = await fetch('/api/admin/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', password: ADMIN_PASS },
+      body: JSON.stringify({
+        game_start_date:  start || null,
+        trove2_unlock:    t02 || null,
+        trove3_unlock:    t03 || null,
+        accusation_open:  start || null,
+        accusation_close: acc || null,
+      })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('\u2713 Dates saved to server! The game schedule is now live for all participants.');
+    } else {
+      alert('Error saving dates: ' + (data.error || 'Unknown error'));
+    }
+  } catch (err) {
+    alert('Network error. Please try again.');
+  }
 }
 </script>
 <script src="/js/nav.js"></script>

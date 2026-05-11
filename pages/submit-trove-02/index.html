@@ -92,11 +92,11 @@
       <p class="form-section-desc">Confirm your team details. These must match your registration exactly.</p>
       <div class="field-group">
         <label class="field-label" for="teamName">Team Name <span class="field-required">*</span></label>
-        <input class="field-input" type="text" id="teamName" name="teamName" placeholder="The K-Detectives" required />
+        <input class="field-input" type="text" id="teamName" name="team_name" placeholder="The K-Detectives" required />
       </div>
       <div class="field-group">
         <label class="field-label" for="captainEmail">Team Captain Email <span class="field-required">*</span></label>
-        <input class="field-input" type="email" id="captainEmail" name="captainEmail" placeholder="captain@school.edu" required />
+        <input class="field-input" type="email" id="captainEmail" name="captain_email" placeholder="captain@school.edu" required />
       </div>
     </div>
 
@@ -109,7 +109,7 @@
       <div class="field-group">
         <label class="field-label">Lyrics File <span class="field-required">*</span></label>
         <div class="upload-zone" id="lyricsZone">
-          <input type="file" name="lyricsFile" id="lyricsFile" accept=".doc,.docx,.pdf,.txt" required />
+          <input type="file" name="file1" id="file1" accept=".doc,.docx,.pdf,.txt" required />
           <div class="upload-icon">📝</div>
           <p class="upload-text">Click or drag to upload your lyrics</p>
           <p class="upload-sub">DOC, DOCX, PDF, TXT &nbsp;&middot;&nbsp; Max 10MB</p>
@@ -127,7 +127,7 @@
       <div class="field-group">
         <label class="field-label">Music File <span class="field-required">*</span></label>
         <div class="upload-zone" id="musicZone">
-          <input type="file" name="musicFile" id="musicFile" accept="audio/*,.mp3,.wav" required />
+          <input type="file" name="file2" id="file2" accept="audio/*,.mp3,.wav" required />
           <div class="upload-icon">🎵</div>
           <p class="upload-text">Click or drag to upload your Suno track</p>
           <p class="upload-sub">MP3, WAV &nbsp;&middot;&nbsp; Max 50MB</p>
@@ -145,7 +145,7 @@
       <div class="field-group">
         <label class="field-label">Video File</label>
         <div class="upload-zone" id="videoZone">
-          <input type="file" name="videoFile" id="videoFile" accept="video/*,.mp4,.mov" />
+          <input type="file" name="file3" id="file3" accept="video/*,.mp4,.mov" />
           <div class="upload-icon">🎬</div>
           <p class="upload-text">Click or drag to upload your music video</p>
           <p class="upload-sub">MP4, MOV &nbsp;&middot;&nbsp; Max 200MB</p>
@@ -166,7 +166,7 @@
       <p class="form-section-desc">Upload a screenshot of your Evidence Song Rubric Evaluator feedback.</p>
       <div class="field-group">
         <div class="upload-zone" id="oracleZone">
-          <input type="file" name="oracleFeedback" id="oracleFeedback" accept="image/*,.pdf" />
+          <input type="file" name="oracle_screenshot" id="oracle_screenshot" accept="image/*,.pdf" />
           <div class="upload-icon">🔮</div>
           <p class="upload-text">Click or drag to upload Oracle feedback</p>
           <p class="upload-sub">JPG, PNG, PDF &nbsp;&middot;&nbsp; Max 10MB</p>
@@ -216,10 +216,10 @@
     zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
     zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('dragover'); if (e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; filename.textContent = '✓ ' + e.dataTransfer.files[0].name; filename.style.display = 'block'; zone.style.borderColor = 'var(--crimson)'; } });
   }
-  setupUpload('lyricsFile', 'lyricsFilename', 'lyricsZone');
-  setupUpload('musicFile', 'musicFilename', 'musicZone');
-  setupUpload('videoFile', 'videoFilename', 'videoZone');
-  setupUpload('oracleFeedback', 'oracleFilename', 'oracleZone');
+  setupUpload('file1', 'lyricsFilename', 'lyricsZone');
+  setupUpload('file2', 'musicFilename', 'musicZone');
+  setupUpload('file3', 'videoFilename', 'videoZone');
+  setupUpload('oracle_screenshot', 'oracleFilename', 'oracleZone');
 
   document.getElementById('submitForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -230,7 +230,7 @@
       const res = await fetch('/api/submit/trove-02', { method: 'POST', body: formData });
       const data = await res.json();
       if (res.ok && data.success) { document.getElementById('submitForm').style.display = 'none'; document.getElementById('successMsg').style.display = 'block'; }
-      else { btn.disabled = false; btn.textContent = 'Submit Trove 02 — Lock My Score →'; alert(data.message || 'Submission failed. Please try again.'); }
+      else { btn.disabled = false; btn.textContent = 'Submit Trove 02 — Lock My Score →'; alert(data.error || data.message || 'Submission failed. Please try again.'); }
     } catch (err) { btn.disabled = false; btn.textContent = 'Submit Trove 02 — Lock My Score →'; alert('Network error. Please check your connection and try again.'); }
   });
 </script>

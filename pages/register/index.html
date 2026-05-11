@@ -265,7 +265,25 @@
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = 'Submitting...';
     const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
+    const raw = Object.fromEntries(formData.entries());
+    // Map camelCase form fields → snake_case API fields
+    const data = {
+      team_name:      raw.teamName,
+      captain_name:   (raw.captainFirst + ' ' + raw.captainLast).trim(),
+      captain_email:  raw.captainEmail,
+      school_name:    raw.schoolName,
+      district:       raw.district,
+      role:           raw.captainRole,
+      grade_levels:   raw.gradeLevel,
+      member2_name:   raw.member2Name,
+      member2_email:  raw.member2Email,
+      member3_name:   raw.member3Name,
+      member3_email:  raw.member3Email,
+      member4_name:   raw.member4Name,
+      member4_email:  raw.member4Email,
+      agree_terms:    raw.agreeTerms ? 'true' : 'false',
+      agree_iste:     raw.agreeEmails ? 'true' : 'false',
+    };
     try {
       const res = await fetch('/api/register', {
         method: 'POST',
@@ -280,7 +298,7 @@
       } else {
         btn.disabled = false;
         btn.textContent = 'Enlist as a Detective Recruit →';
-        alert(result.message || 'Registration failed. Please try again.');
+        alert(result.error || result.message || 'Registration failed. Please try again.');
       }
     } catch (err) {
       btn.disabled = false;

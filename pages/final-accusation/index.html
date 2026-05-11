@@ -120,11 +120,11 @@
         <h2 class="form-section-title">Team Information</h2>
         <div class="field-group">
           <label class="field-label" for="teamName">Team Name <span class="field-required">*</span></label>
-          <input class="field-input" type="text" id="teamName" name="teamName" placeholder="The K-Detectives" required />
+          <input class="field-input" type="text" id="teamName" name="team_name" placeholder="The K-Detectives" required />
         </div>
         <div class="field-group">
           <label class="field-label" for="captainEmail">Team Captain Email <span class="field-required">*</span></label>
-          <input class="field-input" type="email" id="captainEmail" name="captainEmail" placeholder="captain@school.edu" required />
+          <input class="field-input" type="email" id="captainEmail" name="captain_email" placeholder="captain@school.edu" required />
         </div>
       </div>
 
@@ -136,7 +136,7 @@
         <div class="suspect-grid" id="suspectGrid">
 
           <label class="suspect-card" for="suspect-sunny" onclick="selectSuspect(this)">
-            <input type="radio" name="suspect" id="suspect-sunny" value="Sunny" required />
+            <input type="radio" name="accused_suspect" id="suspect-sunny" value="Sunny" required />
             <div class="selected-indicator">✓</div>
             <img src="/assets/characters/sunny.jpg" alt="Sunny" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="suspect-avatar-placeholder" style="display:none;">☀️</div>
@@ -145,7 +145,7 @@
           </label>
 
           <label class="suspect-card" for="suspect-james" onclick="selectSuspect(this)">
-            <input type="radio" name="suspect" id="suspect-james" value="James Paul" required />
+            <input type="radio" name="accused_suspect" id="suspect-james" value="James Paul" required />
             <div class="selected-indicator">✓</div>
             <img src="/assets/characters/james_paul.jpg" alt="James Paul" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="suspect-avatar-placeholder" style="display:none;">🎤</div>
@@ -154,7 +154,7 @@
           </label>
 
           <label class="suspect-card" for="suspect-nari" onclick="selectSuspect(this)">
-            <input type="radio" name="suspect" id="suspect-nari" value="Nari" required />
+            <input type="radio" name="accused_suspect" id="suspect-nari" value="Nari" required />
             <div class="selected-indicator">✓</div>
             <img src="/assets/characters/nari.jpg" alt="Nari" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="suspect-avatar-placeholder" style="display:none;">🌸</div>
@@ -163,7 +163,7 @@
           </label>
 
           <label class="suspect-card" for="suspect-emilise" onclick="selectSuspect(this)">
-            <input type="radio" name="suspect" id="suspect-emilise" value="Emilise" required />
+            <input type="radio" name="accused_suspect" id="suspect-emilise" value="Emilise" required />
             <div class="selected-indicator">✓</div>
             <img src="/assets/characters/emilise.jpg" alt="Emilise" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="suspect-avatar-placeholder" style="display:none;">🌙</div>
@@ -172,7 +172,7 @@
           </label>
 
           <label class="suspect-card" for="suspect-star" onclick="selectSuspect(this)">
-            <input type="radio" name="suspect" id="suspect-star" value="Star" required />
+            <input type="radio" name="accused_suspect" id="suspect-star" value="Star" required />
             <div class="selected-indicator">✓</div>
             <img src="/assets/characters/star.jpg" alt="Star" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="suspect-avatar-placeholder" style="display:none;">⭐</div>
@@ -181,7 +181,7 @@
           </label>
 
           <label class="suspect-card" for="suspect-hanbit" onclick="selectSuspect(this)">
-            <input type="radio" name="suspect" id="suspect-hanbit" value="Hanbit Phil" required />
+            <input type="radio" name="accused_suspect" id="suspect-hanbit" value="Hanbit Phil" required />
             <div class="selected-indicator">✓</div>
             <img src="/assets/characters/hanbit_phil.jpg" alt="Hanbit Phil" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="suspect-avatar-placeholder" style="display:none;">🎭</div>
@@ -199,7 +199,7 @@
         <p class="form-section-desc">Present your case. Cite the specific K-Clues from all three Troves that led you to this conclusion. Be specific — reference the evidence by name.</p>
         <div class="field-group">
           <label class="field-label">Your Evidence <span class="field-required">*</span></label>
-          <textarea class="field-input" name="evidenceSummary" rows="8" placeholder="Example: Based on K-Clue 1 from Trove 02, we saw that [suspect] was present at the scene when the food was prepared. K-Clue 2 revealed that [suspect] had access to the catering records. Furthermore, the Final Clue from Trove 03 shows..." style="resize:vertical;" required></textarea>
+          <textarea class="field-input" name="evidence_summary" rows="8" placeholder="Example: Based on K-Clue 1 from Trove 02, we saw that [suspect] was present at the scene when the food was prepared. K-Clue 2 revealed that [suspect] had access to the catering records. Furthermore, the Final Clue from Trove 03 shows..." style="resize:vertical;" required></textarea>
           <p style="font-size:0.78rem; color:rgba(224,224,224,0.35); margin-top:6px;">Minimum 3 sentences. Reference at least 2 K-Clues.</p>
         </div>
       </div>
@@ -267,7 +267,7 @@
 
   document.getElementById('accusationForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const suspect = document.querySelector('input[name="suspect"]:checked');
+    const suspect = document.querySelector('input[name="accused_suspect"]:checked');
     if (!suspect) { alert('Please select a suspect before submitting.'); return; }
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = 'Filing Accusation...';
@@ -276,7 +276,7 @@
       const res = await fetch('/api/submit/final-accusation', { method: 'POST', body: formData });
       const data = await res.json();
       if (res.ok && data.success) { document.getElementById('accusationForm').style.display = 'none'; document.getElementById('successMsg').style.display = 'block'; }
-      else { btn.disabled = false; btn.textContent = 'File My Accusation →'; alert(data.message || 'Submission failed.'); }
+      else { btn.disabled = false; btn.textContent = 'File My Accusation →'; alert(data.error || data.message || 'Submission failed.'); }
     } catch (err) { btn.disabled = false; btn.textContent = 'File My Accusation →'; alert('Network error. Please try again.'); }
   });
 </script>

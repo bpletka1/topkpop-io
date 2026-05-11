@@ -97,11 +97,11 @@
 
       <div class="field-group">
         <label class="field-label" for="teamName">Team Name <span class="field-required">*</span></label>
-        <input class="field-input" type="text" id="teamName" name="teamName" placeholder="The K-Detectives" required />
+        <input class="field-input" type="text" id="teamName" name="team_name" placeholder="The K-Detectives" required />
       </div>
       <div class="field-group">
         <label class="field-label" for="captainEmail">Team Captain Email <span class="field-required">*</span></label>
-        <input class="field-input" type="email" id="captainEmail" name="captainEmail" placeholder="captain@school.edu" required />
+        <input class="field-input" type="email" id="captainEmail" name="captain_email" placeholder="captain@school.edu" required />
       </div>
     </div>
 
@@ -115,7 +115,7 @@
       <div class="field-group">
         <label class="field-label">Avatar Image File <span class="field-required">*</span></label>
         <div class="upload-zone" id="avatarZone">
-          <input type="file" name="avatarFile" id="avatarFile" accept="image/*" required />
+          <input type="file" name="file1" id="file1" accept="image/*" required />
           <div class="upload-icon">🎭</div>
           <p class="upload-text">Click or drag to upload your avatar</p>
           <p class="upload-sub">JPG, PNG, WEBP &nbsp;&middot;&nbsp; Max 20MB</p>
@@ -134,7 +134,7 @@
       <div class="field-group">
         <label class="field-label">Poster File <span class="field-required">*</span></label>
         <div class="upload-zone" id="posterZone">
-          <input type="file" name="posterFile" id="posterFile" accept="image/*,.pdf" required />
+          <input type="file" name="file2" id="file2" accept="image/*,.pdf" required />
           <div class="upload-icon">🎨</div>
           <p class="upload-text">Click or drag to upload your poster</p>
           <p class="upload-sub">JPG, PNG, PDF &nbsp;&middot;&nbsp; Max 20MB</p>
@@ -152,7 +152,7 @@
       <div class="field-group">
         <label class="field-label">Oracle Feedback Screenshot</label>
         <div class="upload-zone" id="oracleZone">
-          <input type="file" name="oracleFeedback" id="oracleFeedback" accept="image/*,.pdf" />
+          <input type="file" name="file3" id="file3" accept="image/*,.pdf" />
           <div class="upload-icon">🔮</div>
           <p class="upload-text">Click or drag to upload Oracle feedback</p>
           <p class="upload-sub">JPG, PNG, PDF &nbsp;&middot;&nbsp; Max 10MB</p>
@@ -221,9 +221,9 @@
       }
     });
   }
-  setupUpload('avatarFile', 'avatarFilename', 'avatarZone');
-  setupUpload('posterFile', 'posterFilename', 'posterZone');
-  setupUpload('oracleFeedback', 'oracleFilename', 'oracleZone');
+  setupUpload('file1', 'avatarFilename', 'avatarZone');
+  setupUpload('file2', 'posterFilename', 'posterZone');
+  setupUpload('file3', 'oracleFilename', 'oracleZone');
 
   // Form submit
   document.getElementById('submitForm').addEventListener('submit', async (e) => {
@@ -242,7 +242,7 @@
       } else {
         btn.disabled = false;
         btn.textContent = 'Submit Trove 01 — Lock My Score →';
-        alert(data.message || 'Submission failed. Please try again.');
+        alert(data.error || data.message || 'Submission failed. Please try again.');
       }
     } catch (err) {
       btn.disabled = false;
