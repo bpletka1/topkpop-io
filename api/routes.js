@@ -14,7 +14,11 @@ const path = require('path');
 // ── Supabase Client ──────────────────────────────────────────────────────────
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SECRET_KEY
+  process.env.SUPABASE_SECRET_KEY,
+  {
+    realtime: { enabled: false },
+    global: { headers: { 'x-client-info': 'topkpop-io' } },
+  }
 );
 
 // ── Mailchimp Client ─────────────────────────────────────────────────────────
