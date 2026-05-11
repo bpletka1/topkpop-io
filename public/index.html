@@ -128,7 +128,12 @@
     .timeline-track { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; position: relative; margin-top: 52px; }
     .timeline-track::before { content: ''; position: absolute; top: 28px; left: 12.5%; right: 12.5%; height: 2px; background: linear-gradient(to right, var(--crimson), var(--purple), var(--amber), gold); box-shadow: 0 0 12px rgba(230,0,92,0.4); }
     .timeline-node { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 12px; position: relative; }
-    .timeline-dot { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; position: relative; z-index: 2; margin-bottom: 18px; border: 2px solid; }
+    .timeline-dot { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2; margin-bottom: 18px; border: 2px solid; }
+    .timeline-dot-label { font-family: 'Syncopate', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; line-height: 1; }
+    .dot-crimson .timeline-dot-label { color: var(--crimson); }
+    .dot-purple  .timeline-dot-label { color: var(--purple); }
+    .dot-amber   .timeline-dot-label { color: var(--amber); }
+    .dot-gold    .timeline-dot-label { color: gold; }
     .dot-crimson { background: rgba(230,0,92,0.15); border-color: var(--crimson); box-shadow: 0 0 20px rgba(230,0,92,0.4); }
     .dot-purple  { background: rgba(138,43,226,0.15); border-color: var(--purple); box-shadow: 0 0 20px rgba(138,43,226,0.4); }
     .dot-amber   { background: rgba(255,191,0,0.12); border-color: var(--amber); box-shadow: 0 0 20px rgba(255,191,0,0.4); }
@@ -360,28 +365,28 @@
     <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:1rem; color:rgba(224,224,224,0.65); max-width:580px; margin:16px auto 0; line-height:1.7; text-align:center;">Each week a new Treasure Trove unlocks automatically. Complete all three missions — then name the saboteur. The team with the highest score AND the correct accusation wins.</p>
     <div class="timeline-track">
       <div class="timeline-node">
-        <div class="timeline-dot dot-crimson">🎭</div>
+        <div class="timeline-dot dot-crimson"><span class="timeline-dot-label">01</span></div>
         <p class="timeline-week w1">Week 1</p>
         <p class="timeline-event">Trove 01 Opens</p>
         <p class="timeline-detail">K-Pop Identity<br>AI avatar &amp; debut poster</p>
         <span class="timeline-days days-crimson">Days 1–7</span>
       </div>
       <div class="timeline-node">
-        <div class="timeline-dot dot-purple">🎵</div>
+        <div class="timeline-dot dot-purple"><span class="timeline-dot-label">02</span></div>
         <p class="timeline-week w2">Week 2</p>
         <p class="timeline-event">Trove 02 Opens</p>
         <p class="timeline-detail">Evidence Song<br>Rewrite lyrics or AI music</p>
         <span class="timeline-days days-purple">Days 8–14</span>
       </div>
       <div class="timeline-node">
-        <div class="timeline-dot dot-amber">📚</div>
+        <div class="timeline-dot dot-amber"><span class="timeline-dot-label">03</span></div>
         <p class="timeline-week w3">Week 3</p>
         <p class="timeline-event">Trove 03 Opens</p>
         <p class="timeline-detail">AI Lesson Plan<br>Standards + cultural context</p>
         <span class="timeline-days days-amber">Days 15–21</span>
       </div>
       <div class="timeline-node">
-        <div class="timeline-dot dot-gold">⚖️</div>
+        <div class="timeline-dot dot-gold"><span class="timeline-dot-label">✕</span></div>
         <p class="timeline-week w4">Week 4</p>
         <p class="timeline-event">Final Accusation</p>
         <p class="timeline-detail">Name the saboteur<br>Correct + highest score wins</p>
