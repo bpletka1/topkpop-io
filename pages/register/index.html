@@ -4,37 +4,290 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Register — TopKpop.io</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" href="/assets/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .register-body { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+    .form-section { background: rgba(15,16,22,0.9); border: 1px solid rgba(230,0,92,0.2); border-radius: 8px; padding: 36px; margin-bottom: 28px; }
+    .form-section-title { font-family: 'Syncopate', sans-serif; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #fff; margin-bottom: 6px; }
+    .form-section-label { font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 16px; }
+    .form-section-desc { font-size: 0.88rem; color: rgba(224,224,224,0.65); line-height: 1.65; margin-bottom: 24px; }
+    .field-group { margin-bottom: 20px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .field-label { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(224,224,224,0.7); margin-bottom: 8px; display: block; }
+    .field-required { color: var(--crimson); margin-left: 3px; }
+    .field-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 13px 16px; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+    .field-input:focus { border-color: var(--crimson); }
+    .field-input::placeholder { color: rgba(255,255,255,0.3); }
+    select.field-input option { background: #0f1016; color: #fff; }
+    .field-hint { font-size: 0.78rem; color: rgba(224,224,224,0.4); margin-top: 6px; line-height: 1.5; }
+    .submit-btn { width: 100%; padding: 18px; background: var(--crimson); border: none; border-radius: 4px; font-family: 'Syncopate', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #fff; cursor: pointer; transition: background 0.2s, transform 0.1s; margin-top: 8px; }
+    .submit-btn:hover { background: #ff1a6e; transform: translateY(-1px); }
+    .submit-btn:disabled { background: rgba(230,0,92,0.3); cursor: not-allowed; }
+    .success-msg { display: none; text-align: center; padding: 60px 24px; }
+    .success-icon { font-size: 3.5rem; margin-bottom: 20px; }
+    .success-title { font-family: 'Syncopate', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 16px; }
+    .success-body { font-size: 0.92rem; color: rgba(224,224,224,0.7); line-height: 1.8; max-width: 500px; margin: 0 auto; }
+    .prize-banner { background: linear-gradient(135deg, rgba(230,0,92,0.1) 0%, rgba(255,191,0,0.08) 100%); border: 1px solid rgba(255,191,0,0.25); border-radius: 8px; padding: 24px 28px; margin-bottom: 36px; display: flex; gap: 20px; align-items: center; }
+    .prize-icon { font-size: 2.5rem; flex-shrink: 0; }
+    .prize-text h3 { font-family: 'Syncopate', sans-serif; font-size: 0.65rem; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+    .prize-text p { font-size: 0.85rem; color: rgba(224,224,224,0.7); line-height: 1.6; margin: 0; }
+    .iste-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(138,43,226,0.1); border: 1px solid rgba(138,43,226,0.25); border-radius: 20px; padding: 8px 16px; font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.15em; color: #b06aff; text-transform: uppercase; margin-bottom: 28px; }
+    .team-member-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+    .optional-tag { font-size: 0.72rem; color: rgba(224,224,224,0.35); font-family: 'Inter', sans-serif; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+    .checkbox-row { display: flex; align-items: flex-start; gap: 12px; }
+    .checkbox-row input[type="checkbox"] { accent-color: var(--crimson); width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
+    .checkbox-row label { font-size: 0.85rem; color: rgba(224,224,224,0.7); line-height: 1.6; cursor: pointer; }
+    .checkbox-row label a { color: var(--crimson); }
+    @media (max-width: 520px) { .field-row, .team-member-row { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-  <nav class="nav">
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
     <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/pages/the-case/">The Case</a></li>
-      <li><a href="/pages/suspects/">Suspects</a></li>
-      <li><a href="/pages/missions/">Missions</a></li>
-      <li><a href="/pages/leaderboard/">Leaderboard</a></li>
-      <li><a href="/pages/resources/">Resources</a></li>
-    </ul>
-    <a href="/pages/register/" class="nav-cta">Register Now</a>
-    <div class="nav-hamburger"><span></span><span></span><span></span></div>
-  </nav>
-
-  <section class="page-hero">
-    <p class="section-label">TopKpop.io</p>
-    <h1 class="section-title">Register</h1>
-    <div class="divider" style="margin:0 auto 24px;"></div>
-    <span class="phase-badge">Phase 2 — Coming Soon</span>
-  </section>
-
-  <section style="padding:80px 48px; text-align:center;">
-    <div style="max-width:600px; margin:0 auto; background:rgba(15,16,22,0.8); border:1px solid rgba(138,43,226,0.15); border-radius:6px; padding:60px 40px;">
-      <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); line-height:1.8;">This page is reserved for Phase 2 development. Full content, interactive features, and web app integrations will be added in the next build phase.</p>
-      <div style="margin-top:32px;"><a href="/" class="btn-secondary" style="font-size:0.55rem;">← Back to Home</a></div>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">&#9776;</button>
+    <div class="nav-links" id="navLinks">
+      <a href="/">Home</a>
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/cast">Cast</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
     </div>
-  </section>
+  </div>
+</nav>
 
-  <script src="/js/nav.js"></script>
+<section class="page-hero" style="background-image:url('/assets/hero-bg.jpg'); min-height:240px;">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Detective Recruitment &nbsp;&middot;&nbsp; Official Enrollment</p>
+    <h1 class="page-title">Join the <span>Investigation.</span></h1>
+    <p class="page-subtitle">Register your team and receive your mission briefing.</p>
+  </div>
+</section>
+
+<div class="register-body">
+
+  <!-- Prize Banner -->
+  <div class="prize-banner">
+    <div class="prize-icon">🎡</div>
+    <div class="prize-text">
+      <h3>Grand Prize — Disneyland Tickets</h3>
+      <p>The team with the highest score AND the correct accusation wins Disneyland tickets for the whole team. Gift cards awarded to each Trove winner.</p>
+    </div>
+  </div>
+
+  <div class="iste-badge">✓ ISTE Standards Aligned &nbsp;&middot;&nbsp; Grades K–8 &nbsp;&middot;&nbsp; Completion Certificates Issued</div>
+
+  <form id="registerForm">
+
+    <!-- Team Captain -->
+    <div class="form-section">
+      <p class="form-section-label">Section 01</p>
+      <h2 class="form-section-title">Team Captain</h2>
+      <p class="form-section-desc">The team captain is the primary contact for all communications. All emails, score notifications, and prize information will be sent to this address.</p>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label" for="captainFirst">First Name <span class="field-required">*</span></label>
+          <input class="field-input" type="text" id="captainFirst" name="captainFirst" placeholder="Anna" required />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="captainLast">Last Name <span class="field-required">*</span></label>
+          <input class="field-input" type="text" id="captainLast" name="captainLast" placeholder="Im" required />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="captainEmail">Email Address <span class="field-required">*</span></label>
+        <input class="field-input" type="email" id="captainEmail" name="captainEmail" placeholder="anna@school.edu" required />
+        <p class="field-hint">Use your school email address. All game communications will be sent here.</p>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="captainRole">Your Role <span class="field-required">*</span></label>
+        <select class="field-input" id="captainRole" name="captainRole" required>
+          <option value="" disabled selected>Select your role</option>
+          <option value="Classroom Teacher">Classroom Teacher</option>
+          <option value="Instructional Coach">Instructional Coach</option>
+          <option value="Principal / Assistant Principal">Principal / Assistant Principal</option>
+          <option value="Curriculum Coordinator">Curriculum Coordinator</option>
+          <option value="Instructional Technology Specialist">Instructional Technology Specialist</option>
+          <option value="Library / Media Specialist">Library / Media Specialist</option>
+          <option value="Support Staff">Support Staff</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="gradeLevel">Grade Level(s) You Serve <span class="field-required">*</span></label>
+        <select class="field-input" id="gradeLevel" name="gradeLevel" required>
+          <option value="" disabled selected>Select grade level</option>
+          <option value="K-2">K–2</option>
+          <option value="3-5">3–5</option>
+          <option value="6-8">6–8</option>
+          <option value="K-8 (Multiple)">K–8 (Multiple)</option>
+          <option value="School-wide / Admin">School-wide / Admin</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- School Info -->
+    <div class="form-section">
+      <p class="form-section-label">Section 02</p>
+      <h2 class="form-section-title">School Information</h2>
+
+      <div class="field-group">
+        <label class="field-label" for="schoolName">School Name <span class="field-required">*</span></label>
+        <input class="field-input" type="text" id="schoolName" name="schoolName" placeholder="Lincoln Elementary School" required />
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label" for="district">School District <span class="field-required">*</span></label>
+          <input class="field-input" type="text" id="district" name="district" placeholder="Fullerton School District" required />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="state">State <span class="field-required">*</span></label>
+          <input class="field-input" type="text" id="state" name="state" placeholder="CA" maxlength="2" required />
+        </div>
+      </div>
+    </div>
+
+    <!-- Team -->
+    <div class="form-section">
+      <p class="form-section-label">Section 03</p>
+      <h2 class="form-section-title">Your Team</h2>
+      <p class="form-section-desc">Teams can have 1–4 members. Collaboration is encouraged — you can work with colleagues from your school or district. Only the team captain needs to register.</p>
+
+      <div class="field-group">
+        <label class="field-label" for="teamName">Team Name <span class="field-required">*</span></label>
+        <input class="field-input" type="text" id="teamName" name="teamName" placeholder="The K-Detectives" required />
+        <p class="field-hint">Your team name will appear on the public leaderboard.</p>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Additional Team Members <span class="optional-tag">(Optional — up to 3)</span></label>
+        <div class="team-member-row">
+          <input class="field-input" type="text" name="member2Name" placeholder="Member 2 Name" />
+          <input class="field-input" type="email" name="member2Email" placeholder="Member 2 Email" />
+        </div>
+        <div class="team-member-row">
+          <input class="field-input" type="text" name="member3Name" placeholder="Member 3 Name" />
+          <input class="field-input" type="email" name="member3Email" placeholder="Member 3 Email" />
+        </div>
+        <div class="team-member-row">
+          <input class="field-input" type="text" name="member4Name" placeholder="Member 4 Name" />
+          <input class="field-input" type="email" name="member4Email" placeholder="Member 4 Email" />
+        </div>
+        <p class="field-hint">Additional members will receive game emails if their email is provided.</p>
+      </div>
+    </div>
+
+    <!-- How did you hear -->
+    <div class="form-section">
+      <p class="form-section-label">Section 04</p>
+      <h2 class="form-section-title">Quick Questions</h2>
+
+      <div class="field-group">
+        <label class="field-label" for="hearAbout">How did you hear about TopKpop.io? <span class="field-required">*</span></label>
+        <select class="field-input" id="hearAbout" name="hearAbout" required>
+          <option value="" disabled selected>Select one</option>
+          <option value="Colleague / Word of mouth">Colleague / Word of mouth</option>
+          <option value="Instagram">Instagram</option>
+          <option value="TikTok">TikTok</option>
+          <option value="District / Admin recommendation">District / Admin recommendation</option>
+          <option value="Professional development event">Professional development event</option>
+          <option value="Google / Web search">Google / Web search</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="aiExperience">Your current comfort level with AI tools</label>
+        <select class="field-input" id="aiExperience" name="aiExperience">
+          <option value="" disabled selected>Select one</option>
+          <option value="Beginner — I've heard of AI but haven't used it much">Beginner — I've heard of AI but haven't used it much</option>
+          <option value="Intermediate — I use AI tools occasionally">Intermediate — I use AI tools occasionally</option>
+          <option value="Advanced — I use AI tools regularly in my work">Advanced — I use AI tools regularly in my work</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Agreement -->
+    <div class="form-section">
+      <p class="form-section-label">Section 05</p>
+      <h2 class="form-section-title">Agreement</h2>
+
+      <div class="field-group">
+        <div class="checkbox-row">
+          <input type="checkbox" id="agreeTerms" name="agreeTerms" required />
+          <label for="agreeTerms">I confirm that I am a K–8 educator, principal, or school staff member, and I agree to participate in TopKpop.io in good faith. I understand that submissions are evaluated by AI and human reviewers, and that scores are final once submitted.</label>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="checkbox-row">
+          <input type="checkbox" id="agreeEmails" name="agreeEmails" required />
+          <label for="agreeEmails">I agree to receive game-related emails including mission unlocks, score notifications, and the final saboteur reveal. I can unsubscribe at any time.</label>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; padding: 0 0 20px;">
+      <button type="submit" class="submit-btn" id="submitBtn">Enlist as a Detective Recruit &rarr;</button>
+    </div>
+
+  </form>
+
+  <div class="success-msg" id="successMsg">
+    <div class="success-icon">🕵️</div>
+    <h2 class="success-title">Welcome to the Investigation.</h2>
+    <p class="success-body">Your registration has been received. Check your email for your official Mission Briefing — it contains everything you need to begin Trove 01.<br><br>The investigation is open. The saboteur is still out there.<br><br><em>— Anna Im, Lead Detective</em></p>
+    <a href="/pages/missions" class="btn-primary" style="display:inline-block; margin-top:28px;">View Missions &rarr;</a>
+  </div>
+
+</div>
+
+<footer style="text-align:center; padding:40px 24px; border-top:1px solid rgba(255,255,255,0.06);">
+  <p style="font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.25em; color:rgba(224,224,224,0.3); text-transform:uppercase;">Top K-Pop Entertainment &nbsp;&middot;&nbsp; AI Super Sleuth &nbsp;&middot;&nbsp; &copy; 2026</p>
+</footer>
+
+<script src="/js/nav.js"></script>
+<script>
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Submitting...';
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('successMsg').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Enlist as a Detective Recruit →';
+        alert(result.message || 'Registration failed. Please try again.');
+      }
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Enlist as a Detective Recruit →';
+      alert('Network error. Please check your connection and try again.');
+    }
+  });
+</script>
 </body>
 </html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Final Accusation — TopKpop.io</title>
+  <link rel="icon" href="/assets/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .accusation-body { max-width: 760px; margin: 0 auto; padding: 60px 24px 100px; }
+    .locked-overlay { text-align: center; padding: 80px 24px; }
+    .locked-icon { font-size: 3rem; margin-bottom: 20px; opacity: 0.4; }
+    .locked-title { font-family: 'Syncopate', sans-serif; font-size: 1rem; font-weight: 700; color: rgba(224,224,224,0.5); margin-bottom: 12px; }
+    .locked-body { font-size: 0.9rem; color: rgba(224,224,224,0.35); line-height: 1.7; }
+    .countdown-box { background: rgba(230,0,92,0.06); border: 1px solid rgba(230,0,92,0.2); border-radius: 8px; padding: 32px; text-align: center; margin-bottom: 40px; }
+    .countdown-label { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 16px; }
+    .countdown-timer { display: flex; justify-content: center; gap: 24px; }
+    .countdown-unit { text-align: center; }
+    .countdown-num { font-family: 'Syncopate', sans-serif; font-size: 2.5rem; font-weight: 700; color: #fff; line-height: 1; }
+    .countdown-unit-label { font-family: 'Syncopate', sans-serif; font-size: 0.45rem; letter-spacing: 0.2em; color: rgba(224,224,224,0.4); text-transform: uppercase; margin-top: 6px; }
+    .form-section { background: rgba(15,16,22,0.9); border: 1px solid rgba(230,0,92,0.2); border-radius: 8px; padding: 36px; margin-bottom: 28px; }
+    .form-section-title { font-family: 'Syncopate', sans-serif; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #fff; margin-bottom: 6px; }
+    .form-section-label { font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 16px; }
+    .form-section-desc { font-size: 0.88rem; color: rgba(224,224,224,0.65); line-height: 1.65; margin-bottom: 24px; }
+    .field-group { margin-bottom: 20px; }
+    .field-label { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(224,224,224,0.7); margin-bottom: 8px; display: block; }
+    .field-required { color: var(--crimson); margin-left: 3px; }
+    .field-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 13px 16px; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+    .field-input:focus { border-color: var(--crimson); }
+    .field-input::placeholder { color: rgba(255,255,255,0.3); }
+    .suspect-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .suspect-card { position: relative; border: 2px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px 16px; cursor: pointer; transition: border-color 0.2s, background 0.2s; text-align: center; }
+    .suspect-card:hover { border-color: rgba(230,0,92,0.4); background: rgba(230,0,92,0.04); }
+    .suspect-card.selected { border-color: var(--crimson); background: rgba(230,0,92,0.08); }
+    .suspect-card input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .suspect-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin: 0 auto 10px; display: block; border: 2px solid rgba(255,255,255,0.1); }
+    .suspect-avatar-placeholder { width: 64px; height: 64px; border-radius: 50%; background: rgba(230,0,92,0.15); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border: 2px solid rgba(230,0,92,0.2); }
+    .suspect-name-label { font-family: 'Syncopate', sans-serif; font-size: 0.6rem; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .suspect-role { font-size: 0.75rem; color: rgba(224,224,224,0.45); }
+    .suspect-card.selected .suspect-name-label { color: var(--crimson); }
+    .selected-indicator { display: none; position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; background: var(--crimson); border-radius: 50%; align-items: center; justify-content: center; font-size: 0.65rem; color: #fff; }
+    .suspect-card.selected .selected-indicator { display: flex; }
+    .warning-box { background: rgba(255,191,0,0.06); border: 1px solid rgba(255,191,0,0.25); border-left: 3px solid var(--amber); border-radius: 0 6px 6px 0; padding: 18px 20px; margin-bottom: 28px; font-size: 0.88rem; color: rgba(224,224,224,0.75); line-height: 1.65; }
+    .warning-box strong { color: var(--amber); }
+    .submit-btn { width: 100%; padding: 18px; background: var(--crimson); border: none; border-radius: 4px; font-family: 'Syncopate', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #fff; cursor: pointer; transition: background 0.2s, transform 0.1s; margin-top: 8px; }
+    .submit-btn:hover { background: #ff1a6e; transform: translateY(-1px); }
+    .submit-btn:disabled { background: rgba(230,0,92,0.3); cursor: not-allowed; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.2em; color: rgba(224,224,224,0.45); text-transform: uppercase; text-decoration: none; margin-bottom: 40px; transition: color 0.2s; }
+    .back-link:hover { color: var(--crimson); }
+    .success-msg { display: none; text-align: center; padding: 60px 24px; }
+    .success-icon { font-size: 3.5rem; margin-bottom: 20px; }
+    .success-title { font-family: 'Syncopate', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 16px; }
+    .success-body { font-size: 0.92rem; color: rgba(224,224,224,0.7); line-height: 1.8; max-width: 500px; margin: 0 auto; }
+    .accusation-hero-label { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 12px; }
+    .accusation-hero-title { font-family: 'Syncopate', sans-serif; font-size: 1.8rem; font-weight: 700; color: #fff; line-height: 1.2; margin-bottom: 16px; }
+    .accusation-hero-sub { font-size: 0.92rem; color: rgba(224,224,224,0.6); line-height: 1.7; margin-bottom: 40px; }
+    @media (max-width: 520px) { .suspect-grid { grid-template-columns: 1fr; } .countdown-num { font-size: 1.8rem; } }
+  </style>
+</head>
+<body>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">&#9776;</button>
+    <div class="nav-links" id="navLinks">
+      <a href="/">Home</a>
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/cast">Cast</a>
+      <a href="/pages/missions" class="active">Missions</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-hero" style="background-image:url('/assets/hero-bg.jpg'); min-height:260px;">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Day 22 &nbsp;&middot;&nbsp; Final Accusation</p>
+    <h1 class="page-title">Name the <span>Saboteur.</span></h1>
+    <p class="page-subtitle">This is your one shot. Choose carefully.</p>
+  </div>
+</section>
+
+<div class="accusation-body">
+  <a href="/pages/missions" class="back-link">&#8592; Back to Missions</a>
+
+  <!-- LOCKED STATE — shown when accusation window is not yet open -->
+  <div id="lockedState" style="display:none;">
+    <div class="countdown-box">
+      <p class="countdown-label">Final Accusation Opens In</p>
+      <div class="countdown-timer">
+        <div class="countdown-unit"><div class="countdown-num" id="cdDays">--</div><div class="countdown-unit-label">Days</div></div>
+        <div class="countdown-unit"><div class="countdown-num" id="cdHours">--</div><div class="countdown-unit-label">Hours</div></div>
+        <div class="countdown-unit"><div class="countdown-num" id="cdMins">--</div><div class="countdown-unit-label">Minutes</div></div>
+        <div class="countdown-unit"><div class="countdown-num" id="cdSecs">--</div><div class="countdown-unit-label">Seconds</div></div>
+      </div>
+    </div>
+    <div class="locked-overlay">
+      <div class="locked-icon">🔒</div>
+      <h2 class="locked-title">Accusation Window Not Yet Open</h2>
+      <p class="locked-body">The Final Accusation form opens on Day 22 of the investigation. Review your evidence, study the suspects, and prepare your case. You will receive an email when the window opens.</p>
+    </div>
+  </div>
+
+  <!-- OPEN STATE — shown when accusation window is active -->
+  <div id="openState">
+    <div class="warning-box">
+      <strong>This is final.</strong> You may only submit one accusation. Once submitted, it cannot be changed. Your accusation will be evaluated against the correct answer. Make sure your team agrees before submitting.
+    </div>
+
+    <form id="accusationForm">
+
+      <div class="form-section">
+        <p class="form-section-label">Step 01</p>
+        <h2 class="form-section-title">Team Information</h2>
+        <div class="field-group">
+          <label class="field-label" for="teamName">Team Name <span class="field-required">*</span></label>
+          <input class="field-input" type="text" id="teamName" name="teamName" placeholder="The K-Detectives" required />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="captainEmail">Team Captain Email <span class="field-required">*</span></label>
+          <input class="field-input" type="email" id="captainEmail" name="captainEmail" placeholder="captain@school.edu" required />
+        </div>
+      </div>
+
+      <!-- Suspect Selection -->
+      <div class="form-section">
+        <p class="form-section-label">Step 02 &nbsp;&middot;&nbsp; The Accusation</p>
+        <h2 class="form-section-title">Who Is the Saboteur?</h2>
+        <p class="form-section-desc">Select the suspect your team believes is responsible for the sabotage of Top K-Pop's 10th Anniversary Season.</p>
+        <div class="suspect-grid" id="suspectGrid">
+
+          <label class="suspect-card" for="suspect-sunny" onclick="selectSuspect(this)">
+            <input type="radio" name="suspect" id="suspect-sunny" value="Sunny" required />
+            <div class="selected-indicator">✓</div>
+            <img src="/assets/characters/sunny.jpg" alt="Sunny" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="suspect-avatar-placeholder" style="display:none;">☀️</div>
+            <div class="suspect-name-label">Sunny</div>
+            <div class="suspect-role">Lead Vocal, Group A</div>
+          </label>
+
+          <label class="suspect-card" for="suspect-james" onclick="selectSuspect(this)">
+            <input type="radio" name="suspect" id="suspect-james" value="James Paul" required />
+            <div class="selected-indicator">✓</div>
+            <img src="/assets/characters/james_paul.jpg" alt="James Paul" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="suspect-avatar-placeholder" style="display:none;">🎤</div>
+            <div class="suspect-name-label">James Paul</div>
+            <div class="suspect-role">Producer / Choreographer</div>
+          </label>
+
+          <label class="suspect-card" for="suspect-nari" onclick="selectSuspect(this)">
+            <input type="radio" name="suspect" id="suspect-nari" value="Nari" required />
+            <div class="selected-indicator">✓</div>
+            <img src="/assets/characters/nari.jpg" alt="Nari" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="suspect-avatar-placeholder" style="display:none;">🌸</div>
+            <div class="suspect-name-label">Nari</div>
+            <div class="suspect-role">Main Dancer, Group B</div>
+          </label>
+
+          <label class="suspect-card" for="suspect-emilise" onclick="selectSuspect(this)">
+            <input type="radio" name="suspect" id="suspect-emilise" value="Emilise" required />
+            <div class="selected-indicator">✓</div>
+            <img src="/assets/characters/emilise.jpg" alt="Emilise" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="suspect-avatar-placeholder" style="display:none;">🌙</div>
+            <div class="suspect-name-label">Emilise</div>
+            <div class="suspect-role">Trainee, Group C</div>
+          </label>
+
+          <label class="suspect-card" for="suspect-star" onclick="selectSuspect(this)">
+            <input type="radio" name="suspect" id="suspect-star" value="Star" required />
+            <div class="selected-indicator">✓</div>
+            <img src="/assets/characters/star.jpg" alt="Star" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="suspect-avatar-placeholder" style="display:none;">⭐</div>
+            <div class="suspect-name-label">Star</div>
+            <div class="suspect-role">Center, Group A</div>
+          </label>
+
+          <label class="suspect-card" for="suspect-hanbit" onclick="selectSuspect(this)">
+            <input type="radio" name="suspect" id="suspect-hanbit" value="Hanbit Phil" required />
+            <div class="selected-indicator">✓</div>
+            <img src="/assets/characters/hanbit_phil.jpg" alt="Hanbit Phil" class="suspect-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="suspect-avatar-placeholder" style="display:none;">🎭</div>
+            <div class="suspect-name-label">Hanbit Phil</div>
+            <div class="suspect-role">CEO, Top K-Pop Entertainment</div>
+          </label>
+
+        </div>
+      </div>
+
+      <!-- Evidence Summary -->
+      <div class="form-section">
+        <p class="form-section-label">Step 03 &nbsp;&middot;&nbsp; Your Case</p>
+        <h2 class="form-section-title">Evidence Summary</h2>
+        <p class="form-section-desc">Present your case. Cite the specific K-Clues from all three Troves that led you to this conclusion. Be specific — reference the evidence by name.</p>
+        <div class="field-group">
+          <label class="field-label">Your Evidence <span class="field-required">*</span></label>
+          <textarea class="field-input" name="evidenceSummary" rows="8" placeholder="Example: Based on K-Clue 1 from Trove 02, we saw that [suspect] was present at the scene when the food was prepared. K-Clue 2 revealed that [suspect] had access to the catering records. Furthermore, the Final Clue from Trove 03 shows..." style="resize:vertical;" required></textarea>
+          <p style="font-size:0.78rem; color:rgba(224,224,224,0.35); margin-top:6px;">Minimum 3 sentences. Reference at least 2 K-Clues.</p>
+        </div>
+      </div>
+
+      <!-- Motive -->
+      <div class="form-section">
+        <p class="form-section-label">Step 04 &nbsp;&middot;&nbsp; The Motive</p>
+        <h2 class="form-section-title">What Was Their Motive?</h2>
+        <p class="form-section-desc">Why did they do it? Explain the motive behind the sabotage based on what you've uncovered.</p>
+        <div class="field-group">
+          <textarea class="field-input" name="motive" rows="4" placeholder="Describe the motive you believe drove the saboteur to act..." style="resize:vertical;" required></textarea>
+        </div>
+      </div>
+
+      <div style="text-align:center; padding: 0 0 20px;">
+        <p style="font-size:0.82rem; color:rgba(224,224,224,0.45); margin-bottom:20px; line-height:1.6;">This accusation is final and cannot be changed after submission. Your team's total score plus the accuracy of your accusation will determine the winner.</p>
+        <button type="submit" class="submit-btn" id="submitBtn">File My Accusation &rarr;</button>
+      </div>
+
+    </form>
+
+    <div class="success-msg" id="successMsg">
+      <div class="success-icon">⚖️</div>
+      <h2 class="success-title">Accusation Filed.</h2>
+      <p class="success-body">Your accusation has been received and sealed. Anna Im and the investigation team will review all accusations on Day 32.<br><br>The saboteur will be revealed to all teams simultaneously. Watch your email for the final verdict.</p>
+      <a href="/pages/leaderboard" class="btn-primary" style="display:inline-block; margin-top:28px;">View Leaderboard &rarr;</a>
+    </div>
+  </div>
+
+</div>
+
+<footer style="text-align:center; padding:40px 24px; border-top:1px solid rgba(255,255,255,0.06);">
+  <p style="font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.25em; color:rgba(224,224,224,0.3); text-transform:uppercase;">Top K-Pop Entertainment &nbsp;&middot;&nbsp; AI Super Sleuth &nbsp;&middot;&nbsp; &copy; 2026</p>
+</footer>
+
+<script src="/js/nav.js"></script>
+<script>
+  function selectSuspect(card) {
+    document.querySelectorAll('.suspect-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+  }
+
+  // Check if accusation window is open (will be controlled by backend)
+  // For now, show open state by default (backend will toggle this)
+  const isOpen = true; // TODO: fetch from /api/game/status
+  if (!isOpen) {
+    document.getElementById('lockedState').style.display = 'block';
+    document.getElementById('openState').style.display = 'none';
+  }
+
+  // Countdown timer (target date set by backend — placeholder)
+  function updateCountdown(targetDate) {
+    const now = new Date();
+    const diff = targetDate - now;
+    if (diff <= 0) return;
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cdDays').textContent = String(d).padStart(2,'0');
+    document.getElementById('cdHours').textContent = String(h).padStart(2,'0');
+    document.getElementById('cdMins').textContent = String(m).padStart(2,'0');
+    document.getElementById('cdSecs').textContent = String(s).padStart(2,'0');
+  }
+
+  document.getElementById('accusationForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const suspect = document.querySelector('input[name="suspect"]:checked');
+    if (!suspect) { alert('Please select a suspect before submitting.'); return; }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Filing Accusation...';
+    const formData = new FormData(e.target);
+    try {
+      const res = await fetch('/api/submit/final-accusation', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok && data.success) { document.getElementById('accusationForm').style.display = 'none'; document.getElementById('successMsg').style.display = 'block'; }
+      else { btn.disabled = false; btn.textContent = 'File My Accusation →'; alert(data.message || 'Submission failed.'); }
+    } catch (err) { btn.disabled = false; btn.textContent = 'File My Accusation →'; alert('Network error. Please try again.'); }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submit Trove 03 — TopKpop.io</title>
+  <link rel="icon" href="/assets/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .submit-body { max-width: 760px; margin: 0 auto; padding: 60px 24px 100px; }
+    .form-section { background: rgba(15,16,22,0.9); border: 1px solid rgba(230,0,92,0.2); border-radius: 8px; padding: 36px; margin-bottom: 28px; }
+    .form-section-title { font-family: 'Syncopate', sans-serif; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #fff; margin-bottom: 6px; }
+    .form-section-label { font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 16px; }
+    .form-section-desc { font-size: 0.88rem; color: rgba(224,224,224,0.65); line-height: 1.65; margin-bottom: 24px; }
+    .field-group { margin-bottom: 20px; }
+    .field-label { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(224,224,224,0.7); margin-bottom: 8px; display: block; }
+    .field-required { color: var(--crimson); margin-left: 3px; }
+    .field-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 13px 16px; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+    .field-input:focus { border-color: var(--crimson); }
+    .field-input::placeholder { color: rgba(255,255,255,0.3); }
+    .upload-zone { border: 2px dashed rgba(230,0,92,0.3); border-radius: 6px; padding: 32px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; }
+    .upload-zone:hover, .upload-zone.dragover { border-color: var(--crimson); background: rgba(230,0,92,0.05); }
+    .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon { font-size: 2rem; margin-bottom: 10px; opacity: 0.5; }
+    .upload-text { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(224,224,224,0.6); margin-bottom: 6px; }
+    .upload-sub { font-size: 0.78rem; color: rgba(224,224,224,0.35); }
+    .upload-filename { font-size: 0.82rem; color: var(--crimson); margin-top: 10px; font-weight: 600; display: none; }
+    .points-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,191,0,0.1); border: 1px solid rgba(255,191,0,0.3); border-radius: 20px; padding: 6px 14px; font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.15em; color: var(--amber); text-transform: uppercase; margin-bottom: 20px; }
+    .submit-btn { width: 100%; padding: 18px; background: var(--crimson); border: none; border-radius: 4px; font-family: 'Syncopate', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #fff; cursor: pointer; transition: background 0.2s, transform 0.1s; margin-top: 8px; }
+    .submit-btn:hover { background: #ff1a6e; transform: translateY(-1px); }
+    .submit-btn:disabled { background: rgba(230,0,92,0.3); cursor: not-allowed; }
+    .success-msg { display: none; text-align: center; padding: 40px; }
+    .success-icon { font-size: 3rem; margin-bottom: 16px; }
+    .success-title { font-family: 'Syncopate', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .success-body { font-size: 0.92rem; color: rgba(224,224,224,0.7); line-height: 1.7; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.2em; color: rgba(224,224,224,0.45); text-transform: uppercase; text-decoration: none; margin-bottom: 40px; transition: color 0.2s; }
+    .back-link:hover { color: var(--crimson); }
+    .oracle-reminder { background: rgba(230,0,92,0.05); border: 1px solid rgba(230,0,92,0.2); border-left: 3px solid var(--crimson); border-radius: 0 6px 6px 0; padding: 18px 20px; margin-bottom: 28px; font-size: 0.88rem; color: rgba(224,224,224,0.75); line-height: 1.65; }
+    .oracle-reminder strong { color: var(--crimson); }
+    .progress-bar { display: flex; gap: 6px; margin-bottom: 40px; }
+    .progress-step { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); }
+    .progress-step.active { background: var(--crimson); }
+    .progress-step.done { background: rgba(230,0,92,0.4); }
+    .ai-tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .ai-tool-option { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 12px 14px; cursor: pointer; transition: border-color 0.2s; }
+    .ai-tool-option:hover { border-color: rgba(230,0,92,0.4); }
+    .ai-tool-option input[type="checkbox"] { accent-color: var(--crimson); width: 16px; height: 16px; flex-shrink: 0; }
+    .ai-tool-option label { font-size: 0.85rem; color: rgba(224,224,224,0.8); cursor: pointer; }
+  </style>
+</head>
+<body>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">&#9776;</button>
+    <div class="nav-links" id="navLinks">
+      <a href="/">Home</a>
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/cast">Cast</a>
+      <a href="/pages/missions" class="active">Missions</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-hero" style="background-image:url('/assets/hero-bg.jpg'); min-height:220px;">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Treasure Trove 03 &nbsp;&middot;&nbsp; Official Submission</p>
+    <h1 class="page-title">Submit Your <span>AI Lesson Plan.</span></h1>
+  </div>
+</section>
+
+<div class="submit-body">
+  <a href="/pages/trove-03" class="back-link">&#8592; Back to Trove 03</a>
+
+  <div class="progress-bar">
+    <div class="progress-step done"></div>
+    <div class="progress-step done"></div>
+    <div class="progress-step active"></div>
+  </div>
+
+  <div class="oracle-reminder">
+    <strong>Before you submit:</strong> Have you run your lesson plan through the <a href="#" style="color:var(--crimson);">AI Lesson Plan Rubric Evaluator</a>? Revise as many times as you want before locking your submission here.
+  </div>
+
+  <form id="submitForm" enctype="multipart/form-data">
+
+    <div class="form-section">
+      <p class="form-section-label">Step 01</p>
+      <h2 class="form-section-title">Team Information</h2>
+      <div class="field-group">
+        <label class="field-label" for="teamName">Team Name <span class="field-required">*</span></label>
+        <input class="field-input" type="text" id="teamName" name="teamName" placeholder="The K-Detectives" required />
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="captainEmail">Team Captain Email <span class="field-required">*</span></label>
+        <input class="field-input" type="email" id="captainEmail" name="captainEmail" placeholder="captain@school.edu" required />
+      </div>
+    </div>
+
+    <!-- Lesson Plan Upload -->
+    <div class="form-section">
+      <p class="form-section-label">Step 02 &nbsp;&middot;&nbsp; Required</p>
+      <h2 class="form-section-title">AI-Generated Lesson Plan</h2>
+      <div class="points-badge">&#9733; Up to 200 Points</div>
+      <p class="form-section-desc">Upload your complete AI-generated lesson plan. It must be a K–8 lesson that incorporates at least one AI tool and addresses a real classroom need. Accepted: DOC, DOCX, PDF.</p>
+      <div class="field-group">
+        <label class="field-label">Lesson Plan File <span class="field-required">*</span></label>
+        <div class="upload-zone" id="lessonZone">
+          <input type="file" name="lessonFile" id="lessonFile" accept=".doc,.docx,.pdf" required />
+          <div class="upload-icon">📚</div>
+          <p class="upload-text">Click or drag to upload your lesson plan</p>
+          <p class="upload-sub">DOC, DOCX, PDF &nbsp;&middot;&nbsp; Max 20MB</p>
+          <p class="upload-filename" id="lessonFilename"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Tools Used -->
+    <div class="form-section">
+      <p class="form-section-label">Step 03 &nbsp;&middot;&nbsp; Required</p>
+      <h2 class="form-section-title">AI Tools Used</h2>
+      <div class="points-badge">&#9733; Up to 100 Points</div>
+      <p class="form-section-desc">Select all AI tools your team used to create this lesson plan. Select at least one.</p>
+      <div class="field-group">
+        <div class="ai-tool-grid">
+          <div class="ai-tool-option"><input type="checkbox" name="aiTools" value="ChatGPT" id="tool-chatgpt" /><label for="tool-chatgpt">ChatGPT</label></div>
+          <div class="ai-tool-option"><input type="checkbox" name="aiTools" value="Language Lesson Planner GPT" id="tool-llp" /><label for="tool-llp">Language Lesson Planner GPT</label></div>
+          <div class="ai-tool-option"><input type="checkbox" name="aiTools" value="Google Gemini" id="tool-gemini" /><label for="tool-gemini">Google Gemini</label></div>
+          <div class="ai-tool-option"><input type="checkbox" name="aiTools" value="MagicSchool AI" id="tool-magic" /><label for="tool-magic">MagicSchool AI</label></div>
+          <div class="ai-tool-option"><input type="checkbox" name="aiTools" value="Canva AI" id="tool-canva" /><label for="tool-canva">Canva AI</label></div>
+          <div class="ai-tool-option"><input type="checkbox" name="aiTools" value="Other" id="tool-other" /><label for="tool-other">Other</label></div>
+        </div>
+        <div class="field-group" style="margin-top:14px;">
+          <label class="field-label">If Other, specify:</label>
+          <input class="field-input" type="text" name="aiToolsOther" placeholder="Name the AI tool(s) you used" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Reflection -->
+    <div class="form-section">
+      <p class="form-section-label">Step 04 &nbsp;&middot;&nbsp; Required</p>
+      <h2 class="form-section-title">Reflection: AI in Your Classroom</h2>
+      <p class="form-section-desc">In 2–4 sentences, describe how you would actually use this lesson plan in your classroom and what you learned about using AI for lesson planning.</p>
+      <div class="field-group">
+        <textarea class="field-input" name="reflection" rows="5" placeholder="Describe how you would use this lesson in your classroom and what you learned about AI-assisted lesson planning..." style="resize:vertical;" required></textarea>
+      </div>
+    </div>
+
+    <!-- Oracle Feedback -->
+    <div class="form-section">
+      <p class="form-section-label">Step 05 &nbsp;&middot;&nbsp; Optional</p>
+      <h2 class="form-section-title">Oracle Feedback Screenshot</h2>
+      <div class="field-group">
+        <div class="upload-zone" id="oracleZone">
+          <input type="file" name="oracleFeedback" id="oracleFeedback" accept="image/*,.pdf" />
+          <div class="upload-icon">🔮</div>
+          <p class="upload-text">Click or drag to upload Oracle feedback</p>
+          <p class="upload-sub">JPG, PNG, PDF &nbsp;&middot;&nbsp; Max 10MB</p>
+          <p class="upload-filename" id="oracleFilename"></p>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; padding: 0 0 20px;">
+      <p style="font-size:0.82rem; color:rgba(224,224,224,0.45); margin-bottom:20px; line-height:1.6;">By submitting, you confirm this is your team's original work. Submissions are final.</p>
+      <button type="submit" class="submit-btn" id="submitBtn">Submit Trove 03 — Lock My Score &rarr;</button>
+    </div>
+
+  </form>
+
+  <div class="success-msg" id="successMsg">
+    <div class="success-icon">✅</div>
+    <h2 class="success-title">Trove 03 Submitted.</h2>
+    <p class="success-body">Your AI Lesson Plan has been received. Your score will appear on the leaderboard within 48 hours.<br><br>The Final Accusation form will open on Day 22. Watch your email for instructions.</p>
+    <a href="/pages/missions" class="btn-primary" style="display:inline-block; margin-top:28px;">Back to Missions &rarr;</a>
+  </div>
+</div>
+
+<footer style="text-align:center; padding:40px 24px; border-top:1px solid rgba(255,255,255,0.06);">
+  <p style="font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.25em; color:rgba(224,224,224,0.3); text-transform:uppercase;">Top K-Pop Entertainment &nbsp;&middot;&nbsp; AI Super Sleuth &nbsp;&middot;&nbsp; &copy; 2026</p>
+</footer>
+
+<script src="/js/nav.js"></script>
+<script>
+  function setupUpload(inputId, filenameId, zoneId) {
+    const input = document.getElementById(inputId);
+    const filename = document.getElementById(filenameId);
+    const zone = document.getElementById(zoneId);
+    if (!input) return;
+    input.addEventListener('change', () => { if (input.files[0]) { filename.textContent = '✓ ' + input.files[0].name; filename.style.display = 'block'; zone.style.borderColor = 'var(--crimson)'; } });
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('dragover'); if (e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; filename.textContent = '✓ ' + e.dataTransfer.files[0].name; filename.style.display = 'block'; zone.style.borderColor = 'var(--crimson)'; } });
+  }
+  setupUpload('lessonFile', 'lessonFilename', 'lessonZone');
+  setupUpload('oracleFeedback', 'oracleFilename', 'oracleZone');
+
+  document.getElementById('submitForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Uploading...';
+    const formData = new FormData(e.target);
+    try {
+      const res = await fetch('/api/submit/trove-03', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok && data.success) { document.getElementById('submitForm').style.display = 'none'; document.getElementById('successMsg').style.display = 'block'; }
+      else { btn.disabled = false; btn.textContent = 'Submit Trove 03 — Lock My Score →'; alert(data.message || 'Submission failed.'); }
+    } catch (err) { btn.disabled = false; btn.textContent = 'Submit Trove 03 — Lock My Score →'; alert('Network error. Please try again.'); }
+  });
+</script>
+</body>
+</html>
