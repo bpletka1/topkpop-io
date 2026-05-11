@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
+const WebSocket = require('ws');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const cron = require('node-cron');
 const path = require('path');
@@ -16,7 +17,7 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SECRET_KEY,
   {
-    realtime: { enabled: false },
+    realtime: { transport: WebSocket },
     global: { headers: { 'x-client-info': 'topkpop-io' } },
   }
 );
