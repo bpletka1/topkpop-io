@@ -260,11 +260,80 @@
       white-space: nowrap;
     }
 
+    /* ===== LEADING MAN BADGE ===== */
+    .leading-man-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: linear-gradient(135deg, #C9A84C, #FFD700);
+      color: #0b0c10;
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.42rem;
+      letter-spacing: 0.2em;
+      padding: 4px 10px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      z-index: 2;
+      font-weight: 700;
+    }
+    .char-card.leading-man {
+      border-top: 2px solid #C9A84C;
+    }
+    .char-card.leading-man .char-role { color: #C9A84C; }
+    .char-card.leading-man .char-motive {
+      background: rgba(201,168,76,0.06);
+      border-left: 2px solid #C9A84C;
+    }
+    .char-card.leading-man .char-motive strong { color: #C9A84C; }
+    /* ===== POWER BEHIND THE THRONE CARD ===== */
+    .power-card {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 40px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top: 2px solid #8B5CF6;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 56px;
+    }
+    .power-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+    }
+    .power-body {
+      padding: 36px 36px 36px 0;
+    }
+    .power-label {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 0.48rem;
+      letter-spacing: 0.3em;
+      color: #8B5CF6;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .power-name {
+      font-family: 'Syncopate', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .power-bio {
+      font-size: 0.88rem;
+      color: rgba(224,224,224,0.72);
+      line-height: 1.8;
+    }
     @media (max-width: 768px) {
       .cast-section { padding: 60px 20px; }
       .ceo-card { grid-template-columns: 1fr; }
       .ceo-card img { height: 300px; }
       .ceo-body { padding: 24px; }
+      .power-card { grid-template-columns: 1fr; }
+      .power-card img { height: 300px; }
+      .power-body { padding: 24px; }
       .cast-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
       .cast-grid.two-col { grid-template-columns: 1fr; }
       .char-img-wrap { height: 280px; }
@@ -403,8 +472,8 @@
       </div>
 
       <!-- Jax J -->
-      <div class="char-card suspect">
-        <span class="suspect-badge">Suspect</span>
+      <div class="char-card leading-man">
+        <span class="leading-man-badge">Leading Man</span>
         <div class="char-img-wrap">
           <img src="/assets/characters/jax_j.jpg" alt="Jax J">
           <div class="char-img-overlay"></div>
@@ -412,9 +481,9 @@
         <div class="char-body">
           <p class="char-role">Reigning Champion &middot; Lead Touring Dancer &middot; Head Choreographer</p>
           <h3 class="char-name">Jax J</h3>
-          <p class="char-bio">Korean American. Inspired by Jay Park and Usher, Jax blends R&amp;B smoothness with hip hop's raw edge. Last year he won the Top K-Pop crown &mdash; and was immediately signed as the company's lead touring dancer and head choreographer for Season 2. He is the face of everything TopKPOP Entertainment wants the world to see. His career is built on a win he didn't know was arranged.</p>
-          <p class="char-bio" style="margin-top:10px;">He is drawn to the unknown choreographer Emilise in a way he cannot explain. But when the investigation closes in, he will have to choose between her and everything he has built. And the choice he makes will define him.</p>
-          <div class="char-motive"><strong>Motive</strong>He is secretly in love with Emilise. He would make anyone look bad to protect her &mdash; and to make sure she gets everything she deserves. But Sunny has never forgiven him for winning a crown that should have been hers.</div>
+          <p class="char-bio">Korean American. Inspired by Jay Park and Usher, Jax blends R&amp;B smoothness with hip hop's raw edge. Last year he won the Top K-Pop crown &mdash; and was immediately signed as the company's lead touring dancer and head choreographer for Season 2. He is the face of everything TopKPOP Entertainment wants the world to see. His career is built on a win he didn't know was arranged &mdash; by Han, to keep Sunny from the throne.</p>
+          <p class="char-bio" style="margin-top:10px;">He is drawn to Emilise in a way he cannot explain. And somewhere along the way, he learns the truth about who she really is. The question is not whether he knows. The question is what he chooses to do with that knowledge.</p>
+          <div class="char-motive"><strong>The Weight He Carries</strong>He knows. He has known for a while. And he has said nothing. The investigation is closing in &mdash; and the silence that once felt like protection now feels like a trap he built for himself.</div>
         </div>
       </div>
 
@@ -445,6 +514,26 @@
 
 
 
+<!-- ===== POWER BEHIND THE THRONE SECTION ===== -->
+<section style="background: rgba(139,92,246,0.03);">
+  <div class="cast-section">
+    <p class="cast-section-label" style="color:#8B5CF6;">The Architect &nbsp;&middot;&nbsp; The Endgame</p>
+    <h2 class="cast-section-title">The Power Behind the Throne</h2>
+    <p class="cast-section-subtitle">She did not create the chaos. She waited for it. And when it came, she was already holding the keys.</p>
+    <div class="power-card">
+      <img src="/assets/characters/dr_kim.jpg" alt="Dr. Kim Soo-Yeon">
+      <div class="power-body">
+        <p class="power-label">Not a Suspect &nbsp;&middot;&nbsp; The Resolution</p>
+        <h3 class="power-name">Dr. Kim Soo-Yeon</h3>
+        <p class="power-bio">Before she was a physician, before she was a wife, she was a runner-up. The year Minseo rose to global fame, Kim Soo-Yeon stood one step behind him &mdash; the girl who almost won, who knew she wasn't built to be the face, but understood better than anyone what the face was worth.</p>
+        <p class="power-bio" style="margin-top:14px;">She invested her family's inheritance quietly, methodically, over two decades. Not in stocks. Not in real estate. In K-pop. In Minseo's empire. In the infrastructure no one ever thinks to look at. She is the reason Top K-Pop Entertainment exists at the scale it does. She is also the reason it will survive what is coming.</p>
+        <p class="power-bio" style="margin-top:14px;">When the sabotage breaks everything open and Minseo's secrets are finally exposed, Dr. Kim does not rage. She does not grieve. She simply takes the chair at the head of the table &mdash; the one she has been waiting to sit in for thirty years &mdash; and she elevates Nari to Executive Vice President. The era of men who take credit for women's work is over. She is making sure of it.</p>
+        <p class="power-bio" style="margin-top:14px; font-style:italic; color:rgba(224,224,224,0.45);">She is not a suspect. She is the resolution.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="cast-divider">
 <!-- ===== DETECTIVES SECTION ===== -->
 <section style="background: rgba(0,194,255,0.02);">
   <div class="cast-section">
