@@ -305,11 +305,14 @@ Please evaluate these song lyrics using the complete rubric.`;
   }
 
   if (troveNumber === 3) {
-    return `Team: ${team_name}
-${text_content ? `Submitted lesson plan:\n\n${text_content}` : `Submitted files: ${[file1_name, file2_name, file3_name].filter(Boolean).join(', ')}`}
-${notes ? `\nTeam notes / reflection: ${notes}` : ''}
-
-Please evaluate this lesson plan using the complete rubric.`;
+    if (text_content) {
+      // Send raw lesson plan content so the Oracle scores it directly
+      // (The Oracle prompt triggers 'missing submission' if it sees structured framing)
+      return text_content + (notes ? `\n\nTeacher reflection: ${notes}` : '');
+    }
+    // File-based submission — describe what was submitted
+    const files = [file1_name, file2_name, file3_name].filter(Boolean);
+    return `The following lesson plan files were submitted for evaluation:\n${files.join('\n')}\n${notes ? `\nTeacher notes: ${notes}` : ''}\nPlease evaluate this lesson plan using the complete rubric.`;
   }
 
   return `Team: ${team_name}\nSubmission data: ${JSON.stringify(submissionData)}`;
