@@ -441,24 +441,31 @@ router.post('/submit/:trove', upload.fields([
 
 router.get('/leaderboard', async (req, res) => {
   try {
-    // Get all registrations with their submission scores
-    const { data: teams, error } = await supabase
+    // Fetch registrations and submissions separately (avoids FK join issues)
+    const { data: teams, error: teamsError } = await supabase
       .from('registrations')
-      .select(`
-        id, team_name, school_name, district, status,
-        submissions (trove_number, final_score)
-      `)
+      .select('id, team_name, school_name, district, status')
       .neq('status', 'disqualified')
       .order('team_name');
+    if (teamsError) throw teamsError;
 
-    if (error) throw error;
+    const { data: submissions, error: subsError } = await supabase
+      .from('submissions')
+      .select('team_id, trove_number, final_score, oracle_score')
+      .not('team_id', 'is', null);
+    if (subsError) throw subsError;
+
+    // Build score map keyed by team_id
+    const scoreMap = {};
+    (submissions || []).forEach(s => {
+      if (!scoreMap[s.team_id]) scoreMap[s.team_id] = { trove1: 0, trove2: 0, trove3: 0 };
+      const score = s.final_score || s.oracle_score || 0;
+      if (score > 0) scoreMap[s.team_id][`trove${s.trove_number}`] = score;
+    });
 
     // Calculate totals and rank
-    const ranked = teams.map(team => {
-      const scores = { trove1: 0, trove2: 0, trove3: 0 };
-      (team.submissions || []).forEach(s => {
-        if (s.final_score) scores[`trove${s.trove_number}`] = s.final_score;
-      });
+    const ranked = (teams || []).map(team => {
+      const scores = scoreMap[team.id] || { trove1: 0, trove2: 0, trove3: 0 };
       const total = scores.trove1 + scores.trove2 + scores.trove3;
       return {
         team_name: team.team_name,
@@ -798,25 +805,44 @@ router.post('/admin/rescore', adminAuth, async (req, res) => {
 // Admin: Get full leaderboard with all scores
 router.get('/admin/leaderboard', adminAuth, async (req, res) => {
   try {
-    const { data: teams, error } = await supabase
+    // Fetch registrations, submissions, and accusations separately (avoids FK join issues)
+    const { data: teams, error: teamsError } = await supabase
       .from('registrations')
-      .select(`
-        id, team_name, captain_name, captain_email, school_name, district, status, created_at,
-        submissions (id, trove_number, oracle_score, admin_score, final_score, scored_at, file1_name, file2_name, file3_name, notes, created_at),
-        accusations (accused_suspect, is_correct, accusation_score, created_at)
-      `)
+      .select('id, team_name, captain_name, captain_email, school_name, district, status, created_at')
       .order('team_name');
+    if (teamsError) throw teamsError;
 
-    if (error) throw error;
+    const { data: submissions, error: subsError } = await supabase
+      .from('submissions')
+      .select('id, team_id, trove_number, oracle_score, admin_score, final_score, scored_at, file1_name, file2_name, file3_name, notes, created_at')
+      .not('team_id', 'is', null);
+    if (subsError) throw subsError;
 
-    const ranked = teams.map(team => {
+    const { data: accusations, error: accError } = await supabase
+      .from('accusations')
+      .select('team_id, accused_suspect, is_correct, accusation_score, created_at')
+      .not('team_id', 'is', null);
+    if (accError) throw accError;
+
+    // Build maps keyed by team_id
+    const subsMap = {};
+    (submissions || []).forEach(s => {
+      if (!subsMap[s.team_id]) subsMap[s.team_id] = [];
+      subsMap[s.team_id].push(s);
+    });
+    const accMap = {};
+    (accusations || []).forEach(a => { accMap[a.team_id] = a; });
+
+    const ranked = (teams || []).map(team => {
+      const teamSubs = subsMap[team.id] || [];
       const scores = { trove1: 0, trove2: 0, trove3: 0 };
-      (team.submissions || []).forEach(s => {
-        if (s.final_score) scores[`trove${s.trove_number}`] = s.final_score;
+      teamSubs.forEach(s => {
+        const score = s.final_score || s.oracle_score || 0;
+        if (score > 0) scores[`trove${s.trove_number}`] = score;
       });
-      const accusationScore = team.accusations?.[0]?.accusation_score || 0;
+      const accusationScore = accMap[team.id]?.accusation_score || 0;
       const total = scores.trove1 + scores.trove2 + scores.trove3 + accusationScore;
-      return { ...team, trove1: scores.trove1, trove2: scores.trove2, trove3: scores.trove3, accusation_score: accusationScore, total };
+      return { ...team, submissions: teamSubs, accusations: accMap[team.id] ? [accMap[team.id]] : [], trove1: scores.trove1, trove2: scores.trove2, trove3: scores.trove3, accusation_score: accusationScore, total };
     }).sort((a, b) => b.total - a.total).map((t, i) => ({ ...t, rank: i + 1 }));
 
     res.json({ success: true, data: ranked });
@@ -831,22 +857,30 @@ router.get('/admin/leaderboard', adminAuth, async (req, res) => {
 
 async function sendWeeklyScoreSummary() {
   try {
+    // Fetch registrations and submissions separately (avoids FK join issues)
     const { data: teams } = await supabase
       .from('registrations')
-      .select(`
-        id, team_name, captain_name, captain_email, status,
-        submissions (trove_number, final_score, scored_at)
-      `)
+      .select('id, team_name, captain_name, captain_email, status')
       .eq('status', 'active');
 
     if (!teams || teams.length === 0) return;
 
+    const { data: submissions } = await supabase
+      .from('submissions')
+      .select('team_id, trove_number, final_score, oracle_score')
+      .not('team_id', 'is', null);
+
+    // Build score map keyed by team_id
+    const scoreMap = {};
+    (submissions || []).forEach(s => {
+      if (!scoreMap[s.team_id]) scoreMap[s.team_id] = { trove1: 0, trove2: 0, trove3: 0 };
+      const score = s.final_score || s.oracle_score || 0;
+      if (score > 0) scoreMap[s.team_id][`trove${s.trove_number}`] = score;
+    });
+
     // Build ranked list for leaderboard position
     const ranked = teams.map(team => {
-      const scores = { trove1: 0, trove2: 0, trove3: 0 };
-      (team.submissions || []).forEach(s => {
-        if (s.final_score) scores[`trove${s.trove_number}`] = s.final_score;
-      });
+      const scores = scoreMap[team.id] || { trove1: 0, trove2: 0, trove3: 0 };
       const total = scores.trove1 + scores.trove2 + scores.trove3;
       return { ...team, ...scores, total };
     }).sort((a, b) => b.total - a.total).map((t, i) => ({ ...t, rank: i + 1 }));
