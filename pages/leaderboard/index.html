@@ -125,10 +125,7 @@
     </tbody>
   </table>
 
-  <div class="phase2-banner">
-    <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; color:#E6005C; text-transform:uppercase; margin-bottom:8px;">Phase 2 — Live Data Coming</p>
-    <p style="font-size:0.9rem; color:rgba(224,224,224,0.5);">In Phase 2, this leaderboard connects to the live database and updates automatically every time a submission is scored. The sample data above shows the design layout.</p>
-  </div>
+  <div id="leaderboard-status" style="text-align:center; padding:16px; font-size:0.82rem; color:rgba(224,224,224,0.35); font-style:italic;">Loading live scores...</div>
 
   <div style="margin-top:60px;">
     <p class="section-label">Scoring Breakdown</p>
@@ -144,7 +141,7 @@
       <div class="scoring-card">
         <p class="scoring-card-label">Treasure Trove 02</p>
         <p class="scoring-card-title">Evidence Song</p>
-        <p class="scoring-card-pts">Up to 90 pts</p>
+        <p class="scoring-card-pts">Up to 100 pts</p>
         <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">Lyrics (30) + Music Track (30) + Music Video (30). All scored by AI rubric.</p>
       </div>
       <div class="scoring-card">
@@ -189,5 +186,40 @@
   <p class="footer-copy">&copy; 2025 Top K-Pop Entertainment &middot; AI Super Sleuth &middot; Phase 1 Design Preview</p>
 </footer>
 <script src="/js/nav.js"></script>
+<script>
+async function loadLeaderboard() {
+  try {
+    const res = await fetch('/api/leaderboard');
+    if (!res.ok) { document.getElementById('leaderboard-status').textContent = 'Leaderboard data unavailable.'; return; }
+    const { leaderboard } = await res.json();
+    const data = leaderboard || [];
+    if (!data.length) {
+      document.getElementById('leaderboard-status').textContent = 'No scores yet \u2014 be the first to submit!';
+      return;
+    }
+    const tbody = document.querySelector('.leaderboard-table tbody');
+    if (!tbody) return;
+    const rankStyles = ['rank-1','rank-2','rank-3'];
+    tbody.innerHTML = data.map((t, i) => {
+      const rankClass = rankStyles[i] || '';
+      const total = t.total || 0;
+      const barWidth = Math.round((total / 400) * 120);
+      return `<tr>
+        <td><span class="rank-num ${rankClass}">${String(i+1).padStart(2,'0')}</span></td>
+        <td><span class="team-name">${t.team_name}</span></td>
+        <td>${t.trove1 || '&mdash;'}</td>
+        <td>${t.trove2 || '&mdash;'}</td>
+        <td>${t.trove3 || '&mdash;'}</td>
+        <td><div class="score-bar-wrap"><div class="score-bar" style="width:${barWidth}px;"></div><span class="score-num">${total} pts</span></div></td>
+        <td><span class="accusation-badge acc-pending">Pending</span></td>
+      </tr>`;
+    }).join('');
+    document.getElementById('leaderboard-status').textContent = 'Live scores — updated automatically on each submission.';
+  } catch(e) {
+    document.getElementById('leaderboard-status').textContent = 'Could not load live scores.';
+  }
+}
+loadLeaderboard();
+</script>
 </body>
 </html>

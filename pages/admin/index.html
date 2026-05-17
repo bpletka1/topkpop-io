@@ -288,30 +288,20 @@
     <!-- SUBMISSION QUEUE -->
     <div class="admin-panel">
       <div class="panel-header">
-        <span class="panel-title">Recent Submissions</span>
-        <span class="panel-badge badge-pending">Pending Review</span>
+        <span class="panel-title">Submissions</span>
+        <span class="panel-badge badge-pending" id="submissions-badge">Live</span>
       </div>
       <div class="panel-body">
-        <div class="phase3-note" style="margin-bottom:24px;">
-          <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; color:#E6005C; text-transform:uppercase; margin-bottom:6px;">Phase 3 — Portal Integration Coming</p>
-          <p style="font-size:0.85rem; color:rgba(224,224,224,0.5);">In Phase 3, submissions from the portal will appear here in real time. You will be able to trigger Oracle AI scoring, override scores, and send feedback directly from this panel.</p>
+        <div style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+          <button class="team-action" onclick="loadSubmissions()" style="background:rgba(230,0,92,0.15); border-color:rgba(230,0,92,0.4);">&#8635; Refresh</button>
+          <select id="sub-filter-trove" onchange="loadSubmissions()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:6px 12px; color:#fff; font-size:0.82rem;">
+            <option value="">All Troves</option>
+            <option value="trove-01">Trove 01</option>
+            <option value="trove-02">Trove 02</option>
+            <option value="trove-03">Trove 03</option>
+          </select>
         </div>
-        <div class="submission-row">
-          <div><p class="sub-team">Neon Detectives</p><p class="sub-trove">Trove 02 — Evidence Song</p></div>
-          <p class="sub-time">Today, 9:14 AM</p>
-          <span class="sub-status pending">Awaiting Oracle</span>
-        </div>
-        <div class="submission-row">
-          <div><p class="sub-team">K-Pop Sleuths</p><p class="sub-trove">Trove 02 — Suno AI Track</p></div>
-          <p class="sub-time">Yesterday, 3:42 PM</p>
-          <span class="sub-status scored">Oracle Scored</span>
-        </div>
-        <div class="submission-row">
-          <div><p class="sub-team">Stage Shadows</p><p class="sub-trove">Trove 01 — Avatar + Poster</p></div>
-          <p class="sub-time">2 days ago</p>
-          <span class="sub-status review">Needs Review</span>
-        </div>
-        <p style="font-size:0.78rem; color:rgba(224,224,224,0.2); margin-top:16px; font-style:italic;">Sample data — live submissions will appear here in Phase 3</p>
+        <div id="submissions-list"><p style="font-size:0.85rem; color:rgba(224,224,224,0.35);">Loading submissions...</p></div>
       </div>
     </div>
 
@@ -512,13 +502,7 @@ async function loadDashboard() {
       populateTeamTable(data);
     }
     // Load submissions
-    const subRes = await fetch('/api/admin/submissions', { headers: { password: ADMIN_PASS } });
-    if (subRes.ok) {
-      const { data } = await subRes.json();
-      document.getElementById('stat-submissions').textContent = data.length;
-      const pending = data.filter(s => !s.score).length;
-      document.getElementById('stat-pending').textContent = pending;
-    }
+    loadSubmissions();
   } catch (err) {
     console.error('Dashboard load error:', err);
   }
@@ -526,19 +510,23 @@ async function loadDashboard() {
 
 function populateTeamTable(teams) {
   const tbody = document.querySelector('.team-table tbody');
-  if (!tbody || !teams.length) return;
+  if (!tbody) return;
+  if (!teams.length) {
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; color:rgba(224,224,224,0.3); padding:24px;">No registered teams yet.</td></tr>';
+    return;
+  }
   tbody.innerHTML = teams.map(t => `
     <tr>
       <td><span class="team-name">${t.team_name}</span></td>
       <td>${t.school_name || '&mdash;'}</td>
-      <td><span class="trove-dot none"></span> &mdash;</td>
-      <td style="color:rgba(224,224,224,0.3)">&mdash;</td>
-      <td><span class="trove-dot none"></span> &mdash;</td>
-      <td style="color:rgba(224,224,224,0.3)">&mdash;</td>
-      <td><span class="trove-dot none"></span> &mdash;</td>
-      <td style="color:rgba(224,224,224,0.3)">&mdash;</td>
-      <td style="color:rgba(224,224,224,0.35);font-style:italic;font-size:0.8rem">Not submitted</td>
-      <td><span class="team-score">0</span></td>
+      <td><span class="trove-dot ${t.trove1_score ? 'done' : 'none'}"></span> ${t.trove1_score ? 'Submitted' : '&mdash;'}</td>
+      <td style="color:${t.trove1_score ? 'var(--amber)' : 'rgba(224,224,224,0.3)'}">${t.trove1_score || '&mdash;'}</td>
+      <td><span class="trove-dot ${t.trove2_score ? 'done' : 'none'}"></span> ${t.trove2_score ? 'Submitted' : '&mdash;'}</td>
+      <td style="color:${t.trove2_score ? 'var(--amber)' : 'rgba(224,224,224,0.3)'}">${t.trove2_score || '&mdash;'}</td>
+      <td><span class="trove-dot ${t.trove3_score ? 'done' : 'none'}"></span> ${t.trove3_score ? 'Submitted' : '&mdash;'}</td>
+      <td style="color:${t.trove3_score ? 'var(--amber)' : 'rgba(224,224,224,0.3)'}">${t.trove3_score || '&mdash;'}</td>
+      <td style="color:rgba(224,224,224,0.35);font-style:italic;font-size:0.8rem">${t.status}</td>
+      <td><span class="team-score">${(t.trove1_score||0)+(t.trove2_score||0)+(t.trove3_score||0)}</span></td>
       <td style="font-size:0.8rem;color:var(--amber)">${t.status}</td>
       <td><button class="team-action" onclick="viewTeam('${t.id}')">View</button></td>
     </tr>
@@ -547,6 +535,67 @@ function populateTeamTable(teams) {
 
 function viewTeam(id) {
   alert('Team ID: ' + id + '\n\nFull team detail view available once scoring begins.');
+}
+
+async function loadSubmissions() {
+  const troveFilter = document.getElementById('sub-filter-trove').value;
+  const list = document.getElementById('submissions-list');
+  list.innerHTML = '<p style="font-size:0.85rem; color:rgba(224,224,224,0.35);">Loading...</p>';
+  try {
+    const res = await fetch('/api/admin/submissions', { headers: { password: ADMIN_PASS } });
+    if (!res.ok) { list.innerHTML = '<p style="color:var(--crimson);">Failed to load submissions.</p>'; return; }
+    const { data } = await res.json();
+    let subs = data || [];
+    if (troveFilter) { const troveNum = parseInt(troveFilter.replace('trove-','')); subs = subs.filter(s => s.trove_number === troveNum); }
+    document.getElementById('stat-submissions').textContent = data.length;
+    const pending = data.filter(s => !s.score).length;
+    document.getElementById('stat-pending').textContent = pending;
+    if (!subs.length) { list.innerHTML = '<p style="font-size:0.85rem; color:rgba(224,224,224,0.35);">No submissions yet.</p>'; return; }
+    list.innerHTML = subs.map(s => {
+      const ts = new Date(s.created_at).toLocaleString();
+      const troveLabel = { 1: 'Trove 01 \u2014 K-Pop Poster & Avatar', 2: 'Trove 02 \u2014 Evidence Song', 3: 'Trove 03 \u2014 AI Lesson Plan' }[s.trove_number] || ('Trove ' + s.trove_number);
+      const displayScore = s.final_score || s.oracle_score || null;
+      const statusClass = displayScore ? 'scored' : 'pending';
+      const statusLabel = displayScore ? 'Oracle Scored' : 'Awaiting Score';
+      return `<div class="submission-row" style="flex-wrap:wrap; gap:10px;">
+        <div style="flex:1; min-width:200px;">
+          <p class="sub-team">${s.team_name || 'Unknown Team'}</p>
+          <p class="sub-trove">${troveLabel}</p>
+          ${s.oracle_feedback ? '<p style="font-size:0.75rem; color:rgba(224,224,224,0.4); margin-top:4px; cursor:pointer;" onclick="toggleFeedback(this)">\u25b6 View Oracle Feedback</p><div style="display:none; margin-top:8px; font-size:0.8rem; color:rgba(224,224,224,0.65); white-space:pre-wrap; background:rgba(0,0,0,0.3); padding:12px; border-radius:4px;">${s.oracle_feedback.replace(/</g,"&lt;")}</div>' : ''}
+        </div>
+        <p class="sub-time">${ts}</p>
+        <span class="sub-status ${statusClass}">${displayScore ? displayScore + '/100' : statusLabel}</span>
+        ${!displayScore ? '<button class="team-action" onclick="rescoreSubmission(\''+s.id+'\', '+s.trove_number+')" style="font-size:0.7rem;">Score with Oracle</button>' : '<button class="team-action" onclick="rescoreSubmission(\''+s.id+'\', '+s.trove_number+')" style="font-size:0.7rem;">Re-score</button>'}
+      </div>`;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = '<p style="color:var(--crimson);">Error loading submissions: ' + err.message + '</p>';
+  }
+}
+
+function toggleFeedback(el) {
+  const next = el.nextElementSibling;
+  if (next) { next.style.display = next.style.display === 'none' ? 'block' : 'none'; el.textContent = next.style.display === 'block' ? '▼ Hide Feedback' : '▶ View Oracle Feedback'; }
+}
+
+async function rescoreSubmission(submissionId, troveId) {
+  if (!confirm('Re-score this submission with the Oracle AI? This will overwrite the existing score.')) return;
+  try {
+    const res = await fetch('/api/admin/rescore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', password: ADMIN_PASS },
+      body: JSON.stringify({ submission_id: submissionId, trove_id: troveId })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('Oracle scored: ' + data.score + '/100');
+      loadSubmissions();
+    } else {
+      alert('Scoring failed: ' + (data.error || 'Unknown error'));
+    }
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  }
 }
 
 async function saveDates() {

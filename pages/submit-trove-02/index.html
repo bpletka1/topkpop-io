@@ -81,7 +81,7 @@
   </div>
 
   <div class="oracle-reminder">
-    <strong>Before you submit:</strong> Have you run your lyrics through the <a href="https://chatgpt.com/g/g-6924d3bc86388191a51b043fc7adeb42-oracle-of-the-rubric-for-k-pop-poster-avatar" target="_blank" style="color:var(--crimson);">Evidence Song Rubric Evaluator</a>? Revise as many times as you want before locking your submission here.
+    <strong>Before you submit:</strong> Have you run your lyrics through the <a href="https://chatgpt.com/g/g-69382a5d36208191b5903ea55b5c0c70" target="_blank" style="color:var(--crimson);">Evidence Song Rubric Evaluator</a>? Revise as many times as you want before locking your submission here.
   </div>
 
   <form id="submitForm" enctype="multipart/form-data">
@@ -193,7 +193,20 @@
   <div class="success-msg" id="successMsg">
     <div class="success-icon">✅</div>
     <h2 class="success-title">Trove 02 Submitted.</h2>
-    <p class="success-body">Your Evidence Song has been received. Your score will appear on the leaderboard within 48 hours.<br><br>Watch your email for your Trove 02 score confirmation.</p>
+    <div id="scoreDisplay" style="display:none; margin: 28px 0; background: rgba(255,191,0,0.08); border: 1px solid rgba(255,191,0,0.35); border-radius: 8px; padding: 28px;">
+      <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(224,224,224,0.5); margin-bottom:8px;">Your Oracle Score</p>
+      <p id="scoreNumber" style="font-family:'Syncopate',sans-serif; font-size:2.4rem; font-weight:700; color:#ffbf00; margin:0 0 6px;"></p>
+      <p style="font-size:0.8rem; color:rgba(224,224,224,0.45);">This score is now live on the leaderboard.</p>
+    </div>
+    <div id="feedbackDisplay" style="display:none; margin: 20px 0; background: rgba(15,16,22,0.9); border: 1px solid rgba(230,0,92,0.2); border-radius: 8px; padding: 24px; text-align:left;">
+      <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--crimson); margin-bottom:14px;">Oracle Feedback</p>
+      <div id="feedbackText" style="font-size:0.88rem; color:rgba(224,224,224,0.75); line-height:1.75; white-space:pre-wrap;"></div>
+    </div>
+    <div id="annaDisplay" style="display:none; margin: 20px 0; background: rgba(230,0,92,0.05); border-left: 3px solid var(--crimson); border-radius: 0 6px 6px 0; padding: 20px 24px;">
+      <p style="font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--crimson); margin-bottom:10px;">Detective Anna Im</p>
+      <p id="annaText" style="font-size:0.92rem; color:rgba(224,224,224,0.85); line-height:1.7; font-style:italic;"></p>
+    </div>
+    <p class="success-body" id="defaultSuccessMsg">Your Evidence Song has been received and scored. Watch your email for your Trove 02 score confirmation.</p>
     <a href="/pages/missions" class="btn-primary" style="display:inline-block; margin-top:28px;">Back to Missions &rarr;</a>
   </div>
 </div>
@@ -229,7 +242,22 @@
     try {
       const res = await fetch('/api/submit/trove-02', { method: 'POST', body: formData });
       const data = await res.json();
-      if (res.ok && data.success) { document.getElementById('submitForm').style.display = 'none'; document.getElementById('successMsg').style.display = 'block'; }
+      if (res.ok && data.success) {
+        document.getElementById('submitForm').style.display = 'none';
+        document.getElementById('successMsg').style.display = 'block';
+        if (data.score !== null && data.score !== undefined) {
+          document.getElementById('scoreNumber').textContent = data.score + ' / 100';
+          document.getElementById('scoreDisplay').style.display = 'block';
+        }
+        if (data.feedback) {
+          document.getElementById('feedbackText').textContent = data.feedback;
+          document.getElementById('feedbackDisplay').style.display = 'block';
+        }
+        if (data.anna_message) {
+          document.getElementById('annaText').textContent = data.anna_message;
+          document.getElementById('annaDisplay').style.display = 'block';
+        }
+      }
       else { btn.disabled = false; btn.textContent = 'Submit Trove 02 — Lock My Score →'; alert(data.error || data.message || 'Submission failed. Please try again.'); }
     } catch (err) { btn.disabled = false; btn.textContent = 'Submit Trove 02 — Lock My Score →'; alert('Network error. Please check your connection and try again.'); }
   });

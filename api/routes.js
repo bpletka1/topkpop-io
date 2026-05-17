@@ -11,6 +11,11 @@ const WebSocket = require('ws');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const cron = require('node-cron');
 const path = require('path');
+const OpenAI = require('openai');
+const { TROVE_PROMPTS, buildUserMessage, parseScore } = require('./scoring-prompts');
+
+// ── OpenAI Client ────────────────────────────────────────────────────────────
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // ── Supabase Client ──────────────────────────────────────────────────────────
 const supabase = createClient(
@@ -49,6 +54,47 @@ async function uploadToSupabase(file, folder) {
   if (error) throw error;
   const { data: urlData } = supabase.storage.from('submissions').getPublicUrl(filename);
   return { path: filename, url: urlData.publicUrl, name: file.originalname };
+}
+
+// ── Helper: Oracle AI Scoring ───────────────────────────────────────────────
+async function scoreWithOracle(troveNumber, submissionData) {
+  try {
+    const systemPrompt = TROVE_PROMPTS[troveNumber];
+    if (!systemPrompt) throw new Error(`No scoring prompt for Trove ${troveNumber}`);
+
+    const userMessage = buildUserMessage(troveNumber, submissionData);
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ],
+      temperature: 0.3,
+      max_tokens: 1200,
+    });
+
+    const responseText = completion.choices[0]?.message?.content || '';
+    const score = parseScore(responseText);
+
+    return { score, feedback: responseText, success: true };
+  } catch (err) {
+    console.error('Oracle scoring error:', err.message);
+    return { score: null, feedback: null, success: false, error: err.message };
+  }
+}
+
+// Detective Anna thank-you messages (randomly selected)
+const ANNA_MESSAGES = [
+  "Evidence logged, Detective. Every clue you uncover brings us closer to the truth. Stay sharp — the saboteur is still out there.",
+  "Nice work. Your submission is on file. The best investigators don't just find clues — they know what they mean. Keep digging.",
+  "Case file updated. You're building a strong record, Detective. The truth doesn't hide forever — not from someone paying this close attention.",
+  "Submission received. I've seen a lot of investigators come through here. The ones who make it? They never stop asking why. Don't stop now.",
+  "Your evidence is in. The investigation is moving forward. Remember — in this case, your classroom is the crime scene and your students are the witnesses.",
+];
+
+function getAnnaMessage() {
+  return ANNA_MESSAGES[Math.floor(Math.random() * ANNA_MESSAGES.length)];
 }
 
 // ── Helper: Add subscriber to Mailchimp ──────────────────────────────────────
@@ -346,10 +392,41 @@ router.post('/submit/:trove', upload.fields([
     // Tag in Mailchimp
     await tagSubscriber(captain_email.toLowerCase(), `trove-${troveNumber}-submitted`);
 
+    // ── Oracle AI Scoring ────────────────────────────────────────────────────
+    const scoringData = {
+      team_name: team_name.trim(),
+      notes: notes?.trim(),
+      text_content: req.body.text_content?.trim() || req.body.lyrics?.trim() || req.body.lesson_plan?.trim() || null,
+      file1_name: file1Data?.name,
+      file2_name: file2Data?.name,
+      file3_name: file3Data?.name,
+    };
+
+    const oracleResult = await scoreWithOracle(troveNumber, scoringData);
+
+    if (oracleResult.success && oracleResult.score !== null) {
+      // Save oracle score to Supabase
+      await supabase
+        .from('submissions')
+        .update({
+          oracle_score: oracleResult.score,
+          oracle_feedback: oracleResult.feedback,
+          final_score: oracleResult.score,
+          scored_at: new Date().toISOString(),
+        })
+        .eq('id', sub.id);
+    }
+
+    const annaMessage = getAnnaMessage();
+
     res.json({
       success: true,
-      message: `Trove 0${troveNumber} submission received! Your evidence is now under review.`,
+      message: `Trove 0${troveNumber} submission received and scored!`,
       submission_id: sub.id,
+      score: oracleResult.success ? oracleResult.score : null,
+      feedback: oracleResult.success ? oracleResult.feedback : null,
+      scoring_available: oracleResult.success,
+      anna_message: annaMessage,
     });
 
   } catch (err) {
@@ -656,54 +733,6 @@ router.post('/admin/settings', adminAuth, async (req, res) => {
 // CRON SCHEDULER — Monday morning Trove unlocks
 // ════════════════════════════════════════════════════════════════════════════
 
-function startScheduler() {
-  // Run every Monday at 8:00 AM Pacific (16:00 UTC)
-  cron.schedule('0 16 * * 1', async () => {
-    console.log('Scheduler running — checking Trove unlocks...');
-    try {
-      const { data: settings } = await supabase
-        .from('game_settings')
-        .select('*')
-        .eq('id', 1)
-        .single();
-
-      if (!settings) return;
-      const today = new Date().toISOString().split('T')[0];
-
-      // Trove 1 unlock
-      if (settings.trove1_unlock && settings.trove1_unlock <= today && !settings.trove1_email_sent) {
-        await sendTroveUnlockEmail(1);
-        await supabase.from('game_settings').update({ trove1_email_sent: true }).eq('id', 1);
-        console.log('Trove 1 unlock email sent');
-      }
-
-      // Trove 2 unlock
-      if (settings.trove2_unlock && settings.trove2_unlock <= today && !settings.trove2_email_sent) {
-        await sendTroveUnlockEmail(2);
-        await supabase.from('game_settings').update({ trove2_email_sent: true }).eq('id', 1);
-        console.log('Trove 2 unlock email sent');
-      }
-
-      // Trove 3 unlock
-      if (settings.trove3_unlock && settings.trove3_unlock <= today && !settings.trove3_email_sent) {
-        await sendTroveUnlockEmail(3);
-        await supabase.from('game_settings').update({ trove3_email_sent: true }).eq('id', 1);
-        console.log('Trove 3 unlock email sent');
-      }
-
-      // Accusation window check
-      if (settings.accusation_close && settings.accusation_close <= today && !settings.winner_announced) {
-        await checkAndAnnounceWinner();
-      }
-
-    } catch (err) {
-      console.error('Scheduler error:', err);
-    }
-  }, { timezone: 'America/Los_Angeles' });
-
-  console.log('TopKpop.io scheduler started — Trove unlocks run Mondays at 8AM PT');
-}
-
 async function sendTroveUnlockEmail(troveNumber) {
   // Tag all registered subscribers with the trove unlock tag
   // This triggers the corresponding Mailchimp automation
@@ -720,6 +749,188 @@ async function sendTroveUnlockEmail(troveNumber) {
   } catch (err) {
     console.error(`Trove ${troveNumber} unlock email error:`, err);
   }
+}
+
+// Admin: Re-score a submission with Oracle AI
+router.post('/admin/rescore', adminAuth, async (req, res) => {
+  const { submission_id } = req.body;
+  if (!submission_id) return res.status(400).json({ error: 'submission_id required.' });
+
+  const { data: sub, error: fetchErr } = await supabase
+    .from('submissions')
+    .select('*')
+    .eq('id', submission_id)
+    .single();
+
+  if (fetchErr || !sub) return res.status(404).json({ error: 'Submission not found.' });
+
+  const scoringData = {
+    team_name: sub.team_name,
+    notes: sub.notes,
+    text_content: null,
+    file1_name: sub.file1_name,
+    file2_name: sub.file2_name,
+    file3_name: sub.file3_name,
+  };
+
+  const oracleResult = await scoreWithOracle(sub.trove_number, scoringData);
+
+  if (!oracleResult.success) {
+    return res.status(500).json({ error: 'Oracle scoring failed.', details: oracleResult.error });
+  }
+
+  const { data: updated, error: updateErr } = await supabase
+    .from('submissions')
+    .update({
+      oracle_score: oracleResult.score,
+      oracle_feedback: oracleResult.feedback,
+      final_score: sub.admin_score || oracleResult.score,
+      scored_at: new Date().toISOString(),
+    })
+    .eq('id', submission_id)
+    .select()
+    .single();
+
+  if (updateErr) return res.status(500).json({ error: updateErr.message });
+  res.json({ success: true, score: oracleResult.score, feedback: oracleResult.feedback, data: updated });
+});
+
+// Admin: Get full leaderboard with all scores
+router.get('/admin/leaderboard', adminAuth, async (req, res) => {
+  try {
+    const { data: teams, error } = await supabase
+      .from('registrations')
+      .select(`
+        id, team_name, captain_name, captain_email, school_name, district, status, created_at,
+        submissions (id, trove_number, oracle_score, admin_score, final_score, scored_at, file1_name, file2_name, file3_name, notes, created_at),
+        accusations (accused_suspect, is_correct, accusation_score, created_at)
+      `)
+      .order('team_name');
+
+    if (error) throw error;
+
+    const ranked = teams.map(team => {
+      const scores = { trove1: 0, trove2: 0, trove3: 0 };
+      (team.submissions || []).forEach(s => {
+        if (s.final_score) scores[`trove${s.trove_number}`] = s.final_score;
+      });
+      const accusationScore = team.accusations?.[0]?.accusation_score || 0;
+      const total = scores.trove1 + scores.trove2 + scores.trove3 + accusationScore;
+      return { ...team, trove1: scores.trove1, trove2: scores.trove2, trove3: scores.trove3, accusation_score: accusationScore, total };
+    }).sort((a, b) => b.total - a.total).map((t, i) => ({ ...t, rank: i + 1 }));
+
+    res.json({ success: true, data: ranked });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// WEEKLY SCORE SUMMARY EMAIL (Fridays at 5 PM Pacific)
+// ════════════════════════════════════════════════════════════════════════════
+
+async function sendWeeklyScoreSummary() {
+  try {
+    const { data: teams } = await supabase
+      .from('registrations')
+      .select(`
+        id, team_name, captain_name, captain_email, status,
+        submissions (trove_number, final_score, scored_at)
+      `)
+      .eq('status', 'active');
+
+    if (!teams || teams.length === 0) return;
+
+    // Build ranked list for leaderboard position
+    const ranked = teams.map(team => {
+      const scores = { trove1: 0, trove2: 0, trove3: 0 };
+      (team.submissions || []).forEach(s => {
+        if (s.final_score) scores[`trove${s.trove_number}`] = s.final_score;
+      });
+      const total = scores.trove1 + scores.trove2 + scores.trove3;
+      return { ...team, ...scores, total };
+    }).sort((a, b) => b.total - a.total).map((t, i) => ({ ...t, rank: i + 1 }));
+
+    const annaSummaryMessages = [
+      "The investigation continues. Here's where things stand — keep pushing, Detective.",
+      "Another week in the books. The saboteur is still out there. Your score tells part of the story.",
+      "Case status update from Detective Anna Im. Study your numbers. The truth is in the details.",
+    ];
+    const annaMsg = annaSummaryMessages[Math.floor(Math.random() * annaSummaryMessages.length)];
+
+    for (const team of ranked) {
+      const trove1Str = team.trove1 > 0 ? `${team.trove1}/100` : 'Not yet submitted';
+      const trove2Str = team.trove2 > 0 ? `${team.trove2}/100` : 'Not yet submitted';
+      const trove3Str = team.trove3 > 0 ? `${team.trove3}/100` : 'Not yet submitted';
+      const totalStr = team.total > 0 ? `${team.total} points` : '0 points';
+
+      // Tag subscriber with weekly summary tag — triggers Mailchimp automation
+      // Store score data as merge fields for the email template
+      try {
+        const hash = require('crypto').createHash('md5').update(team.captain_email.toLowerCase()).digest('hex');
+        await mailchimp.lists.updateListMember(AUDIENCE_ID, hash, {
+          merge_fields: {
+            TROVE1SC: trove1Str,
+            TROVE2SC: trove2Str,
+            TROVE3SC: trove3Str,
+            TOTALSC: totalStr,
+            RANK: `#${team.rank}`,
+            ANNAMSG: annaMsg,
+          },
+        });
+        await tagSubscriber(team.captain_email, 'weekly-score-summary');
+      } catch (err) {
+        console.error(`Weekly summary error for ${team.captain_email}:`, err.message);
+      }
+    }
+
+    console.log(`Weekly score summary sent to ${ranked.length} teams`);
+  } catch (err) {
+    console.error('Weekly score summary error:', err);
+  }
+}
+
+function startScheduler() {
+  // Run every Monday at 8:00 AM Pacific (16:00 UTC) — Trove unlock checks
+  cron.schedule('0 16 * * 1', async () => {
+    console.log('Scheduler running — checking Trove unlocks...');
+    try {
+      const { data: settings } = await supabase
+        .from('game_settings')
+        .select('*')
+        .eq('id', 1)
+        .single();
+
+      if (!settings) return;
+      const today = new Date().toISOString().split('T')[0];
+
+      if (settings.trove1_unlock && settings.trove1_unlock <= today && !settings.trove1_email_sent) {
+        await sendTroveUnlockEmail(1);
+        await supabase.from('game_settings').update({ trove1_email_sent: true }).eq('id', 1);
+      }
+      if (settings.trove2_unlock && settings.trove2_unlock <= today && !settings.trove2_email_sent) {
+        await sendTroveUnlockEmail(2);
+        await supabase.from('game_settings').update({ trove2_email_sent: true }).eq('id', 1);
+      }
+      if (settings.trove3_unlock && settings.trove3_unlock <= today && !settings.trove3_email_sent) {
+        await sendTroveUnlockEmail(3);
+        await supabase.from('game_settings').update({ trove3_email_sent: true }).eq('id', 1);
+      }
+      if (settings.accusation_close && settings.accusation_close <= today && !settings.winner_announced) {
+        await checkAndAnnounceWinner();
+      }
+    } catch (err) {
+      console.error('Scheduler error:', err);
+    }
+  }, { timezone: 'America/Los_Angeles' });
+
+  // Weekly score summary — every Friday at 5 PM Pacific (01:00 UTC Saturday)
+  cron.schedule('0 1 * * 6', async () => {
+    console.log('Sending weekly score summary emails...');
+    await sendWeeklyScoreSummary();
+  }, { timezone: 'America/Los_Angeles' });
+
+  console.log('TopKpop.io scheduler started — Trove unlocks Mondays 8AM PT, Score summaries Fridays 5PM PT');
 }
 
 module.exports = { router, startScheduler };
