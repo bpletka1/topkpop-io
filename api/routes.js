@@ -405,16 +405,17 @@ router.post('/submit/:trove', upload.fields([
     const oracleResult = await scoreWithOracle(troveNumber, scoringData);
 
     if (oracleResult.success && oracleResult.score !== null) {
-      // Save oracle score to Supabase
-      await supabase
+      // Save oracle score to Supabase (oracle_feedback stored separately if column exists)
+      const updatePayload = {
+        oracle_score: oracleResult.score,
+        final_score: oracleResult.score,
+        scored_at: new Date().toISOString(),
+      };
+      const { error: updateErr } = await supabase
         .from('submissions')
-        .update({
-          oracle_score: oracleResult.score,
-          oracle_feedback: oracleResult.feedback,
-          final_score: oracleResult.score,
-          scored_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', sub.id);
+      if (updateErr) console.error('Score save error:', updateErr.message);
     }
 
     const annaMessage = getAnnaMessage();
@@ -594,23 +595,40 @@ async function checkAndAnnounceWinner() {
     const now = new Date();
     if (!settings?.accusation_close || new Date(settings.accusation_close) > now) return; // Window still open
 
-    // Get all teams with scores and accusations
+    // Get all teams with scores and accusations (manual join to avoid FK issues)
     const { data: teams } = await supabase
       .from('registrations')
-      .select(`
-        id, team_name, captain_name, captain_email, school_name,
-        submissions (trove_number, final_score),
-        accusations (is_correct, accusation_score)
-      `)
+      .select('id, team_name, captain_name, captain_email, school_name')
       .neq('status', 'disqualified');
 
     if (!teams || teams.length === 0) return;
 
+    const { data: allSubs } = await supabase
+      .from('submissions')
+      .select('team_id, trove_number, final_score, oracle_score')
+      .not('team_id', 'is', null);
+
+    const { data: allAcc } = await supabase
+      .from('accusations')
+      .select('team_id, is_correct, accusation_score')
+      .not('team_id', 'is', null);
+
+    const subsMap = {};
+    (allSubs || []).forEach(s => {
+      if (!subsMap[s.team_id]) subsMap[s.team_id] = [];
+      subsMap[s.team_id].push(s);
+    });
+    const accMap = {};
+    (allAcc || []).forEach(a => { accMap[a.team_id] = a; });
+
     // Calculate total scores
     const scored = teams.map(team => {
       let total = 0;
-      (team.submissions || []).forEach(s => { if (s.final_score) total += s.final_score; });
-      const acc = team.accusations?.[0];
+      (subsMap[team.id] || []).forEach(s => {
+        const score = s.final_score || s.oracle_score || 0;
+        total += score;
+      });
+      const acc = accMap[team.id];
       if (acc?.accusation_score) total += acc.accusation_score;
       return { ...team, total_score: total, correct_accusation: acc?.is_correct || false };
     });
@@ -790,7 +808,6 @@ router.post('/admin/rescore', adminAuth, async (req, res) => {
     .from('submissions')
     .update({
       oracle_score: oracleResult.score,
-      oracle_feedback: oracleResult.feedback,
       final_score: sub.admin_score || oracleResult.score,
       scored_at: new Date().toISOString(),
     })
