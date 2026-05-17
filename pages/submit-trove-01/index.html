@@ -40,6 +40,7 @@
     .back-link { display: inline-flex; align-items: center; gap: 8px; font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.2em; color: rgba(224,224,224,0.45); text-transform: uppercase; text-decoration: none; margin-bottom: 40px; transition: color 0.2s; }
     .back-link:hover { color: var(--crimson); }
     .oracle-reminder { background: rgba(230,0,92,0.05); border: 1px solid rgba(230,0,92,0.2); border-left: 3px solid var(--crimson); border-radius: 0 6px 6px 0; padding: 18px 20px; margin-bottom: 28px; font-size: 0.88rem; color: rgba(224,224,224,0.75); line-height: 1.65; }
+    .error-banner { display: none; background: rgba(230,0,92,0.12); border: 1px solid rgba(230,0,92,0.5); border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; color: #ff4d8d; font-size: 0.9rem; line-height: 1.5; text-align: left; }
     .oracle-reminder strong { color: var(--crimson); }
     .progress-bar { display: flex; gap: 6px; margin-bottom: 40px; }
     .progress-step { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); }
@@ -172,6 +173,7 @@
     </div>
 
     <!-- Submit -->
+    <div id="errorBanner" class="error-banner"></div>
     <div style="text-align:center; padding: 0 0 20px;">
       <p style="font-size:0.82rem; color:rgba(224,224,224,0.45); margin-bottom:20px; line-height:1.6;">By submitting, you confirm this is your team's original work created using AI tools as directed. Submissions are final and cannot be changed after upload.</p>
       <button type="submit" class="submit-btn" id="submitBtn">Submit Trove 01 — Lock My Score &rarr;</button>
@@ -238,9 +240,20 @@
   setupUpload('file2', 'posterFilename', 'posterZone');
   setupUpload('file3', 'oracleFilename', 'oracleZone');
 
+  function showError(msg) {
+    const banner = document.getElementById('errorBanner');
+    banner.textContent = msg;
+    banner.style.display = 'block';
+    banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function hideError() {
+    document.getElementById('errorBanner').style.display = 'none';
+  }
+
   // Form submit
   document.getElementById('submitForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    hideError();
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.textContent = 'Uploading...';
@@ -270,12 +283,12 @@
       } else {
         btn.disabled = false;
         btn.textContent = 'Submit Trove 01 — Lock My Score →';
-        alert(data.error || data.message || 'Submission failed. Please try again.');
+        showError(data.error || data.message || 'Submission failed. Please try again.');
       }
     } catch (err) {
       btn.disabled = false;
       btn.textContent = 'Submit Trove 01 — Lock My Score →';
-      alert('Network error. Please check your connection and try again.');
+      showError('Network error. Please check your connection and try again.');
     }
   });
 </script>

@@ -55,6 +55,7 @@
     .success-title { font-family: 'Syncopate', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 16px; }
     .success-body { font-size: 0.92rem; color: rgba(224,224,224,0.7); line-height: 1.8; max-width: 500px; margin: 0 auto; }
     .accusation-hero-label { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.25em; color: var(--crimson); text-transform: uppercase; margin-bottom: 12px; }
+    .error-banner { display: none; background: rgba(230,0,92,0.12); border: 1px solid rgba(230,0,92,0.5); border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; color: #ff4d8d; font-size: 0.9rem; line-height: 1.5; text-align: left; }
     .accusation-hero-title { font-family: 'Syncopate', sans-serif; font-size: 1.8rem; font-weight: 700; color: #fff; line-height: 1.2; margin-bottom: 16px; }
     .accusation-hero-sub { font-size: 0.92rem; color: rgba(224,224,224,0.6); line-height: 1.7; margin-bottom: 40px; }
     @media (max-width: 520px) { .suspect-grid { grid-template-columns: 1fr; } .countdown-num { font-size: 1.8rem; } }
@@ -214,6 +215,7 @@
         </div>
       </div>
 
+      <div id="errorBanner" class="error-banner"></div>
       <div style="text-align:center; padding: 0 0 20px;">
         <p style="font-size:0.82rem; color:rgba(224,224,224,0.45); margin-bottom:20px; line-height:1.6;">This accusation is final and cannot be changed after submission. Your team's total score plus the accuracy of your accusation will determine the winner.</p>
         <button type="submit" class="submit-btn" id="submitBtn">File My Accusation &rarr;</button>
@@ -265,10 +267,21 @@
     document.getElementById('cdSecs').textContent = String(s).padStart(2,'0');
   }
 
+  function showError(msg) {
+    const banner = document.getElementById('errorBanner');
+    banner.textContent = msg;
+    banner.style.display = 'block';
+    banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function hideError() {
+    document.getElementById('errorBanner').style.display = 'none';
+  }
+
   document.getElementById('accusationForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    hideError();
     const suspect = document.querySelector('input[name="accused_suspect"]:checked');
-    if (!suspect) { alert('Please select a suspect before submitting.'); return; }
+    if (!suspect) { showError('Please select a suspect before submitting.'); return; }
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = 'Filing Accusation...';
     const formData = new FormData(e.target);
@@ -276,8 +289,8 @@
       const res = await fetch('/api/submit/final-accusation', { method: 'POST', body: formData });
       const data = await res.json();
       if (res.ok && data.success) { document.getElementById('accusationForm').style.display = 'none'; document.getElementById('successMsg').style.display = 'block'; }
-      else { btn.disabled = false; btn.textContent = 'File My Accusation →'; alert(data.error || data.message || 'Submission failed.'); }
-    } catch (err) { btn.disabled = false; btn.textContent = 'File My Accusation →'; alert('Network error. Please try again.'); }
+      else { btn.disabled = false; btn.textContent = 'File My Accusation →'; showError(data.error || data.message || 'Submission failed.'); }
+    } catch (err) { btn.disabled = false; btn.textContent = 'File My Accusation →'; showError('Network error. Please try again.'); }
   });
 </script>
 </body>

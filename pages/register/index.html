@@ -38,6 +38,7 @@
     .iste-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(138,43,226,0.1); border: 1px solid rgba(138,43,226,0.25); border-radius: 20px; padding: 8px 16px; font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.15em; color: #b06aff; text-transform: uppercase; margin-bottom: 28px; }
     .team-member-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
     .optional-tag { font-size: 0.72rem; color: rgba(224,224,224,0.35); font-family: 'Inter', sans-serif; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+    .error-banner { display: none; background: rgba(230,0,92,0.12); border: 1px solid rgba(230,0,92,0.5); border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; color: #ff4d8d; font-size: 0.9rem; line-height: 1.5; text-align: left; }
     .checkbox-row { display: flex; align-items: flex-start; gap: 12px; }
     .checkbox-row input[type="checkbox"] { accent-color: var(--crimson); width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
     .checkbox-row label { font-size: 0.85rem; color: rgba(224,224,224,0.7); line-height: 1.6; cursor: pointer; }
@@ -239,6 +240,7 @@
       </div>
     </div>
 
+    <div id="errorBanner" class="error-banner"></div>
     <div style="text-align:center; padding: 0 0 20px;">
       <button type="submit" class="submit-btn" id="submitBtn">Enlist as a Detective Recruit &rarr;</button>
     </div>
@@ -260,8 +262,19 @@
 
 <script src="/js/nav.js"></script>
 <script>
+  function showError(msg) {
+    const banner = document.getElementById('errorBanner');
+    banner.textContent = msg;
+    banner.style.display = 'block';
+    banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function hideError() {
+    document.getElementById('errorBanner').style.display = 'none';
+  }
+
   document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    hideError();
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = 'Submitting...';
     const formData = new FormData(e.target);
@@ -298,12 +311,12 @@
       } else {
         btn.disabled = false;
         btn.textContent = 'Enlist as a Detective Recruit →';
-        alert(result.error || result.message || 'Registration failed. Please try again.');
+        showError(result.error || result.message || 'Registration failed. Please try again.');
       }
     } catch (err) {
       btn.disabled = false;
       btn.textContent = 'Enlist as a Detective Recruit →';
-      alert('Network error. Please check your connection and try again.');
+      showError('Network error. Please check your connection and try again.');
     }
   });
 </script>
