@@ -197,7 +197,7 @@ async function loadLeaderboard() {
       document.getElementById('leaderboard-status').textContent = 'No scores yet \u2014 be the first to submit!';
       return;
     }
-    const tbody = document.querySelector('.leaderboard-table tbody');
+    const tbody = document.querySelector('.lb-table tbody');
     if (!tbody) return;
     const rankStyles = ['rank-1','rank-2','rank-3'];
     tbody.innerHTML = data.map((t, i) => {
