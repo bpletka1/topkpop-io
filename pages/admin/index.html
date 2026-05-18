@@ -595,8 +595,7 @@ async function loadDashboard() {
         const diff = Math.ceil((new Date(data.accusation_close) - new Date()) / 86400000);
         document.getElementById('stat-days').textContent = diff > 0 ? diff : 0;
       }
-    }
-    // Check for pending winner approval
+      // Check for pending winner approval
       if (data.winner_pending_approval && !data.winner_announced) {
         const panel = document.getElementById('winner-approval-panel');
         if (panel) {
