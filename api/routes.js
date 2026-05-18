@@ -639,18 +639,105 @@ async function checkAndAnnounceWinner() {
 
     if (!winner) return;
 
-    // Mark winner
-    await supabase.from('registrations').update({ status: 'winner' }).eq('id', winner.id);
+    // ── HOLD FOR ADMIN APPROVAL ─────────────────────────────────────────────
+    // Do NOT send winner email yet — mark as pending approval and notify admin
     await supabase.from('game_settings').update({
-      winner_announced: true,
+      winner_pending_approval: true,
       winner_team_id: winner.id,
+      winner_data: JSON.stringify({
+        team_name: winner.team_name,
+        captain_name: winner.captain_name,
+        captain_email: winner.captain_email,
+        school_name: winner.school_name,
+        total_score: winner.total_score,
+        correct_accusation: winner.correct_accusation,
+      }),
     }).eq('id', 1);
 
-    // Tag winner in Mailchimp + send prize fulfillment email
-    await tagSubscriber(winner.captain_email, 'winner');
+    // Notify admin that winner is ready for approval
+    await notifyAdminWinnerReady(winner, scored);
 
-    // Send prize fulfillment email to winner asking for mailing address
-    await sendPrizeFulfillmentEmail(winner);
+    console.log(`Winner calculated (PENDING ADMIN APPROVAL): ${winner.team_name} (${winner.captain_email}) — Score: ${winner.total_score}`);
+
+  } catch (err) {
+    console.error('Winner check error:', err);
+  }
+}
+
+// ── Notify admin that a winner is ready for approval ───────────────────────────
+async function notifyAdminWinnerReady(winner, allScored) {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@topkpop.io';
+    const leaderboard = allScored
+      .sort((a, b) => b.total_score - a.total_score)
+      .slice(0, 5)
+      .map((t, i) => `${i+1}. ${t.team_name} — ${t.total_score} pts${t.correct_accusation ? ' ✓ Correct Accusation' : ''}`);
+
+    const subject = '🚨 TopKpop.io — Winner Ready for Your Approval';
+    const body = `
+Detective Anna has calculated the winner. YOUR APPROVAL IS REQUIRED before any emails go out.
+
+PROPOSED WINNER
+────────────────
+Team: ${winner.team_name}
+Captain: ${winner.captain_name} (${winner.captain_email})
+School: ${winner.school_name}
+Total Score: ${winner.total_score} pts
+Correct Accusation: ${winner.correct_accusation ? 'YES ✓' : 'NO ✗'}
+
+TOP 5 LEADERBOARD
+────────────────
+${leaderboard.join('\n')}
+
+TO APPROVE: Log in to the admin panel at https://www.topkpop.io/pages/admin
+Scroll to the “Winner Approval” section and click “Approve & Send Winner Email”.
+
+Do NOT approve until you have reviewed all scores and are satisfied with the result.
+    `;
+
+    // Use Mailchimp tag to notify admin (or send via transactional email if configured)
+    await tagSubscriber(adminEmail, 'winner-pending-admin-approval');
+    console.log(`Admin notified of pending winner approval: ${winner.team_name}`);
+    console.log('ADMIN NOTIFICATION BODY:\n' + body);
+  } catch (err) {
+    console.error('Admin notification error:', err);
+  }
+}
+
+// ── Admin: Approve winner and send final emails ───────────────────────────────
+router.post('/admin/approve-winner', adminAuth, async (req, res) => {
+  try {
+    const { data: settings } = await supabase
+      .from('game_settings')
+      .select('winner_pending_approval, winner_team_id, winner_data, winner_announced')
+      .eq('id', 1)
+      .single();
+
+    if (!settings?.winner_pending_approval) {
+      return res.status(400).json({ error: 'No winner is pending approval.' });
+    }
+    if (settings?.winner_announced) {
+      return res.status(400).json({ error: 'Winner has already been announced.' });
+    }
+
+    const winner = JSON.parse(settings.winner_data || '{}');
+    if (!winner.captain_email) {
+      return res.status(400).json({ error: 'Winner data is missing or corrupted.' });
+    }
+
+    // Mark winner in registrations
+    await supabase.from('registrations').update({ status: 'winner' }).eq('id', settings.winner_team_id);
+
+    // Mark as officially announced
+    await supabase.from('game_settings').update({
+      winner_announced: true,
+      winner_pending_approval: false,
+      prize_email_sent: true,
+    }).eq('id', 1);
+
+    // Tag winner in Mailchimp — triggers winner automation
+    await tagSubscriber(winner.captain_email, 'winner');
+    await tagSubscriber(winner.captain_email, 'winner-address-needed');
 
     // Tag all participants as game-complete
     const { data: allTeams } = await supabase.from('registrations').select('captain_email');
@@ -658,24 +745,17 @@ async function checkAndAnnounceWinner() {
       await tagSubscriber(t.captain_email, 'game-complete');
     }
 
-    console.log(`Winner announced: ${winner.team_name} (${winner.captain_email})`);
-
+    console.log(`Winner APPROVED and announced by admin: ${winner.team_name} (${winner.captain_email})`);
+    res.json({
+      success: true,
+      message: `Winner announced: ${winner.team_name}. All emails sent.`,
+      winner,
+    });
   } catch (err) {
-    console.error('Winner check error:', err);
+    console.error('Approve winner error:', err);
+    res.status(500).json({ error: err.message });
   }
-}
-
-async function sendPrizeFulfillmentEmail(winner) {
-  // This sends an automated email to the winner asking for their mailing address
-  // Uses Mailchimp tag "winner-address-needed" which triggers an automation
-  try {
-    await tagSubscriber(winner.captain_email, 'winner-address-needed');
-    await supabase.from('game_settings').update({ prize_email_sent: true }).eq('id', 1);
-    console.log(`Prize fulfillment email triggered for: ${winner.captain_email}`);
-  } catch (err) {
-    console.error('Prize email error:', err);
-  }
-}
+});
 
 // ════════════════════════════════════════════════════════════════════════════
 // ADMIN ENDPOINTS

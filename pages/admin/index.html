@@ -317,18 +317,41 @@
     <div class="admin-panel">
       <div class="panel-header">
         <span class="panel-title">Final Accusations</span>
-        <span class="panel-badge badge-locked">Locked Until Day 29</span>
+        <span class="panel-badge badge-locked" id="accusation-badge">Locked Until Day 22</span>
       </div>
       <div class="panel-body">
-        <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.5); margin-bottom:20px;">Final Accusation submissions are sealed until Day 29. Once the window opens, all team accusations will appear here. The correct answer is revealed only after the deadline.</p>
+        <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.5); margin-bottom:20px;">Final Accusation window opens Day 22 (Sunday 7pm PT) and closes Day 24 (Tuesday 7pm PT — 48 hours). All team accusations appear here after submission. The correct answer is revealed only after the deadline.</p>
         <div class="accusation-row"><span class="acc-team">Neon Detectives</span><span class="acc-pending">Not yet submitted</span></div>
         <div class="accusation-row"><span class="acc-team">K-Pop Sleuths</span><span class="acc-pending">Not yet submitted</span></div>
         <div class="accusation-row"><span class="acc-team">Stage Shadows</span><span class="acc-pending">Not yet submitted</span></div>
         <div style="margin-top:24px; padding:16px 20px; background:rgba(138,43,226,0.07); border:1px solid rgba(138,43,226,0.2); border-radius:6px;">
           <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; color:#b06aff; text-transform:uppercase; margin-bottom:8px;">The Correct Answer — Sealed</p>
-          <p style="font-size:0.85rem; color:rgba(224,224,224,0.5);">The saboteur's identity is stored securely and will be revealed automatically on Day 32. Only the game organizer can view it here.</p>
+          <p style="font-size:0.85rem; color:rgba(224,224,224,0.5);">The saboteur's identity is stored securely and will be revealed on Day 25 at midnight. Only the game organizer can view it here.</p>
           <button class="team-action" style="margin-top:12px; display:inline-block;">Reveal Answer (Organizer Only)</button>
         </div>
+      </div>
+    </div>
+
+    <!-- WINNER APPROVAL -->
+    <div class="admin-panel" id="winner-approval-panel" style="display:none; border-color:rgba(255,191,0,0.4);">
+      <div class="panel-header" style="border-bottom-color:rgba(255,191,0,0.2);">
+        <span class="panel-title" style="color:var(--amber);">&#9888; Winner Pending Your Approval</span>
+        <span class="panel-badge" style="background:rgba(255,191,0,0.12); border:1px solid rgba(255,191,0,0.4); color:var(--amber);">Action Required</span>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.75); margin-bottom:20px;">Detective Anna has calculated the winner. <strong style="color:#fff;">No emails have been sent yet.</strong> Review the result below and approve when you are ready. Once approved, the winner email, prize fulfillment email, and game-complete emails will all send automatically.</p>
+        <div id="winner-details" style="background:rgba(255,191,0,0.05); border:1px solid rgba(255,191,0,0.2); border-radius:6px; padding:24px 28px; margin-bottom:24px;">
+          <p style="font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:var(--amber); text-transform:uppercase; margin-bottom:16px;">Proposed Winner</p>
+          <p id="winner-team" style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:6px;">Loading...</p>
+          <p id="winner-captain" style="font-size:0.88rem; color:rgba(224,224,224,0.6); margin-bottom:6px;"></p>
+          <p id="winner-score" style="font-size:0.88rem; color:rgba(224,224,224,0.6); margin-bottom:6px;"></p>
+          <p id="winner-accusation" style="font-size:0.88rem; margin-bottom:0;"></p>
+        </div>
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <button onclick="approveWinner()" style="padding:14px 32px; background:var(--amber); border:none; border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.18em; text-transform:uppercase; color:#000; cursor:pointer; font-weight:700;">&#10003; Approve &amp; Send Winner Email</button>
+          <button onclick="loadDashboard()" style="padding:14px 24px; background:transparent; border:1px solid rgba(255,255,255,0.15); border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.15em; text-transform:uppercase; color:rgba(224,224,224,0.5); cursor:pointer;">Refresh Data</button>
+        </div>
+        <p style="font-size:0.75rem; color:rgba(224,224,224,0.3); margin-top:12px; font-style:italic;">Once approved, this action cannot be undone. All winner and game-complete emails will send immediately.</p>
       </div>
     </div>
 
@@ -502,6 +525,23 @@ async function loadDashboard() {
         document.getElementById('stat-days').textContent = diff > 0 ? diff : 0;
       }
     }
+    // Check for pending winner approval
+      if (data.winner_pending_approval && !data.winner_announced) {
+        const panel = document.getElementById('winner-approval-panel');
+        if (panel) {
+          panel.style.display = 'block';
+          try {
+            const wd = JSON.parse(data.winner_data || '{}');
+            document.getElementById('winner-team').textContent = wd.team_name || 'Unknown Team';
+            document.getElementById('winner-captain').textContent = `Captain: ${wd.captain_name || ''} \u2014 ${wd.captain_email || ''}`;
+            document.getElementById('winner-score').textContent = `Total Score: ${wd.total_score || 0} pts`;
+            const accEl = document.getElementById('winner-accusation');
+            accEl.textContent = wd.correct_accusation ? '\u2713 Correct Accusation' : '\u2717 Incorrect Accusation';
+            accEl.style.color = wd.correct_accusation ? '#4caf50' : 'var(--crimson)';
+          } catch(e) {}
+        }
+      }
+    }
     // Load registrations
     const regRes = await fetch('/api/admin/registrations', { headers: { password: ADMIN_PASS } });
     if (regRes.ok) {
@@ -644,6 +684,15 @@ async function saveDates() {
   const t03    = document.getElementById('trove03-date').value;
   const acc    = document.getElementById('accusation-date').value;
   const reveal = document.getElementById('reveal-date').value;
+
+  // accusation_close = accusation_open + 48 hours
+  let accusationClose = null;
+  if (acc) {
+    const closeDate = new Date(acc);
+    closeDate.setHours(closeDate.getHours() + 48);
+    accusationClose = closeDate.toISOString();
+  }
+
   try {
     const res = await fetch('/api/admin/settings', {
       method: 'POST',
@@ -653,15 +702,35 @@ async function saveDates() {
         trove2_unlock:    t02    || null,
         trove3_unlock:    t03    || null,
         accusation_open:  acc    || null,
-        accusation_close: reveal || null,
+        accusation_close: accusationClose,
         reveal_unlock:    reveal || null,
       })
     });
     const data = await res.json();
     if (res.ok) {
-      alert('\u2713 Full schedule saved! The game is now live for all participants.');
+      alert('\u2713 Full schedule saved!\nAccusation window: ' + (acc ? new Date(acc).toLocaleString() : 'not set') + ' \u2192 closes 48h later.\nReveal: ' + (reveal ? new Date(reveal).toLocaleString() : 'not set'));
     } else {
       alert('Error saving dates: ' + (data.error || 'Unknown error'));
+    }
+  } catch (err) {
+    alert('Network error. Please try again.');
+  }
+}
+
+async function approveWinner() {
+  if (!confirm('Are you sure you want to approve the winner and send all emails?\n\nThis action CANNOT be undone. The winner email, prize fulfillment email, and game-complete emails will all send immediately.')) return;
+  try {
+    const res = await fetch('/api/admin/approve-winner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', password: ADMIN_PASS },
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('\u2713 Winner approved!\n\n' + data.message + '\n\nAll emails have been sent.');
+      document.getElementById('winner-approval-panel').style.display = 'none';
+      loadDashboard();
+    } else {
+      alert('Error: ' + (data.error || 'Unknown error'));
     }
   } catch (err) {
     alert('Network error. Please try again.');
