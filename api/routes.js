@@ -736,7 +736,16 @@ router.post('/admin/score', adminAuth, async (req, res) => {
   res.json({ success: true, data });
 });
 
-// Get/update game settings
+// Public game settings — returns unlock dates for the missions page (no auth required)
+router.get('/game-settings', async (req, res) => {
+  const { data, error } = await supabase.from('game_settings')
+    .select('game_start_date, trove1_unlock, trove2_unlock, trove3_unlock, accusation_open, accusation_close')
+    .eq('id', 1).single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// Get/update game settings (admin)
 router.get('/admin/settings', adminAuth, async (req, res) => {
   const { data, error } = await supabase.from('game_settings').select('*').eq('id', 1).single();
   if (error) return res.status(500).json({ error: error.message });

@@ -504,17 +504,12 @@ function togglePanel(id) {
 }
 
 /*
- * TROVE UNLOCK DATES — Edit these two lines to set your game start date.
- * Format: new Date('YYYY-MM-DDTHH:MM:SS') in local time, or use UTC offset.
- * TROVE_02_UNLOCK = Monday of Week 2 at 6:00 AM
- * TROVE_03_UNLOCK = Monday of Week 3 at 6:00 AM
- *
- * Example: if your game starts June 2, 2025:
- *   TROVE_02_UNLOCK = June 9, 2025 at 6:00 AM
- *   TROVE_03_UNLOCK = June 16, 2025 at 6:00 AM
+ * TROVE UNLOCK DATES — Loaded dynamically from /api/game-settings.
+ * Fallback dates below are used if the API is unavailable.
+ * Season 1: Game started May 17, 2026
  */
-const TROVE_02_UNLOCK = new Date('2025-06-09T06:00:00');
-const TROVE_03_UNLOCK = new Date('2025-06-16T06:00:00');
+let TROVE_02_UNLOCK = new Date('2026-05-24T06:00:00');
+let TROVE_03_UNLOCK = new Date('2026-05-31T06:00:00');
 
 function pad(n) { return String(n).padStart(2, '0'); }
 
@@ -589,8 +584,18 @@ function initTrove(troveNum, unlockDate) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  initTrove(2, TROVE_02_UNLOCK);
-  initTrove(3, TROVE_03_UNLOCK);
+  // Try to load live dates from game_settings, then init
+  fetch('/api/game-settings')
+    .then(r => r.ok ? r.json() : null)
+    .then(s => {
+      if (s && s.trove2_unlock) TROVE_02_UNLOCK = new Date(s.trove2_unlock + 'T06:00:00');
+      if (s && s.trove3_unlock) TROVE_03_UNLOCK = new Date(s.trove3_unlock + 'T06:00:00');
+    })
+    .catch(() => {})
+    .finally(() => {
+      initTrove(2, TROVE_02_UNLOCK);
+      initTrove(3, TROVE_03_UNLOCK);
+    });
 });
 </script>
 
