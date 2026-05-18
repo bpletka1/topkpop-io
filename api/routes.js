@@ -9,6 +9,8 @@ const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
 const WebSocket = require('ws');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
+const nodemailer = require('nodemailer');
+const fs = require('fs');
 const cron = require('node-cron');
 const path = require('path');
 const OpenAI = require('openai');
@@ -34,6 +36,43 @@ mailchimp.setConfig({
 });
 
 const AUDIENCE_ID = process.env.MAILCHIMP_AUDIENCE_ID;
+
+// ── Gmail Transporter (direct send — no Mailchimp automations needed) ─────────
+const gmailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER || 'bpletka1@gmail.com',
+    pass: process.env.GMAIL_APP_PASS || 'jalqoqgdlclckgez',
+  },
+});
+
+// ── Helper: Send HTML email directly via Gmail ────────────────────────────────
+// templateFile: filename in pages/emails/ (e.g. 'email1_welcome.html')
+// to: email address or array of addresses
+// subject: email subject line
+// replacements: object of { TOKEN: value } to replace in the HTML
+async function sendEmail(templateFile, to, subject, replacements = {}) {
+  try {
+    const templatePath = path.join(__dirname, '..', 'pages', 'emails', templateFile);
+    let html = fs.readFileSync(templatePath, 'utf8');
+    // Apply all replacements
+    for (const [token, value] of Object.entries(replacements)) {
+      html = html.split(token).join(value || '');
+    }
+    const recipients = Array.isArray(to) ? to.join(',') : to;
+    await gmailTransporter.sendMail({
+      from: '"Anna Im — TopKpop.io" <bpletka1@gmail.com>',
+      to: recipients,
+      subject,
+      html,
+    });
+    console.log(`Email sent: "${subject}" → ${recipients}`);
+    return true;
+  } catch (err) {
+    console.error(`Email send error (${templateFile}):`, err.message);
+    return false;
+  }
+}
 
 // ── File Upload (memory storage → Supabase Storage) ──────────────────────────
 const upload = multer({
@@ -205,18 +244,24 @@ router.post('/register', async (req, res) => {
 
     if (regError) throw regError;
 
-    // Add to Mailchimp
+    // Add to Mailchimp (for list management only)
     const nameParts = captain_name.trim().split(' ');
     const firstName = nameParts[0];
     const lastName = nameParts.slice(1).join(' ') || '';
     const mcAdded = await addToMailchimp(captain_email.toLowerCase(), firstName, lastName, ['registered', 'trove-01-pending']);
 
-    // Mark welcome sent
-    if (mcAdded) {
+    // Send welcome email directly via Gmail
+    const welcomeSent = await sendEmail(
+      'email1_welcome.html',
+      captain_email.toLowerCase(),
+      '🎤 CLASSIFIED: Your TopKpop.io Mission Briefing Has Arrived',
+      { '[CAPTAIN_NAME]': firstName, '[TEAM_NAME]': team_name.trim() }
+    );
+    if (welcomeSent) {
       await supabase.from('registrations').update({ welcome_sent: true }).eq('id', reg.id);
     }
 
-    // Also add team members to Mailchimp
+    // Also add team members to Mailchimp and send them the welcome email
     const members = [
       { name: member2_name, email: member2_email },
       { name: member3_name, email: member3_email },
@@ -226,6 +271,12 @@ router.post('/register', async (req, res) => {
     for (const member of members) {
       const parts = member.name.trim().split(' ');
       await addToMailchimp(member.email.toLowerCase(), parts[0], parts.slice(1).join(' ') || '', ['registered', 'team-member']);
+      await sendEmail(
+        'email1_welcome.html',
+        member.email.toLowerCase(),
+        '🎤 CLASSIFIED: Your TopKpop.io Mission Briefing Has Arrived',
+        { '[CAPTAIN_NAME]': parts[0], '[TEAM_NAME]': team_name.trim() }
+      );
     }
 
     // Auto-award +25 welcome bonus if Instagram post URL was provided
@@ -425,7 +476,23 @@ router.post('/submit/:trove', upload.fields([
 
     if (subError) throw subError;
 
-    // Tag in Mailchimp
+    // Send submission confirmation email directly via Gmail
+    const troveEmailMap = { 1: 'email2_trove01.html', 2: 'email3_trove02.html', 3: 'email4_trove03.html' };
+    const troveSubjectMap = {
+      1: '🔍 Trove 01 Confirmed — Identity Locked In',
+      2: '🎵 Trove 02 Confirmed — Evidence Song Received',
+      3: '🕵️ Trove 03 Confirmed — Final Evidence Secured',
+    };
+    if (troveEmailMap[troveNumber]) {
+      const scoreStr = oracleResult?.success && oracleResult?.score ? `${oracleResult.score}/100` : 'Pending';
+      await sendEmail(
+        troveEmailMap[troveNumber],
+        captain_email.toLowerCase(),
+        troveSubjectMap[troveNumber],
+        { '*SCORE*': scoreStr, '[TEAM_NAME]': team_name.trim() }
+      );
+    }
+    // Also keep Mailchimp tag for list segmentation
     await tagSubscriber(captain_email.toLowerCase(), `trove-${troveNumber}-submitted`);
 
     // ── Oracle AI Scoring ───────────────────────────────────────────────────────────────────────────
@@ -946,18 +1013,26 @@ router.post('/admin/settings', adminAuth, async (req, res) => {
 // ════════════════════════════════════════════════════════════════════════════
 
 async function sendTroveUnlockEmail(troveNumber) {
-  // Tag all registered subscribers with the trove unlock tag
-  // This triggers the corresponding Mailchimp automation
+  // Send Trove unlock email directly via Gmail
+  const emailMap = {
+    1: { file: 'email7_trove01_unlock.html', subject: '🔓 CLASSIFIED DROP: Trove 01 Is Now Open — Identity & Cover' },
+    2: { file: 'email8_trove02_unlock.html', subject: '🎵 CLASSIFIED DROP: Trove 02 Is Now Open — The Evidence Song' },
+    3: { file: 'email9_trove03_unlock.html', subject: '🕵️ CLASSIFIED DROP: Trove 03 Is Now Open — Teach, Perform, Solve' },
+  };
+  const emailCfg = emailMap[troveNumber];
+  if (!emailCfg) return;
   try {
     const { data: teams } = await supabase
       .from('registrations')
-      .select('captain_email')
+      .select('captain_email, captain_name')
       .eq('status', 'active');
 
     for (const team of teams || []) {
+      const firstName = (team.captain_name || '').split(' ')[0] || 'Detective';
+      await sendEmail(emailCfg.file, team.captain_email, emailCfg.subject, { '[CAPTAIN_NAME]': firstName });
       await tagSubscriber(team.captain_email, `trove-${troveNumber}-unlocked`);
     }
-    console.log(`Tagged ${teams?.length || 0} teams with trove-${troveNumber}-unlocked`);
+    console.log(`Trove ${troveNumber} unlock email sent directly to ${teams?.length || 0} teams`);
   } catch (err) {
     console.error(`Trove ${troveNumber} unlock email error:`, err);
   }
@@ -1102,20 +1177,51 @@ async function sendWeeklyScoreSummary() {
       const trove2Str = team.trove2 > 0 ? `${team.trove2}/100` : 'Not yet submitted';
       const trove3Str = team.trove3 > 0 ? `${team.trove3}/100` : 'Not yet submitted';
       const totalStr = team.total > 0 ? `${team.total} points` : '0 points';
+      const firstName = (team.captain_name || '').split(' ')[0] || 'Detective';
 
-      // Tag subscriber with weekly summary tag — triggers Mailchimp automation
-      // Store score data as merge fields for the email template
+      // Build weekly summary HTML inline (no separate template file needed)
+      const weeklyHtml = `
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+  body{margin:0;padding:0;background:#0d0d1a;font-family:'Helvetica Neue',Arial,sans-serif;color:#e8e0f0;}
+  .wrap{max-width:600px;margin:0 auto;padding:32px 20px;}
+  .header{background:linear-gradient(135deg,#1a0533,#0d1a33);border:2px solid #7b2d8b;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;}
+  .header h1{color:#f0c040;font-size:22px;margin:0 0 8px;letter-spacing:2px;}
+  .header p{color:#b8a8d0;font-size:13px;margin:0;}
+  .scores{background:#1a0533;border:1px solid #3d1a5c;border-radius:8px;padding:20px;margin-bottom:20px;}
+  .score-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #2d1a4c;}
+  .score-row:last-child{border-bottom:none;font-weight:bold;color:#f0c040;font-size:16px;}
+  .label{color:#b8a8d0;font-size:14px;}
+  .value{color:#e8e0f0;font-size:14px;font-weight:bold;}
+  .rank{background:#7b2d8b;color:#fff;border-radius:20px;padding:4px 12px;font-size:13px;display:inline-block;margin-bottom:16px;}
+  .anna{background:#0d1a33;border-left:3px solid #f0c040;padding:16px;border-radius:0 8px 8px 0;margin-bottom:20px;font-style:italic;color:#d0c8e8;font-size:14px;}
+  .cta{text-align:center;margin:24px 0;}
+  .btn{background:linear-gradient(135deg,#7b2d8b,#b8006e);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:15px;display:inline-block;}
+  .footer{text-align:center;color:#5a4a6a;font-size:12px;margin-top:24px;}
+</style></head><body><div class="wrap">
+  <div class="header">
+    <h1>📊 WEEKLY CASE FILE UPDATE</h1>
+    <p>TopKpop.io Investigation Unit — Confidential Score Report</p>
+  </div>
+  <p>Detective ${firstName},</p>
+  <p>${annaMsg}</p>
+  <div class="rank">Current Rank: #${team.rank}</div>
+  <div class="scores">
+    <div class="score-row"><span class="label">Trove 01 — Identity & Cover</span><span class="value">${trove1Str}</span></div>
+    <div class="score-row"><span class="label">Trove 02 — Evidence Song</span><span class="value">${trove2Str}</span></div>
+    <div class="score-row"><span class="label">Trove 03 — Teach, Perform, Solve</span><span class="value">${trove3Str}</span></div>
+    <div class="score-row"><span class="label">TOTAL SCORE</span><span class="value">${totalStr}</span></div>
+  </div>
+  <div class="anna">"${annaMsg}" — Detective Anna Im</div>
+  <div class="cta"><a href="https://www.topkpop.io/pages/leaderboard" class="btn">View Full Leaderboard</a></div>
+  <div class="footer">TopKpop.io Investigation Unit &bull; Fullerton School District &bull; <a href="https://www.topkpop.io" style="color:#7b2d8b;">topkpop.io</a></div>
+</div></body></html>`;
+
       try {
-        const hash = require('crypto').createHash('md5').update(team.captain_email.toLowerCase()).digest('hex');
-        await mailchimp.lists.updateListMember(AUDIENCE_ID, hash, {
-          merge_fields: {
-            TROVE1SC: trove1Str,
-            TROVE2SC: trove2Str,
-            TROVE3SC: trove3Str,
-            TOTALSC: totalStr,
-            RANK: `#${team.rank}`,
-            ANNAMSG: annaMsg,
-          },
+        await gmailTransporter.sendMail({
+          from: '"Anna Im — TopKpop.io" <bpletka1@gmail.com>',
+          to: team.captain_email,
+          subject: `📊 Weekly Case File Update — ${team.team_name} is Ranked #${team.rank}`,
+          html: weeklyHtml,
         });
         await tagSubscriber(team.captain_email, 'weekly-score-summary');
       } catch (err) {
@@ -1123,7 +1229,7 @@ async function sendWeeklyScoreSummary() {
       }
     }
 
-    console.log(`Weekly score summary sent to ${ranked.length} teams`);
+    console.log(`Weekly score summary sent directly to ${ranked.length} teams`);
   } catch (err) {
     console.error('Weekly score summary error:', err);
   }
@@ -1249,9 +1355,33 @@ async function sendAdminReminderEmail(adminEmail) {
     const score = settings?.winner_total_score || 0;
     const correct = settings?.winner_accusation_correct ? 'YES — correct accusation' : 'NO — incorrect accusation';
 
-    // Tag admin in Mailchimp with reminder tag
-    await tagSubscriber(adminEmail, 'winner-approval-reminder');
-    console.log(`Admin reminder sent: winner "${teamName}" (${score} pts, accusation correct: ${correct}) awaiting approval`);
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+      body{margin:0;padding:0;background:#0d0d1a;font-family:'Helvetica Neue',Arial,sans-serif;color:#e8e0f0;}
+      .wrap{max-width:600px;margin:0 auto;padding:32px 20px;}
+      .box{background:#1a0533;border:2px solid #f0c040;border-radius:12px;padding:24px;margin-bottom:20px;}
+      h2{color:#f0c040;margin:0 0 16px;}
+      .row{padding:8px 0;border-bottom:1px solid #2d1a4c;display:flex;justify-content:space-between;}
+      .row:last-child{border-bottom:none;}
+      .label{color:#b8a8d0;font-size:14px;}
+      .value{color:#e8e0f0;font-size:14px;font-weight:bold;}
+      .btn{display:inline-block;background:linear-gradient(135deg,#7b2d8b,#b8006e);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:bold;margin-top:20px;}
+    </style></head><body><div class="wrap">
+      <div class="box">
+        <h2>🏆 Winner Ready for Approval</h2>
+        <div class="row"><span class="label">Team</span><span class="value">${teamName}</span></div>
+        <div class="row"><span class="label">Total Score</span><span class="value">${score} pts</span></div>
+        <div class="row"><span class="label">Accusation</span><span class="value">${correct}</span></div>
+        <a href="https://www.topkpop.io/pages/admin" class="btn">Go to Admin Dashboard →</a>
+      </div>
+    </div></body></html>`;
+
+    await gmailTransporter.sendMail({
+      from: '"TopKpop.io System" <bpletka1@gmail.com>',
+      to: adminEmail,
+      subject: `🏆 ACTION REQUIRED: Winner Ready for Approval — ${teamName}`,
+      html,
+    });
+    console.log(`Admin reminder sent to ${adminEmail}: winner "${teamName}" (${score} pts, accusation: ${correct}) awaiting approval`);
   } catch (err) {
     console.error('Admin reminder email error:', err);
   }
@@ -1262,12 +1392,19 @@ async function sendAccusationUnlockEmail() {
   try {
     const { data: teams } = await supabase
       .from('registrations')
-      .select('captain_email')
+      .select('captain_email, captain_name')
       .eq('status', 'active');
     for (const team of teams || []) {
+      const firstName = (team.captain_name || '').split(' ')[0] || 'Detective';
+      await sendEmail(
+        'email10_accusation_open.html',
+        team.captain_email,
+        '🚨 FINAL ACCUSATION WINDOW OPEN — Who Is the Saboteur?',
+        { '[CAPTAIN_NAME]': firstName }
+      );
       await tagSubscriber(team.captain_email, 'accusation-unlocked');
     }
-    console.log(`Tagged ${teams?.length || 0} teams with accusation-unlocked`);
+    console.log(`Accusation unlock email sent directly to ${teams?.length || 0} teams`);
   } catch (err) {
     console.error('Accusation unlock email error:', err);
   }
@@ -1276,14 +1413,37 @@ async function sendAccusationUnlockEmail() {
 // ── Helper: Send Final Reveal email ──────────────────────────────────────────
 async function sendRevealEmail() {
   try {
+    const { data: settings } = await supabase
+      .from('game_settings')
+      .select('correct_saboteur, winner_team_name, winner_total_score')
+      .eq('id', 1)
+      .single();
+
+    const saboteur = settings?.correct_saboteur || 'The Saboteur';
+    const winnerName = settings?.winner_team_name || 'The Winning Team';
+    const winnerScore = settings?.winner_total_score || '—';
+
     const { data: teams } = await supabase
       .from('registrations')
-      .select('captain_email')
+      .select('captain_email, captain_name')
       .eq('status', 'active');
+
     for (const team of teams || []) {
+      const firstName = (team.captain_name || '').split(' ')[0] || 'Detective';
+      await sendEmail(
+        'email6_winner.html',
+        team.captain_email,
+        '🎤 CASE CLOSED — The Saboteur Has Been Unmasked',
+        {
+          '[CAPTAIN_NAME]': firstName,
+          '[SABOTEUR_NAME]': saboteur,
+          '[WINNING_TEAM_NAME]': winnerName,
+          '[SCORE]': String(winnerScore),
+        }
+      );
       await tagSubscriber(team.captain_email, 'final-reveal-live');
     }
-    console.log(`Tagged ${teams?.length || 0} teams with final-reveal-live`);
+    console.log(`Final Reveal email sent directly to ${teams?.length || 0} teams`);
   } catch (err) {
     console.error('Final Reveal email error:', err);
   }
