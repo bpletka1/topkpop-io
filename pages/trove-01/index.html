@@ -22,7 +22,7 @@
     .chip-purple { background: rgba(138,43,226,0.1); border: 1px solid rgba(138,43,226,0.35); color: #b06aff; }
     .oracle-box { margin-top: 40px; padding: 28px; background: rgba(15,16,22,0.9); border: 1px solid rgba(230,0,92,0.3); border-radius: 6px; }
     .submit-box { margin-top: 32px; padding: 28px; background: rgba(15,16,22,0.9); border: 1px solid rgba(255,191,0,0.3); border-radius: 6px; }
-    .instagram-box { margin-top: 20px; padding: 20px 24px; background: rgba(138,43,226,0.06); border: 1px solid rgba(138,43,226,0.2); border-radius: 6px; }
+    .instagram-box { margin-top: 20px; padding: 24px 28px; background: rgba(138,43,226,0.08); border: 1px solid rgba(138,43,226,0.3); border-radius: 6px; }
     .back-link { display: inline-flex; align-items: center; gap: 8px; font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.2em; color: rgba(224,224,224,0.45); text-transform: uppercase; text-decoration: none; margin-bottom: 40px; transition: color 0.2s; }
     .back-link:hover { color: var(--crimson); }
     .poetic-clue { background: rgba(230,0,92,0.04); border: 1px solid rgba(230,0,92,0.15); border-radius: 6px; padding: 28px 32px; margin-bottom: 40px; }
@@ -31,6 +31,43 @@
     .video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
     .section-divider { width: 40px; height: 2px; background: var(--crimson); margin: 20px 0 28px; }
     .mission-accept { background: rgba(230,0,92,0.06); border: 1px solid rgba(230,0,92,0.2); border-radius: 6px; padding: 24px 28px; margin-bottom: 32px; }
+    .task-header { background: rgba(15,16,22,0.9); border-left: 3px solid var(--crimson); padding: 18px 24px; margin: 40px 0 24px; border-radius: 0 6px 6px 0; }
+    .task-header h3 { font-family: 'Syncopate', sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #fff; margin: 0 0 6px; letter-spacing: 0.08em; }
+    .task-header p { font-size: 0.88rem; line-height: 1.65; color: rgba(224,224,224,0.7); margin: 0; }
+    .task-header-amber { border-left-color: var(--amber); }
+    .task-header-purple { border-left-color: #b06aff; }
+    .directions-block { background: rgba(8,9,14,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 28px 32px; margin-bottom: 32px; }
+    .directions-block h4 { font-family: 'Syncopate', sans-serif; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--crimson); margin: 0 0 16px; letter-spacing: 0.1em; }
+    .directions-block p { font-size: 0.9rem; line-height: 1.75; color: rgba(224,224,224,0.75); margin-bottom: 14px; }
+    .directions-block strong { color: #fff; }
+    .bonus-banner { background: rgba(255,191,0,0.06); border: 1px solid rgba(255,191,0,0.25); border-radius: 6px; padding: 14px 20px; margin-bottom: 24px; font-size: 0.85rem; color: var(--amber); font-style: italic; }
+    .clues-section-header { margin: 60px 0 8px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.07); }
+    /* ── Submit CTA ── */
+    .submit-cta-bar { display:flex; align-items:center; justify-content:space-between; gap:20px; background:linear-gradient(135deg,rgba(255,191,0,0.1),rgba(255,191,0,0.03)); border:1px solid rgba(255,191,0,0.45); border-radius:8px; padding:22px 28px; margin-bottom:44px; flex-wrap:wrap; }
+    .submit-cta-bar-text h3 { font-family:'Syncopate',sans-serif; font-size:0.7rem; letter-spacing:0.18em; text-transform:uppercase; color:#fff; margin:0 0 5px; }
+    .submit-cta-bar-text p { font-size:0.82rem; color:rgba(224,224,224,0.55); margin:0; }
+    .submit-cta-bar-btn { flex-shrink:0; background:var(--amber); color:#000; font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.18em; text-transform:uppercase; padding:14px 32px; border-radius:4px; text-decoration:none; font-weight:700; white-space:nowrap; }
+    /* ── Option Cards ── */
+    .options-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; margin:24px 0 36px; }
+    .option-card { background:rgba(15,16,22,0.95); border:1px solid rgba(255,191,0,0.18); border-radius:8px; padding:26px 22px; position:relative; }
+    .option-card.featured { border-color:rgba(255,191,0,0.5); }
+    .option-badge { position:absolute; top:-11px; left:20px; background:var(--amber); color:#000; font-family:'Syncopate',sans-serif; font-size:0.4rem; letter-spacing:0.18em; text-transform:uppercase; padding:4px 12px; border-radius:20px; font-weight:700; }
+    .option-icon-lg { font-size:2rem; margin-bottom:12px; display:block; }
+    .option-card-title { font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.15em; text-transform:uppercase; color:#fff; margin-bottom:6px; }
+    .option-card-pts { font-family:'Syncopate',sans-serif; font-size:0.82rem; color:var(--amber); font-weight:700; margin-bottom:10px; }
+    .option-card-desc { font-size:0.8rem; line-height:1.6; color:rgba(224,224,224,0.6); }
+    .bonus-row { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 36px; }
+    .bonus-pill { display:flex; align-items:center; gap:8px; background:rgba(0,180,100,0.06); border:1px solid rgba(0,180,100,0.25); border-radius:6px; padding:12px 16px; flex:1; min-width:180px; }
+    .bonus-pill-icon { font-size:1.2rem; }
+    .bonus-pill-text strong { display:block; font-family:'Syncopate',sans-serif; font-size:0.42rem; letter-spacing:0.15em; color:#00B464; text-transform:uppercase; margin-bottom:3px; }
+    .bonus-pill-text span { font-size:0.78rem; color:rgba(224,224,224,0.55); }
+    /* ── Directions header with doc link ── */
+    .dir-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin:44px 0 20px; padding-bottom:14px; border-bottom:1px solid rgba(255,191,0,0.15); }
+    .dir-header h2 { font-family:'Syncopate',sans-serif; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:#fff; margin:0; }
+    .doc-btn { display:inline-flex; align-items:center; gap:7px; background:transparent; border:1px solid rgba(255,191,0,0.35); border-radius:4px; padding:9px 18px; font-family:'Syncopate',sans-serif; font-size:0.42rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--amber); text-decoration:none; white-space:nowrap; }
+    .access-notice { background: rgba(138,43,226,0.06); border: 1px solid rgba(138,43,226,0.2); border-radius: 6px; padding: 18px 24px; margin-bottom: 28px; }
+    .access-notice p { font-size: 0.88rem; line-height: 1.65; color: rgba(224,224,224,0.75); margin: 0; }
+    .access-notice strong { color: #b06aff; }
   </style>
 </head>
 <body>
@@ -64,118 +101,239 @@
 
   <a href="/pages/missions" class="back-link">&larr; Back to Missions Hub</a>
 
-  <!-- SECTION 1: K-CLUE POETIC CIPHER -->
-  <div class="poetic-clue">
-    <p class="section-label" style="color:var(--crimson);">K-Clue &nbsp;&middot;&nbsp; Poetic Cipher</p>
-    <p style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:12px;">The Encore Ghost</p>
-    <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:0.92rem; line-height:1.75; color:rgba(224,224,224,0.7);">In the pulse of the venue, where melodies shimmer and fans hold their breath, a secret challenge awaits. Beneath neon lights, the echo of a vanished idol lingers between harmonies and whispers. Seek the gathering place where voices unite and rhythm binds strangers together to find the K-Clue. Your Mission: follow the clues to Treasure Trove 01.</p>
+  <!-- ══ SUBMIT CTA BAR ══ -->
+  <div class="submit-cta-bar">
+    <div class="submit-cta-bar-text">
+      <h3>Ready to Submit Trove 01?</h3>
+      <p>All submissions must be made here on the website. Instagram posts earn bonus points only.</p>
+    </div>
+    <a href="/pages/submit-trove-01" class="submit-cta-bar-btn">Submit Your Work &rarr;</a>
   </div>
 
-  <!-- SECTION 2: JEANNIE K-CLUE VIDEO -->
-  <p class="section-label" style="color:rgba(224,224,224,0.4);">Jeannie from KMZ Reports Live &nbsp;&middot;&nbsp; K-Clue Investigation</p>
-  <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">Watch Jeannie's live investigative report. She has uncovered new evidence about who may be behind the Top K-Pop sabotage — and the clues point somewhere unexpected.</p>
-  <div class="video-wrap">
-    <iframe src="https://player.vimeo.com/video/1139810578?badge=0&byline=0&portrait=0&title=0&autoplay=0&loop=0&muted=0&controls=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Jeannie KMZ — K-Clue Report Trove 01"></iframe>
-  </div>
-
-  <!-- SECTION 2B: K-CLUE INVESTIGATION — CLUE 1B -->
-  <p class="section-label" style="color:rgba(224,224,224,0.4);">K-Clue Investigation &nbsp;&middot;&nbsp; Clue 2 of 3</p>
-  <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">More evidence surfaces. Watch closely — every detail matters in identifying the saboteur.</p>
-  <div class="video-wrap">
-    <iframe src="https://player.vimeo.com/video/1193250273?badge=0&byline=0&portrait=0&title=0&autoplay=0&loop=0&muted=0&controls=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="K-Clue Trove 01 — Clue 1b"></iframe>
-  </div>
-
-  <!-- SECTION 2C: K-CLUE INVESTIGATION — CLUE 1C -->
-  <p class="section-label" style="color:rgba(224,224,224,0.4);">K-Clue Investigation &nbsp;&middot;&nbsp; Clue 3 of 3</p>
-  <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">The final clue for Trove 01. Piece together what you've seen — the trail leads somewhere.</p>
-  <div class="video-wrap">
-    <iframe src="https://player.vimeo.com/video/1193252635?badge=0&byline=0&portrait=0&title=0&autoplay=0&loop=0&muted=0&controls=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="K-Clue Trove 01 — Clue 1c"></iframe>
-  </div>
-
-  <!-- SECTION 3: MISSION ACTIVITY DIRECTIONS VIDEO -->
+  <!-- ===== SECTION 1: MISSION VIDEO ===== -->
   <div class="mission-accept">
     <p class="section-label" style="color:var(--crimson);">Mission 01 &nbsp;&middot;&nbsp; This Is Your Mission If You Choose to Accept It</p>
-    <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">Watch the full mission briefing below. Your assignment: create your K-Pop trainee identity using AI tools — avatar, poster, and team name — before the 10th Anniversary Season live broadcast begins.</p>
+    <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:0;">Watch the full mission briefing below. Your assignment: create your K-Pop trainee identity using AI tools — avatar, poster, and team name — before the 10th Anniversary Season live broadcast begins.</p>
   </div>
   <div class="video-wrap">
     <iframe src="https://player.vimeo.com/video/1140433843?badge=0&byline=0&portrait=0&title=0&autoplay=0&loop=0&muted=0&controls=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Mission 01 — Activity Directions"></iframe>
   </div>
 
-  <!-- SECTION 4: POINT OPTIONS -->
-  <p class="section-label" style="color:var(--crimson);">Scoring Options</p>
-  <div class="point-chips">
-    <span class="chip chip-crimson">Avatar Only — Up to 75 pts</span>
-    <span class="chip chip-amber">Avatar + Poster — Up to 100 pts</span>
-    <span class="chip chip-purple">Bonus: Team Name Lore — +25 pts</span>
+  <!-- ===== SECTION 2: SCORING OPTIONS ===== -->
+  <p class="section-label" style="color:var(--crimson);">Choose Your Path &nbsp;&middot;&nbsp; Scoring Options</p>
+  <div class="options-grid">
+    <div class="option-card">
+      <span class="option-badge">Option 1</span>
+      <span class="option-icon-lg">🎭</span>
+      <p class="option-card-title">Avatar Only</p>
+      <p class="option-card-pts">Up to 75 pts</p>
+      <p class="option-card-desc">Create your AI K-Pop trainee avatar using ChatGPT. Submit your avatar image through the website.</p>
+    </div>
+    <div class="option-card featured">
+      <span class="option-badge">Option 2 — Recommended</span>
+      <span class="option-icon-lg">🎨</span>
+      <p class="option-card-title">Avatar + Idol Poster</p>
+      <p class="option-card-pts">Up to 100 pts</p>
+      <p class="option-card-desc">Create your avatar AND design a K-Pop idol poster in Canva featuring your avatar. Maximum score.</p>
+    </div>
+  </div>
+  <p class="section-label" style="color:#00B464;">Bonus Opportunities</p>
+  <div class="bonus-row">
+    <div class="bonus-pill"><span class="bonus-pill-icon">📸</span><div class="bonus-pill-text"><strong>Instagram Avatar Post &nbsp;+25 pts</strong><span>Post avatar tagging @topkpopio by end of Week 1</span></div></div>
+    <div class="bonus-pill"><span class="bonus-pill-icon">🖼️</span><div class="bonus-pill-text"><strong>Instagram Poster Post &nbsp;+25 pts</strong><span>Post poster tagging @topkpopio by end of Week 1</span></div></div>
+    <div class="bonus-pill"><span class="bonus-pill-icon">✍️</span><div class="bonus-pill-text"><strong>Team Name Lore &nbsp;+25 pts</strong><span>Write a 2–4 sentence origin story for your team name</span></div></div>
   </div>
 
-  <!-- SECTION 5: STEP-BY-STEP INSTRUCTIONS -->
-  <p class="section-label" style="color:var(--crimson); margin-top:32px;">Step-by-Step Instructions</p>
-  <div class="section-divider"></div>
-
-  <ul class="step-list">
-    <li>
-      <div class="step-num">1</div>
-      <div class="step-text"><strong>Choose Your AI Avatar Tool.</strong> Use an AI image generator such as Midjourney, Adobe Firefly, DALL·E, or Canva AI to create your K-Pop trainee avatar. Your avatar should reflect your team's identity — style, color palette, and personality.</div>
-    </li>
-    <li>
-      <div class="step-num">2</div>
-      <div class="step-text"><strong>Craft Your Avatar Prompt.</strong> Write a detailed prompt describing your character's appearance, outfit, background, and mood. Be specific — the more detail you give the AI, the stronger the result.</div>
-    </li>
-  </ul>
-
-  <div class="prompt-box">
-    <p class="prompt-box-label">Example Avatar Prompt</p>
-    <div class="prompt-example">"A confident K-Pop trainee in a sleek black and gold stage outfit, standing in a neon-lit Seoul practice room. Short dark hair with highlights, intense expression, cinematic lighting, ultra-detailed digital art style."</div>
+  <!-- ===== DIRECTIONS HEADER WITH DOC LINK ===== -->
+  <div class="dir-header">
+    <h2>Step-by-Step Directions</h2>
+    <a href="https://docs.google.com/document/d/1xuXlX3oZFekotOCsg5UMBYBLE7DjQpqEj3eM9Nwm4dM/edit" target="_blank" rel="noopener" class="doc-btn">📄 Full Directions (Google Doc) &rarr;</a>
   </div>
 
-  <ul class="step-list">
-    <li>
-      <div class="step-num">3</div>
-      <div class="step-text"><strong>Generate and Refine.</strong> Run your prompt and review the result. Adjust the prompt to improve details — lighting, expression, outfit, background. Generate at least 3 variations before choosing your final avatar.</div>
-    </li>
-    <li>
-      <div class="step-num">4</div>
-      <div class="step-text"><strong>Create Your K-Pop Poster (for full points).</strong> Use Canva, Adobe Express, or another design tool to create a promotional poster for your team. Include your avatar, team name, and a tagline. The poster should feel like a real K-Pop debut announcement.</div>
-    </li>
-    <li>
-      <div class="step-num">5</div>
-      <div class="step-text"><strong>Name Your Team.</strong> Choose a K-Pop group name for your team. For bonus points, write a short origin story (2–3 sentences) explaining the meaning behind the name and how it connects to your team's identity.</div>
-    </li>
-    <li>
-      <div class="step-num">6</div>
-      <div class="step-text"><strong>Score with the Practice Oracle before submitting.</strong> Paste your avatar description, poster concept, and team name into the Practice Oracle to receive coaching feedback. Revise your work, then submit officially below.</div>
-    </li>
-  </ul>
+  <!-- ===== SECTION 3: MISSION OVERVIEW ===== -->
+  <div class="directions-block" style="margin-top:32px;">
+    <h4>Mission Overview</h4>
+    <p>Begin by creating your own personal K-Pop trainee identity. Decide on your style, look, and personality as an idol. You may upload a photo of yourself to transform into an idol, or describe the features, outfit, colors, and vibe you want. Choose whether your avatar looks realistic, cartoon-like, anime-inspired, or even part of a fantasy K-Pop world like demon hunters.</p>
+    <p>Once finished, save and download your avatar to use in your poster. You will post this to Instagram and introduce your character. Follow <strong>@topkpopio</strong> on Instagram — your post will be reviewed by Top K-Pop executives and accepted.</p>
+  </div>
 
-  <!-- SECTION 6: PRACTICE ORACLE -->
+  <!-- ===== TASK 1: PART 1.A — MAKE YOUR AVATAR ===== -->
+  <div class="task-header">
+    <h3>Task 1 &nbsp;&middot;&nbsp; Part 1.a — How to Make Your Trainee Avatar with AI</h3>
+    <p>Use ChatGPT (or Gemini) to create your K-Pop trainee avatar. This is your personal idol character for the entire game.</p>
+  </div>
+
+  <div class="directions-block">
+    <h4>Step 1: Decide on Your Idol Identity</h4>
+    <p>Think about who you want to be as a K-Pop trainee. Choose your style: <strong>cute, fierce, elegant, noir, cyberpunk, demon-hunter, glam,</strong> or <strong>realistic.</strong></p>
+
+    <h4>Step 2: Choose How You Will Make Your Avatar</h4>
+    <p>Pick <strong>ONE</strong> of the following methods:</p>
+    <p>1. <strong>Upload a photo of yourself</strong> to turn into an idol<br>
+    2. <strong>Describe your appearance</strong> (hair, skin tone, ethnicity, clothing, colors, vibe)<br>
+    3. <strong>Describe a themed version</strong> (anime idol, K-Pop demon hunter, gemstone glam, neon street idol)</p>
+
+    <h4>Step 3: Tell ChatGPT to Create Your Avatar</h4>
+    <p>Use a sentence like:<br>
+    <em>"ChatGPT, create my trainee avatar. I want a [style] idol with [hair], [clothing], [colors], and a [vibe]."</em><br>
+    Or, if you upload your photo, say:<br>
+    <em>"ChatGPT, turn this photo of me into a K-Pop idol version of myself."</em></p>
+
+    <h4>Step 4: Review the First Version</h4>
+    <p>Look at your avatar and decide if you want changes. You can ask ChatGPT to adjust: hair &mdash; lighting &mdash; outfit &mdash; pose &mdash; expression &mdash; style (realistic, anime, illustrated, dramatic, etc.)</p>
+
+    <h4>Step 5: Finalize Your Trainee Avatar</h4>
+    <p>Once you are happy with how you look, save this final version. <strong>This avatar will be used in your K-Pop Idol Poster.</strong></p>
+  </div>
+
+  <!-- ===== TASK 1: PART 1.B — POST AVATAR ON INSTAGRAM ===== -->
+  <div class="task-header task-header-amber">
+    <h3>Task 1 &nbsp;&middot;&nbsp; Part 1.b — How to Post Your Avatar on Instagram</h3>
+    <p>Introduce your trainee character to the Top K-Pop community on Instagram. This earns bonus points and is required to access the private community page.</p>
+  </div>
+
+  <div class="bonus-banner">&#9733; Bonus: +25 pts for posting your avatar before the end of Week 1. Tag @topkpopio and use #TopKpopSleuth.</div>
+
+  <div class="directions-block">
+    <h4>Step 1: Open Instagram and Create a New Post</h4>
+    <p>Open the Instagram app, tap the <strong>+</strong> button, and begin creating a new post.</p>
+
+    <h4>Step 2: Upload Your Trainee Avatar Image</h4>
+    <p>Select your <strong>final avatar</strong> from your device and upload it. Make sure it's the final version of your character.</p>
+
+    <h4>Step 3: Add a Short Intro (Caption or Text Overlay)</h4>
+    <p>Introduce your idol character. Include your:<br>
+    &ndash; Trainee stage name<br>
+    &ndash; Idol skills (singing, dancing, rap, visual, etc.)<br>
+    &ndash; Super sleuth ability (ex: clue decoder, evidence spotter, strategist)</p>
+
+    <h4>Step 4: Add Music and Caption</h4>
+    <p>Add music (optional) and adjust the layout as you like. Add your caption. You may ask ChatGPT to help write it by saying:<br>
+    <em>"ChatGPT, write my Instagram caption introducing my idol character."</em></p>
+
+    <h4>Step 5: Add Required Hashtag and Tag</h4>
+    <p>Include the required tag: <strong>@topkpopio</strong></p>
+
+    <h4>Step 6: Post Your Photo/Video</h4>
+    <p>Post your content. Then follow <strong>@topkpopio</strong> on Instagram to access the private community page.</p>
+  </div>
+
+  <div class="access-notice">
+    <p><strong>IMPORTANT ACCESS INSTRUCTION</strong><br>
+    This is a private Instagram page. To participate, you must <strong>follow @topkpopio</strong> on Instagram. Your post will be <strong>reviewed by the Top K-Pop executives</strong> and then <strong>approved</strong> before it becomes visible.</p>
+  </div>
+
+  <!-- ===== TASK 2: PART 2.A — MAKE YOUR POSTER ===== -->
+  <div class="task-header">
+    <h3>Task 2 &nbsp;&middot;&nbsp; Part 2.a — How to Make Your K-Pop Idol Poster</h3>
+    <p>After completing your trainee avatar, create your K-Pop Idol Group Poster using AI. This is your team's official debut announcement image.</p>
+  </div>
+
+  <div class="directions-block">
+    <p>After completing your trainee avatar, create your K-Pop Idol Poster using your favorite AI (e.g. ChatGPT, Gemini). Choose or upload a dramatic background location — such as a beach, neon street, theater, or famous landmark — and place your avatar into the scene. If you are working with a team, include up to four avatars total. Add concert lights, neon effects, sparkles, and a cinematic title to complete the look. Your final poster should showcase your idol character in a high-energy K-Pop performance moment.</p>
+
+    <h4>Step 1: Choose Your Poster Background</h4>
+    <p>Select a dramatic or meaningful location for your poster. You may upload a real photo (beach, backyard, living room, school hallway), a famous landmark (Eiffel Tower, pyramids, Seoul street), or ask ChatGPT to generate a background for you.</p>
+
+    <h4>Step 2: Upload Your Required Avatar(s)</h4>
+    <p>Upload <strong>your own trainee avatar.</strong> If you are in a team, also upload <strong>every team member's avatar</strong> so all can be included in the same group poster. If you are working individually, you may upload any additional characters you want to include in your idol group (up to 4 total).</p>
+
+    <h4>Step 3: Tell ChatGPT Your Poster Style</h4>
+    <p>Describe the vibe you want for your poster — neon concert energy, glamorous comeback stage, fierce detective mood, beach performance, fantasy K-Pop theme, etc. ChatGPT will blend your characters naturally into the scene using K-Pop lighting, sparkles, beams, and stage effects.</p>
+
+    <h4>Step 4: Add Your Title, Tagline, and Group Name</h4>
+    <p>Make sure your poster has a title, a short tagline, and your idol group name so they can be added in cinematic metallic text. <strong>The tagline must include Spanish or Korean phrasing.</strong></p>
+
+    <h4>Step 5: Review and Approve Your Final Poster</h4>
+    <p>Look at the poster ChatGPT generates and request any changes you want — lighting, color, positioning, expressions, or effects. Once you are satisfied, save your final K-Pop Idol Poster. Please feel free to pre-score your avatar and poster using the Oracle of the Rubric before submitting. Make any modifications prior to your final submission.</p>
+  </div>
+
+  <!-- ===== TASK 2: PART 2.B — POST POSTER ON INSTAGRAM ===== -->
+  <div class="task-header task-header-amber">
+    <h3>Task 2 &nbsp;&middot;&nbsp; Part 2.b — How to Post Your Idol Poster on Instagram</h3>
+    <p>Share your group poster with the Top K-Pop community on Instagram for bonus points.</p>
+  </div>
+
+  <div class="bonus-banner">&#9733; Bonus: +25 pts for posting your idol poster before the end of Week 1. Tag @topkpopio and use #TopKpopSleuth. Include your post link in your submission.</div>
+
+  <div class="directions-block">
+    <h4>Step 1: Open Instagram and Start a New Post</h4>
+    <p>Open the Instagram app, tap the <strong>+</strong> button, and begin creating a new photo post.</p>
+
+    <h4>Step 2: Upload Your K-Pop Idol Poster</h4>
+    <p>Select your <strong>final poster</strong> from your device and upload it. Make sure it is clear, centered, and easy to see.</p>
+
+    <h4>Step 3: Add a Short Intro (Caption or Text Overlay)</h4>
+    <p>Introduce your idol group or concept with a quick description. You may include:<br>
+    &ndash; Your group name<br>
+    &ndash; Your poster theme (beach stage, neon lights, Eiffel Tower, detective concept, etc.)<br>
+    &ndash; Each member's role (main vocal, lead dancer, rapper, visual)<br>
+    &ndash; Optional: your super sleuth theme</p>
+
+    <h4>Step 4: Add Your Caption and Tags</h4>
+    <p>Ask ChatGPT for help if needed:<br>
+    <em>"ChatGPT, write my Instagram caption introducing our idol poster."</em><br>
+    Then add the required tag: <strong>@topkpopio</strong></p>
+
+    <h4>Step 5: Post Your Photo and Follow the Private Page Instructions</h4>
+    <p>After posting, follow <strong>@topkpopio</strong> on Instagram. Remember: <strong>This is a private page. Your post will be reviewed by the Top K-Pop executives and then accepted.</strong></p>
+  </div>
+
+  <!-- ===== SECTION 4: PRACTICE ORACLE ===== -->
   <div class="oracle-box">
-    <p class="section-label" style="color:var(--crimson);">Practice Oracle &nbsp;&middot;&nbsp; K-Pop Poster &amp; Avatar Rubric</p>
-    <p style="font-size:0.85rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:20px;">Use the Practice Oracle to score your work and receive coaching feedback before your official submission. You can use it as many times as you like — refine, resubmit to the Oracle, and improve until you're ready.</p>
-    <a href="https://chatgpt.com/g/g-6924d3bc86388191a51b043fc7adeb42-oracle-of-the-rubric-for-k-pop-poster-avatar" target="_blank" rel="noopener" style="display:inline-block; background:var(--crimson); color:#fff; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.18em; text-transform:uppercase; padding:12px 28px; border-radius:3px; text-decoration:none; margin-bottom:16px;">Open Practice Oracle &rarr;</a>
+    <p class="section-label" style="color:var(--crimson);">Oracle of the Rubric &nbsp;&middot;&nbsp; Pre-Score Your Avatar &amp; Poster</p>
+    <p style="font-size:0.85rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">The criteria that the Oracle will use for scoring your avatar and poster are built into the rubric. Please make sure all 5 criteria are being addressed. Simply go to the Oracle of the Rubric and upload your avatar and poster (two files) and get your score. Please feel free to make modifications prior to submitting your final work to the portal. <strong style="color:#fff;">Once you submit to the portal, you cannot make further adjustments.</strong></p>
+    <a href="https://chatgpt.com/g/g-6924d3bc86388191a51b043fc7adeb42-oracle-of-the-rubric-for-k-pop-poster-avatar" target="_blank" rel="noopener" style="display:inline-block; background:var(--crimson); color:#fff; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.18em; text-transform:uppercase; padding:12px 28px; border-radius:3px; text-decoration:none; margin-bottom:16px;">Open Oracle of the Rubric &rarr;</a>
     <p style="font-size:0.75rem; color:rgba(255,191,0,0.75); margin-top:12px;">&#9888; Practice scores are coaching estimates. Your official score is generated at submission and may differ slightly — the submission Oracle applies the full rubric at evaluation standard.</p>
   </div>
 
-  <!-- SECTION 7: OFFICIAL SUBMISSION -->
+  <!-- ===== SECTION 5: OFFICIAL SUBMISSION ===== -->
   <div class="submit-box">
     <p class="section-label" style="color:var(--amber);">Official Submission &nbsp;&middot;&nbsp; Trove 01</p>
-    <p style="font-size:0.85rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:20px;">Submit your final avatar, poster (if applicable), and team name below. This is your one official submission for Trove 01 — once submitted, this Trove is locked. Use the Practice Oracle above to refine your work before submitting.</p>
-    <form style="display:flex; flex-direction:column; gap:16px;" onsubmit="return false;">
-      <input type="text" placeholder="Team Name" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:12px 16px; color:#fff; font-size:0.88rem; outline:none;" />
-      <input type="email" placeholder="School Email Address" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:12px 16px; color:#fff; font-size:0.88rem; outline:none;" />
-      <textarea placeholder="Paste your avatar prompt(s) and describe your final avatar here..." rows="4" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:12px 16px; color:#fff; font-size:0.88rem; outline:none; resize:vertical;"></textarea>
-      <textarea placeholder="Paste your poster description or share a link to your poster..." rows="3" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:12px 16px; color:#fff; font-size:0.88rem; outline:none; resize:vertical;"></textarea>
-      <textarea placeholder="Team name origin story (optional — for bonus points)..." rows="3" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:12px 16px; color:#fff; font-size:0.88rem; outline:none; resize:vertical;"></textarea>
-      <p style="font-size:0.75rem; color:rgba(230,0,92,0.8);">&#9888; Once submitted, Trove 01 is locked and cannot be resubmitted. Make sure your work is final before clicking Submit.</p>
-      <button type="submit" style="background:var(--crimson); color:#fff; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.18em; text-transform:uppercase; padding:14px 32px; border:none; border-radius:3px; cursor:pointer; align-self:flex-start;">Submit Trove 01 Officially</button>
-    </form>
+    <p style="font-size:0.85rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:20px;">Submit your final avatar, poster (if applicable), and team name through the official submission portal. This is your one official submission for Trove 01 — once submitted, this Trove is locked. Use the Oracle above to refine your work before submitting.</p>
+    <a href="/pages/submit-trove-01" style="display:inline-block; background:var(--amber); color:#000; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.18em; text-transform:uppercase; padding:14px 32px; border-radius:3px; text-decoration:none; font-weight:700;">Go to Submission Portal &rarr;</a>
   </div>
 
-  <!-- SECTION 8: OPTIONAL INSTAGRAM -->
+  <!-- ===== SECTION 6: INSTAGRAM COMMUNITY (REQUIRED) ===== -->
   <div class="instagram-box">
-    <p class="section-label" style="color:#b06aff;">Optional &nbsp;&middot;&nbsp; Share with the Community</p>
-    <p style="font-size:0.82rem; line-height:1.65; color:rgba(224,224,224,0.65);">Want to share your K-Pop avatar or poster with fellow educators? Join the private TopKpop.io educator community on Instagram. This is entirely optional and has no effect on your score.</p>
-    <a href="https://www.instagram.com/topkpopio" target="_blank" rel="noopener" style="display:inline-block; margin-top:14px; font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.18em; text-transform:uppercase; color:#b06aff; text-decoration:none; border:1px solid rgba(138,43,226,0.35); padding:8px 20px; border-radius:3px;">Follow @topkpopio on Instagram &rarr;</a>
+    <p class="section-label" style="color:#b06aff;">Instagram &nbsp;&middot;&nbsp; Required Community Access</p>
+    <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.75); margin-bottom:16px;">Following <strong style="color:#b06aff;">@topkpopio on Instagram</strong> is required to access the private community page where your posts are reviewed and approved. Mission videos and clue drops are also posted to Instagram when each Trove opens — make sure you're following so you don't miss them.</p>
+    <a href="https://www.instagram.com/topkpopio" target="_blank" rel="noopener" style="display:inline-block; font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.18em; text-transform:uppercase; color:#b06aff; text-decoration:none; border:1px solid rgba(138,43,226,0.4); padding:10px 22px; border-radius:3px; background:rgba(138,43,226,0.08);">Follow @topkpopio on Instagram &rarr;</a>
+  </div>
+
+  <!-- ===== SECTION 7: CLUE VIDEOS ===== -->
+  <div class="clues-section-header">
+    <p class="section-label" style="color:var(--crimson); margin-bottom:6px;">Trove 01 Clues &nbsp;&middot;&nbsp; K-Clue Investigation Videos</p>
+    <h2 style="font-family:'Syncopate',sans-serif; font-size:1rem; font-weight:700; text-transform:uppercase; color:#fff; margin-bottom:16px;">Clues from Trove 01</h2>
+    <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.65); margin-bottom:40px;">Watch all three clue videos carefully. Each one contains evidence about who may be behind the Top K-Pop sabotage. Piece together what you see — the trail leads somewhere unexpected.</p>
+  </div>
+
+  <!-- CLUE 1 OF 3 -->
+  <p class="section-label" style="color:rgba(224,224,224,0.4);">Trove 01 &nbsp;&middot;&nbsp; Clue 1 of 3 &nbsp;&middot;&nbsp; Jeannie from KMZ Reports Live</p>
+  <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">Watch Jeannie's live investigative report. She has uncovered new evidence about who may be behind the Top K-Pop sabotage — and the clues point somewhere unexpected.</p>
+  <div class="video-wrap">
+    <iframe src="https://player.vimeo.com/video/1139810578?badge=0&byline=0&portrait=0&title=0&autoplay=0&loop=0&muted=0&controls=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Jeannie KMZ — K-Clue Report Trove 01"></iframe>
+  </div>
+
+  <!-- CLUE 2 OF 3 -->
+  <p class="section-label" style="color:rgba(224,224,224,0.4);">Trove 01 &nbsp;&middot;&nbsp; Clue 2 of 3</p>
+  <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">More evidence surfaces. Watch closely — every detail matters in identifying the saboteur.</p>
+  <div class="video-wrap">
+    <iframe src="https://player.vimeo.com/video/1193250273?badge=0&byline=0&portrait=0&title=0&autoplay=0&loop=0&muted=0&controls=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="K-Clue Trove 01 — Clue 1b"></iframe>
+  </div>
+
+  <!-- CLUE 3 OF 3 -->
+  <p class="section-label" style="color:rgba(224,224,224,0.4);">Trove 01 &nbsp;&middot;&nbsp; Clue 3 of 3</p>
+  <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">The final clue for Trove 01. Piece together what you've seen — the trail leads somewhere.</p>
+  <div class="video-wrap">
+    <iframe src="https://player.vimeo.com/video/1193252635?badge=0&byline=0&portrait=0&title=0&autoplay=0&loop=0&muted=0&controls=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="K-Clue Trove 01 — Clue 1c"></iframe>
+  </div>
+
+  <!-- POETIC CIPHER -->
+  <div class="poetic-clue">
+    <p class="section-label" style="color:var(--crimson);">K-Clue &nbsp;&middot;&nbsp; Poetic Cipher</p>
+    <p style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:12px;">The Encore Ghost</p>
+    <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:0.92rem; line-height:1.75; color:rgba(224,224,224,0.7);">In the pulse of the venue, where melodies shimmer and fans hold their breath, a secret challenge awaits. Beneath neon lights, the echo of a vanished idol lingers between harmonies and whispers. Seek the gathering place where voices unite and rhythm binds strangers together to find the K-Clue. Your Mission: follow the clues to Treasure Trove 01.</p>
   </div>
 
   <div style="margin-top:60px;">

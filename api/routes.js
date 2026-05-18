@@ -334,7 +334,7 @@ router.post('/submit/:trove', upload.fields([
       return res.status(400).json({ error: 'Invalid trove number.' });
     }
 
-    const { team_name, captain_email, notes } = req.body;
+    const { team_name, captain_email, notes, dance_video_link, instagram_post_url } = req.body;
 
     if (!team_name || !captain_email) {
       return res.status(400).json({ error: 'Team name and email are required.' });
@@ -369,21 +369,31 @@ router.post('/submit/:trove', upload.fields([
       file3Data = await uploadToSupabase(req.files.file3[0], folder);
     }
 
+    // Build submission payload — include dance video link and instagram URL if provided
+    const submissionPayload = {
+      team_id: team.id,
+      team_name: team_name.trim(),
+      trove_number: troveNumber,
+      file1_url: file1Data?.url,
+      file1_name: file1Data?.name,
+      file2_url: file2Data?.url,
+      file2_name: file2Data?.name,
+      file3_url: file3Data?.url,
+      file3_name: file3Data?.name,
+      notes: notes?.trim(),
+    };
+    // Trove 3: save dance video link in notes if provided, and instagram URL for bonus
+    if (dance_video_link?.trim()) {
+      submissionPayload.notes = [notes?.trim(), `Dance Video: ${dance_video_link.trim()}`].filter(Boolean).join(' | ');
+    }
+    if (instagram_post_url?.trim()) {
+      submissionPayload.instagram_post_url = instagram_post_url.trim();
+    }
+
     // Upsert submission (allow resubmission before scoring)
     const { data: sub, error: subError } = await supabase
       .from('submissions')
-      .upsert({
-        team_id: team.id,
-        team_name: team_name.trim(),
-        trove_number: troveNumber,
-        file1_url: file1Data?.url,
-        file1_name: file1Data?.name,
-        file2_url: file2Data?.url,
-        file2_name: file2Data?.name,
-        file3_url: file3Data?.url,
-        file3_name: file3Data?.name,
-        notes: notes?.trim(),
-      }, { onConflict: 'team_id,trove_number' })
+      .upsert(submissionPayload, { onConflict: 'team_id,trove_number' })
       .select()
       .single();
 
@@ -452,22 +462,24 @@ router.get('/leaderboard', async (req, res) => {
 
     const { data: submissions, error: subsError } = await supabase
       .from('submissions')
-      .select('team_id, trove_number, final_score, oracle_score')
+      .select('team_id, trove_number, final_score, oracle_score, bonus_score')
       .not('team_id', 'is', null);
     if (subsError) throw subsError;
 
-    // Build score map keyed by team_id
+    // Build score map keyed by team_id (includes bonus_score)
     const scoreMap = {};
     (submissions || []).forEach(s => {
-      if (!scoreMap[s.team_id]) scoreMap[s.team_id] = { trove1: 0, trove2: 0, trove3: 0 };
+      if (!scoreMap[s.team_id]) scoreMap[s.team_id] = { trove1: 0, trove2: 0, trove3: 0, bonus: 0 };
       const score = s.final_score || s.oracle_score || 0;
+      const bonus = s.bonus_score || 0;
       if (score > 0) scoreMap[s.team_id][`trove${s.trove_number}`] = score;
+      scoreMap[s.team_id].bonus += bonus;
     });
 
-    // Calculate totals and rank
+    // Calculate totals and rank (including bonus points)
     const ranked = (teams || []).map(team => {
-      const scores = scoreMap[team.id] || { trove1: 0, trove2: 0, trove3: 0 };
-      const total = scores.trove1 + scores.trove2 + scores.trove3;
+      const scores = scoreMap[team.id] || { trove1: 0, trove2: 0, trove3: 0, bonus: 0 };
+      const total = scores.trove1 + scores.trove2 + scores.trove3 + scores.bonus;
       return {
         team_name: team.team_name,
         school_name: team.school_name,
@@ -475,6 +487,7 @@ router.get('/leaderboard', async (req, res) => {
         trove1: scores.trove1,
         trove2: scores.trove2,
         trove3: scores.trove3,
+        bonus: scores.bonus,
         total,
         status: team.status,
       };
@@ -816,6 +829,62 @@ router.post('/admin/score', adminAuth, async (req, res) => {
   res.json({ success: true, data });
 });
 
+// ── Award Instagram Bonus Points ────────────────────────────────────────────
+// POST /api/admin/award-bonus
+// Body: { submission_id, bonus_points, instagram_post_url, awarded_by }
+router.post('/admin/award-bonus', adminAuth, async (req, res) => {
+  const { submission_id, bonus_points, instagram_post_url, awarded_by } = req.body;
+  if (!submission_id || bonus_points === undefined) {
+    return res.status(400).json({ error: 'submission_id and bonus_points required.' });
+  }
+  const pts = parseInt(bonus_points);
+  if (isNaN(pts) || pts < 0 || pts > 100) {
+    return res.status(400).json({ error: 'bonus_points must be a number between 0 and 100.' });
+  }
+
+  const updatePayload = {
+    bonus_score: pts,
+    bonus_awarded_at: new Date().toISOString(),
+    bonus_awarded_by: awarded_by || 'admin',
+  };
+  if (instagram_post_url) updatePayload.instagram_post_url = instagram_post_url;
+
+  const { data, error } = await supabase
+    .from('submissions')
+    .update(updatePayload)
+    .eq('id', submission_id)
+    .select('id, team_id, team_name, trove_number, final_score, bonus_score, instagram_post_url, bonus_awarded_at')
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Log the bonus award
+  console.log(`[BONUS] ${pts} pts awarded to submission ${submission_id} (${data.team_name} Trove ${data.trove_number}) by ${awarded_by || 'admin'}`);
+
+  res.json({ success: true, data, message: `+${pts} bonus points awarded to ${data.team_name} for Trove ${data.trove_number}.` });
+});
+
+// ── Get pending Instagram bonus submissions ──────────────────────────────────
+// GET /api/admin/instagram-pending
+// Returns submissions that have instagram_post_url but no bonus_score yet
+router.get('/admin/instagram-pending', adminAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('id, team_id, team_name, trove_number, final_score, bonus_score, instagram_post_url, bonus_awarded_at, created_at')
+      .not('instagram_post_url', 'is', null)
+      .neq('instagram_post_url', '')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    // Separate pending (no bonus yet) from awarded
+    const pending = (data || []).filter(s => !s.bonus_score || s.bonus_score === 0);
+    const awarded = (data || []).filter(s => s.bonus_score && s.bonus_score > 0);
+    res.json({ success: true, pending, awarded });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Public game settings — returns unlock dates for the missions page (no auth required)
 router.get('/game-settings', async (req, res) => {
   const { data, error } = await supabase.from('game_settings')
@@ -920,7 +989,7 @@ router.get('/admin/leaderboard', adminAuth, async (req, res) => {
 
     const { data: submissions, error: subsError } = await supabase
       .from('submissions')
-      .select('id, team_id, trove_number, oracle_score, admin_score, final_score, scored_at, file1_name, file2_name, file3_name, notes, created_at')
+      .select('id, team_id, trove_number, oracle_score, admin_score, final_score, bonus_score, instagram_post_url, bonus_awarded_at, scored_at, file1_name, file2_name, file3_name, notes, created_at')
       .not('team_id', 'is', null);
     if (subsError) throw subsError;
 
@@ -941,14 +1010,15 @@ router.get('/admin/leaderboard', adminAuth, async (req, res) => {
 
     const ranked = (teams || []).map(team => {
       const teamSubs = subsMap[team.id] || [];
-      const scores = { trove1: 0, trove2: 0, trove3: 0 };
+      const scores = { trove1: 0, trove2: 0, trove3: 0, bonus: 0 };
       teamSubs.forEach(s => {
         const score = s.final_score || s.oracle_score || 0;
         if (score > 0) scores[`trove${s.trove_number}`] = score;
+        scores.bonus += (s.bonus_score || 0);
       });
       const accusationScore = accMap[team.id]?.accusation_score || 0;
-      const total = scores.trove1 + scores.trove2 + scores.trove3 + accusationScore;
-      return { ...team, submissions: teamSubs, accusations: accMap[team.id] ? [accMap[team.id]] : [], trove1: scores.trove1, trove2: scores.trove2, trove3: scores.trove3, accusation_score: accusationScore, total };
+      const total = scores.trove1 + scores.trove2 + scores.trove3 + scores.bonus + accusationScore;
+      return { ...team, submissions: teamSubs, accusations: accMap[team.id] ? [accMap[team.id]] : [], trove1: scores.trove1, trove2: scores.trove2, trove3: scores.trove3, bonus: scores.bonus, accusation_score: accusationScore, total };
     }).sort((a, b) => b.total - a.total).map((t, i) => ({ ...t, rank: i + 1 }));
 
     res.json({ success: true, data: ranked });

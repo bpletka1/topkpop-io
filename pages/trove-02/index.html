@@ -33,6 +33,26 @@
     .section-divider { width: 40px; height: 2px; background: var(--amber); margin: 20px 0 28px; }
     .mission-accept { background: rgba(255,191,0,0.04); border: 1px solid rgba(255,191,0,0.2); border-radius: 6px; padding: 24px 28px; margin-bottom: 32px; }
     .option-block { background: rgba(15,16,22,0.9); border: 1px solid rgba(255,191,0,0.18); border-radius: 6px; padding: 24px 28px; margin-bottom: 24px; }
+    .submit-cta-bar { display:flex; align-items:center; justify-content:space-between; gap:20px; background:linear-gradient(135deg,rgba(255,191,0,0.1),rgba(255,191,0,0.03)); border:1px solid rgba(255,191,0,0.45); border-radius:8px; padding:22px 28px; margin-bottom:44px; flex-wrap:wrap; }
+    .submit-cta-bar-text h3 { font-family:'Syncopate',sans-serif; font-size:0.7rem; letter-spacing:0.18em; text-transform:uppercase; color:#fff; margin:0 0 5px; }
+    .submit-cta-bar-text p { font-size:0.82rem; color:rgba(224,224,224,0.55); margin:0; }
+    .submit-cta-bar-btn { flex-shrink:0; background:var(--amber); color:#000; font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.18em; text-transform:uppercase; padding:14px 32px; border-radius:4px; text-decoration:none; font-weight:700; white-space:nowrap; }
+    .options-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:18px; margin:24px 0 36px; }
+    .option-card { background:rgba(15,16,22,0.95); border:1px solid rgba(255,191,0,0.18); border-radius:8px; padding:26px 22px; position:relative; }
+    .option-card.featured { border-color:rgba(255,191,0,0.5); }
+    .option-badge { position:absolute; top:-11px; left:20px; background:var(--amber); color:#000; font-family:'Syncopate',sans-serif; font-size:0.4rem; letter-spacing:0.18em; text-transform:uppercase; padding:4px 12px; border-radius:20px; font-weight:700; }
+    .option-icon-lg { font-size:2rem; margin-bottom:12px; display:block; }
+    .option-card-title { font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.15em; text-transform:uppercase; color:#fff; margin-bottom:6px; }
+    .option-card-pts { font-family:'Syncopate',sans-serif; font-size:0.82rem; color:var(--amber); font-weight:700; margin-bottom:10px; }
+    .option-card-desc { font-size:0.8rem; line-height:1.6; color:rgba(224,224,224,0.6); }
+    .bonus-row { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 36px; }
+    .bonus-pill { display:flex; align-items:center; gap:8px; background:rgba(0,180,100,0.06); border:1px solid rgba(0,180,100,0.25); border-radius:6px; padding:12px 16px; flex:1; min-width:180px; }
+    .bonus-pill-icon { font-size:1.2rem; }
+    .bonus-pill-text strong { display:block; font-family:'Syncopate',sans-serif; font-size:0.42rem; letter-spacing:0.15em; color:#00B464; text-transform:uppercase; margin-bottom:3px; }
+    .bonus-pill-text span { font-size:0.78rem; color:rgba(224,224,224,0.55); }
+    .dir-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin:44px 0 20px; padding-bottom:14px; border-bottom:1px solid rgba(255,191,0,0.15); }
+    .dir-header h2 { font-family:'Syncopate',sans-serif; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:#fff; margin:0; }
+    .doc-btn { display:inline-flex; align-items:center; gap:7px; background:transparent; border:1px solid rgba(255,191,0,0.35); border-radius:4px; padding:9px 18px; font-family:'Syncopate',sans-serif; font-size:0.42rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--amber); text-decoration:none; white-space:nowrap; }
     .option-header { font-family: 'Syncopate', sans-serif; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber); margin-bottom: 16px; }
     .task-header { font-family: 'Syncopate', sans-serif; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: #fff; margin: 32px 0 16px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,191,0,0.2); }
     .bonus-banner { background: rgba(0,180,100,0.07); border: 1px solid rgba(0,180,100,0.3); border-radius: 6px; padding: 16px 20px; margin: 16px 0; }
@@ -71,6 +91,15 @@
 
   <a href="/pages/missions" class="back-link">&larr; Back to Missions Hub</a>
 
+  <!-- ══ SUBMIT CTA BAR ══ -->
+  <div class="submit-cta-bar">
+    <div class="submit-cta-bar-text">
+      <h3>Ready to Submit Trove 02?</h3>
+      <p>All submissions must be made here on the website. Instagram posts earn bonus points only.</p>
+    </div>
+    <a href="/pages/submit-trove-02" class="submit-cta-bar-btn">Submit Your Work &rarr;</a>
+  </div>
+
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- SECTION 1: MISSION VIDEO -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -82,17 +111,42 @@
     <iframe src="https://player.vimeo.com/video/1144749875?badge=0&byline=0&portrait=0&title=0&autoplay=0&loop=0&muted=0&controls=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Mission 02 — Activity Directions"></iframe>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- SECTION 2: SCORING OPTIONS -->
-  <!-- ═══════════════════════════════════════════════════════════════ -->
-  <p class="section-label" style="color:var(--amber);">Scoring Options &nbsp;&middot;&nbsp; Choose Your Path</p>
-  <div class="point-chips">
-    <span class="chip chip-amber">Option 1 — Rewrite Lyrics Only — Up to 90 pts</span>
-    <span class="chip chip-amber">Option 2 — Suno AI Song — Up to 100 pts</span>
-    <span class="chip chip-amber">Option 3 — Karaoke Video — Up to 100 pts + School Bonus Prize</span>
-    <span class="chip chip-green">Bonus — Instagram Post — +25 pts</span>
+  <p class="section-label" style="color:var(--amber);">Choose Your Path &nbsp;&middot;&nbsp; Scoring Options</p>
+  <div class="options-grid">
+    <div class="option-card">
+      <span class="option-badge">Option 1</span>
+      <span class="option-icon-lg">🎵</span>
+      <p class="option-card-title">Rewrite Lyrics Only</p>
+      <p class="option-card-pts">Up to 90 pts</p>
+      <p class="option-card-desc">Rewrite a song using multilingual vocabulary (Korean or Spanish). Submit your lyrics through the website.</p>
+    </div>
+    <div class="option-card featured">
+      <span class="option-badge">Option 2 — Recommended</span>
+      <span class="option-icon-lg">🎙️</span>
+      <p class="option-card-title">Suno AI Song</p>
+      <p class="option-card-pts">Up to 100 pts</p>
+      <p class="option-card-desc">Turn your rewritten lyrics into a real AI-generated song using Suno. Maximum score.</p>
+    </div>
+    <div class="option-card">
+      <span class="option-badge">Option 3 — School Prize</span>
+      <span class="option-icon-lg">🎥</span>
+      <p class="option-card-title">Karaoke Video</p>
+      <p class="option-card-pts">Up to 100 pts + School Bonus Prize</p>
+      <p class="option-card-desc">Create an AI karaoke video with your lyrics. Qualifies your school for a special bonus prize.</p>
+    </div>
   </div>
-  <p style="font-size:0.85rem; line-height:1.65; color:rgba(224,224,224,0.65); margin-bottom:32px;">All three options require multilingual lyrics. Choose the option that best fits your team's skills and available tools. You may only submit one option per Trove.</p>
+  <p class="section-label" style="color:#00B464;">Bonus Opportunities</p>
+  <div class="bonus-row">
+    <div class="bonus-pill"><span class="bonus-pill-icon">📸</span><div class="bonus-pill-text"><strong>Instagram Post &nbsp;+25 pts</strong><span>Post your song/video tagging @topkpopio by end of Week 2</span></div></div>
+    <div class="bonus-pill"><span class="bonus-pill-icon">🎬</span><div class="bonus-pill-text"><strong>Avatar Performance &nbsp;+25 pts</strong><span>Have your Trove 1 avatar perform your karaoke song (Option 3)</span></div></div>
+  </div>
+
+  <!-- DIRECTIONS HEADER WITH DOC LINK -->
+  <div class="dir-header">
+    <h2>Step-by-Step Directions</h2>
+    <a href="https://docs.google.com/document/d/1YceRYiY8vWWP73xtutCsdMJnNMsaHeasZstNNxDLiig/edit" target="_blank" rel="noopener" class="doc-btn">📄 Full Directions (Google Doc) &rarr;</a>
+  </div>
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- SECTION 3: WRITTEN DIRECTIONS -->

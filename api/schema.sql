@@ -45,6 +45,11 @@ CREATE TABLE IF NOT EXISTS submissions (
   final_score     INTEGER,
   scored_at       TIMESTAMPTZ,
   score_email_sent BOOLEAN DEFAULT FALSE,
+  -- Instagram bonus scoring
+  bonus_score     INTEGER DEFAULT 0,
+  instagram_post_url TEXT,
+  bonus_awarded_at TIMESTAMPTZ,
+  bonus_awarded_by TEXT,
   UNIQUE(team_id, trove_number)
 );
 
@@ -78,6 +83,14 @@ CREATE TABLE IF NOT EXISTS game_settings (
   accusation_email_sent BOOLEAN DEFAULT FALSE,
   winner_announced BOOLEAN DEFAULT FALSE,
   winner_team_id  UUID REFERENCES registrations(id),
+  winner_pending_approval BOOLEAN DEFAULT FALSE,
+  winner_team_name TEXT,
+  winner_captain_email TEXT,
+  winner_total_score INTEGER,
+  winner_accusation_correct BOOLEAN,
+  winner_data JSONB,
+  admin_email TEXT,
+  reveal_unlock DATE,
   prize_email_sent BOOLEAN DEFAULT FALSE,
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
@@ -96,7 +109,14 @@ SELECT
   COALESCE(s2.final_score, 0) AS trove2_score,
   COALESCE(s3.final_score, 0) AS trove3_score,
   COALESCE(a.accusation_score, 0) AS accusation_bonus,
-  (COALESCE(s1.final_score, 0) + COALESCE(s2.final_score, 0) + COALESCE(s3.final_score, 0) + COALESCE(a.accusation_score, 0)) AS total_score,
+  COALESCE(s1.bonus_score, 0) AS trove1_bonus,
+  COALESCE(s2.bonus_score, 0) AS trove2_bonus,
+  COALESCE(s3.bonus_score, 0) AS trove3_bonus,
+  (
+    COALESCE(s1.final_score, 0) + COALESCE(s2.final_score, 0) + COALESCE(s3.final_score, 0)
+    + COALESCE(s1.bonus_score, 0) + COALESCE(s2.bonus_score, 0) + COALESCE(s3.bonus_score, 0)
+    + COALESCE(a.accusation_score, 0)
+  ) AS total_score,
   r.status
 FROM registrations r
 LEFT JOIN submissions s1 ON s1.team_id = r.id AND s1.trove_number = 1

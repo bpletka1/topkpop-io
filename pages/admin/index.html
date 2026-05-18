@@ -313,6 +313,21 @@
       </div>
     </div>
 
+    <!-- INSTAGRAM BONUS POINTS -->
+    <div class="admin-panel" style="border-color:rgba(138,43,226,0.25);">
+      <div class="panel-header" style="border-bottom-color:rgba(138,43,226,0.15);">
+        <span class="panel-title" style="color:#b06aff;">&#9733; Instagram Bonus Points</span>
+        <span class="panel-badge badge-locked" id="instagram-pending-badge">Loading...</span>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.6); margin-bottom:20px;">Teams that submitted an Instagram post URL with their Trove submission appear here. Review their post, verify it tags @topkpopio and uses #TopKpopSleuth, then award bonus points. Points are added immediately to their total score and the leaderboard updates automatically.</p>
+        <div style="display:flex; gap:12px; margin-bottom:20px;">
+          <button class="team-action" onclick="loadInstagramPending()" style="background:rgba(138,43,226,0.15); border-color:rgba(138,43,226,0.4); color:#b06aff;">&#8635; Refresh</button>
+        </div>
+        <div id="instagram-pending-list"><p style="font-size:0.85rem; color:rgba(224,224,224,0.35);">Loading Instagram submissions...</p></div>
+      </div>
+    </div>
+
     <!-- FINAL ACCUSATIONS -->
     <div class="admin-panel">
       <div class="panel-header">
@@ -552,6 +567,8 @@ async function loadDashboard() {
     }
     // Load submissions
     loadSubmissions();
+    // Load Instagram bonus pending
+    loadInstagramPending();
   } catch (err) {
     console.error('Dashboard load error:', err);
   }
@@ -714,6 +731,96 @@ async function saveDates() {
     }
   } catch (err) {
     alert('Network error. Please try again.');
+  }
+}
+
+// ── Instagram Bonus Points ─────────────────────────────────────────────────
+async function loadInstagramPending() {
+  const list = document.getElementById('instagram-pending-list');
+  const badge = document.getElementById('instagram-pending-badge');
+  list.innerHTML = '<p style="font-size:0.85rem; color:rgba(224,224,224,0.35);">Loading...</p>';
+  try {
+    const res = await fetch('/api/admin/instagram-pending', { headers: { password: ADMIN_PASS } });
+    if (!res.ok) { list.innerHTML = '<p style="color:var(--crimson);">Failed to load Instagram submissions.</p>'; return; }
+    const { pending, awarded } = await res.json();
+    badge.textContent = pending.length + ' Pending';
+    badge.className = 'panel-badge ' + (pending.length > 0 ? 'badge-pending' : 'badge-active');
+
+    let html = '';
+
+    if (pending.length === 0 && awarded.length === 0) {
+      html = '<p style="font-size:0.85rem; color:rgba(224,224,224,0.35);">No Instagram submissions yet. When teams submit their Instagram post URL with their Trove submission, they will appear here.</p>';
+    }
+
+    if (pending.length > 0) {
+      html += '<p style="font-family:\'Syncopate\',sans-serif; font-size:0.5rem; letter-spacing:0.2em; color:#b06aff; text-transform:uppercase; margin-bottom:14px;">Pending Review (' + pending.length + ')</p>';
+      html += pending.map(s => {
+        const ts = new Date(s.created_at).toLocaleString();
+        const troveLabel = { 1: 'Trove 01', 2: 'Trove 02', 3: 'Trove 03' }[s.trove_number] || ('Trove ' + s.trove_number);
+        return `<div style="background:rgba(138,43,226,0.06); border:1px solid rgba(138,43,226,0.2); border-radius:6px; padding:18px 20px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+            <div>
+              <p style="font-size:0.95rem; font-weight:600; color:#fff; margin-bottom:2px;">${s.team_name}</p>
+              <p style="font-size:0.8rem; color:rgba(224,224,224,0.45);">${troveLabel} &middot; Submitted ${ts}</p>
+            </div>
+            <span style="font-family:'Syncopate',sans-serif; font-size:0.45rem; letter-spacing:0.15em; color:var(--amber); background:rgba(255,191,0,0.1); border:1px solid rgba(255,191,0,0.3); padding:4px 10px; border-radius:2px; text-transform:uppercase;">Pending Bonus</span>
+          </div>
+          <p style="font-size:0.85rem; color:rgba(224,224,224,0.7); margin-bottom:12px;">
+            Instagram Post: <a href="${s.instagram_post_url}" target="_blank" style="color:#b06aff; text-decoration:underline;">${s.instagram_post_url}</a>
+          </p>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <input type="number" id="bonus-pts-${s.id}" placeholder="Bonus pts" min="0" max="100" value="25" style="width:100px; padding:8px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(138,43,226,0.3); border-radius:4px; color:#fff; font-size:0.88rem;" />
+            <button onclick="awardBonus('${s.id}', '${s.team_name}')" style="padding:8px 20px; background:rgba(138,43,226,0.2); border:1px solid rgba(138,43,226,0.5); border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.15em; text-transform:uppercase; color:#b06aff; cursor:pointer;">Award Bonus</button>
+            <button onclick="window.open('${s.instagram_post_url}', '_blank')" style="padding:8px 16px; background:transparent; border:1px solid rgba(255,255,255,0.12); border-radius:4px; font-size:0.8rem; color:rgba(224,224,224,0.5); cursor:pointer;">View Post &rarr;</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    if (awarded.length > 0) {
+      html += '<p style="font-family:\'Syncopate\',sans-serif; font-size:0.5rem; letter-spacing:0.2em; color:#00B464; text-transform:uppercase; margin-top:24px; margin-bottom:14px;">Already Awarded (' + awarded.length + ')</p>';
+      html += awarded.map(s => {
+        const troveLabel = { 1: 'Trove 01', 2: 'Trove 02', 3: 'Trove 03' }[s.trove_number] || ('Trove ' + s.trove_number);
+        const awardedTs = s.bonus_awarded_at ? new Date(s.bonus_awarded_at).toLocaleString() : 'unknown';
+        return `<div style="background:rgba(0,180,100,0.04); border:1px solid rgba(0,180,100,0.15); border-radius:6px; padding:14px 18px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div>
+            <p style="font-size:0.88rem; color:#fff; margin-bottom:2px;">${s.team_name} &mdash; ${troveLabel}</p>
+            <p style="font-size:0.78rem; color:rgba(224,224,224,0.4);">Awarded ${awardedTs}</p>
+          </div>
+          <span style="font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.15em; color:#00B464; background:rgba(0,180,100,0.1); border:1px solid rgba(0,180,100,0.3); padding:4px 10px; border-radius:2px; text-transform:uppercase;">+${s.bonus_score} pts awarded</span>
+        </div>`;
+      }).join('');
+    }
+
+    list.innerHTML = html;
+  } catch (err) {
+    list.innerHTML = '<p style="color:var(--crimson);">Error: ' + err.message + '</p>';
+  }
+}
+
+async function awardBonus(submissionId, teamName) {
+  const ptsInput = document.getElementById('bonus-pts-' + submissionId);
+  const pts = parseInt(ptsInput?.value || '25');
+  if (isNaN(pts) || pts < 0 || pts > 100) {
+    alert('Please enter a valid bonus between 0 and 100 points.');
+    return;
+  }
+  if (!confirm(`Award +${pts} Instagram bonus points to ${teamName}?\n\nThis will be added to their total score immediately and the leaderboard will update.`)) return;
+  try {
+    const res = await fetch('/api/admin/award-bonus', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', password: ADMIN_PASS },
+      body: JSON.stringify({ submission_id: submissionId, bonus_points: pts, awarded_by: 'admin' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('\u2713 ' + data.message);
+      loadInstagramPending();
+    } else {
+      alert('Error: ' + (data.error || 'Unknown error'));
+    }
+  } catch (err) {
+    alert('Network error: ' + err.message);
   }
 }
 
