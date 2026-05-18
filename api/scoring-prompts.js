@@ -283,10 +283,23 @@ STYLE & TONE RULES
  * For Troves 02 & 03 (text-based), we pass the actual text content.
  */
 function buildUserMessage(troveNumber, submissionData) {
-  const { team_name, notes, text_content, file1_name, file2_name, file3_name } = submissionData;
+  const { team_name, notes, text_content, file1_name, file2_name, file3_name, avatar_description, poster_description } = submissionData;
 
   if (troveNumber === 1) {
-    // Image-based — describe the files submitted
+    // Use team-provided descriptions for accurate Oracle scoring
+    const hasDescriptions = avatar_description || poster_description;
+    if (hasDescriptions) {
+      return `Team: ${team_name}
+
+AVATAR DESCRIPTION (submitted by team):
+${avatar_description || 'No avatar description provided.'}
+
+POSTER DESCRIPTION (submitted by team):
+${poster_description || 'No poster description provided.'}
+
+${notes ? `Additional team notes: ${notes}\n\n` : ''}Please evaluate this K-Pop Poster & Avatar submission based on the detailed descriptions above. Score all five rubric categories using the descriptions as the primary evidence.`;
+    }
+    // Fallback: filename-only (legacy submissions)
     const files = [file1_name, file2_name, file3_name].filter(Boolean);
     return `Team: ${team_name}
 Submitted files: ${files.join(', ') || 'No files listed'}

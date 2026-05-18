@@ -25,6 +25,8 @@
     .accusation-badge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-family: 'Syncopate', sans-serif; font-size: 0.45rem; letter-spacing: 0.15em; text-transform: uppercase; }
     .acc-pending { background: rgba(255,191,0,0.12); border: 1px solid rgba(255,191,0,0.3); color: #FFBF00; }
     .acc-locked { background: rgba(138,43,226,0.12); border: 1px solid rgba(138,43,226,0.3); color: #b06aff; }
+    .acc-correct { background: rgba(0,180,100,0.12); border: 1px solid rgba(0,180,100,0.3); color: #00B464; }
+    .acc-wrong { background: rgba(230,0,92,0.12); border: 1px solid rgba(230,0,92,0.3); color: #E6005C; }
     .phase2-banner { margin-top: 40px; padding: 28px 32px; background: rgba(230,0,92,0.06); border: 1px dashed rgba(230,0,92,0.25); border-radius: 6px; text-align: center; }
     .scoring-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; }
     .scoring-card { background: rgba(15,16,22,0.8); border: 1px solid rgba(230,0,92,0.12); border-radius: 6px; padding: 24px; }
@@ -72,56 +74,13 @@
         <th>Trove 01</th>
         <th>Trove 02</th>
         <th>Trove 03</th>
+        <th style="color:#00B464;">Bonus</th>
         <th>Total Score</th>
         <th>Accusation</th>
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td><span class="rank-num rank-1">01</span></td>
-        <td><span class="team-name">Team Neon Seoul</span></td>
-        <td>94</td>
-        <td>88</td>
-        <td>—</td>
-        <td><div class="score-bar-wrap"><div class="score-bar" style="width:80px;"></div><span class="score-num">282 pts</span></div></td>
-        <td><span class="accusation-badge acc-pending">Pending</span></td>
-      </tr>
-      <tr>
-        <td><span class="rank-num rank-2">02</span></td>
-        <td><span class="team-name">The Hallyu Hawks</span></td>
-        <td>91</td>
-        <td>85</td>
-        <td>—</td>
-        <td><div class="score-bar-wrap"><div class="score-bar" style="width:72px;"></div><span class="score-num">276 pts</span></div></td>
-        <td><span class="accusation-badge acc-pending">Pending</span></td>
-      </tr>
-      <tr>
-        <td><span class="rank-num rank-3">03</span></td>
-        <td><span class="team-name">AI Idol Squad</span></td>
-        <td>87</td>
-        <td>82</td>
-        <td>—</td>
-        <td><div class="score-bar-wrap"><div class="score-bar" style="width:65px;"></div><span class="score-num">269 pts</span></div></td>
-        <td><span class="accusation-badge acc-locked">Locked</span></td>
-      </tr>
-      <tr>
-        <td><span class="rank-num" style="color:rgba(224,224,224,0.5);">04</span></td>
-        <td><span class="team-name">Detective Recruits Alpha</span></td>
-        <td>83</td>
-        <td>79</td>
-        <td>—</td>
-        <td><div class="score-bar-wrap"><div class="score-bar" style="width:58px;"></div><span class="score-num">262 pts</span></div></td>
-        <td><span class="accusation-badge acc-locked">Locked</span></td>
-      </tr>
-      <tr>
-        <td><span class="rank-num" style="color:rgba(224,224,224,0.5);">05</span></td>
-        <td><span class="team-name">K-Pop Cipher Unit</span></td>
-        <td>80</td>
-        <td>75</td>
-        <td>—</td>
-        <td><div class="score-bar-wrap"><div class="score-bar" style="width:50px;"></div><span class="score-num">255 pts</span></div></td>
-        <td><span class="accusation-badge acc-locked">Locked</span></td>
-      </tr>
+      <!-- Placeholder rows replaced by live JS -->
     </tbody>
   </table>
 
@@ -135,32 +94,32 @@
       <div class="scoring-card">
         <p class="scoring-card-label">Treasure Trove 01</p>
         <p class="scoring-card-title">K-Pop Identity</p>
-        <p class="scoring-card-pts">Rubric Scored</p>
-        <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">Avatar + Poster evaluated by AI rubric. Early submission earns +100 bonus points.</p>
+        <p class="scoring-card-pts">Up to 100 pts</p>
+        <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">AI Avatar + Debut Poster, evaluated by the Oracle of the Rubric on submit.</p>
       </div>
       <div class="scoring-card">
         <p class="scoring-card-label">Treasure Trove 02</p>
         <p class="scoring-card-title">Evidence Song</p>
         <p class="scoring-card-pts">Up to 100 pts</p>
-        <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">Lyrics (30) + Music Track (30) + Music Video (30). All scored by AI rubric.</p>
+        <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">Lyrics Remix scored by Oracle AI rubric on submit.</p>
       </div>
       <div class="scoring-card">
         <p class="scoring-card-label">Treasure Trove 03</p>
-        <p class="scoring-card-title">AI Lesson Plan</p>
-        <p class="scoring-card-pts">Up to 100 pts</p>
-        <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">Lesson Plan (50) + Cultural Dance Performance (50). Final clues embedded here.</p>
+        <p class="scoring-card-title">AI Lesson Plan + Dance</p>
+        <p class="scoring-card-pts">Up to 200 pts</p>
+        <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">Standard Unpack (100) + Interdisciplinary Lesson (100). Dance scored by Joyce. Final clues embedded here.</p>
       </div>
-      <div class="scoring-card">
-        <p class="scoring-card-label">Bonus Points</p>
-        <p class="scoring-card-title">Early Submission</p>
-        <p class="scoring-card-pts">+100 pts</p>
-        <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">Submit Treasure Trove 01 before the early deadline to earn a 100-point bonus.</p>
+      <div class="scoring-card" style="border-color:rgba(0,180,100,0.25);">
+        <p class="scoring-card-label" style="color:#00B464;">Bonus Points</p>
+        <p class="scoring-card-title">Instagram Post</p>
+        <p class="scoring-card-pts" style="color:#00B464;">+25 pts</p>
+        <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">Post your work publicly tagging @topkpopio, or send a private DM. Both earn +25 bonus points.</p>
       </div>
-      <div class="scoring-card">
-        <p class="scoring-card-label">Bonus Points</p>
-        <p class="scoring-card-title">Social Share</p>
-        <p class="scoring-card-pts">+100 pts</p>
-        <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">Post your artifact to social media and tag @TopKpopIO for an additional 100 points.</p>
+      <div class="scoring-card" style="border-color:rgba(0,180,100,0.25);">
+        <p class="scoring-card-label" style="color:#00B464;">Bonus Points</p>
+        <p class="scoring-card-title">Welcome Post</p>
+        <p class="scoring-card-pts" style="color:#00B464;">+25 pts</p>
+        <p style="font-size:0.85rem; color:rgba(224,224,224,0.5); margin-top:8px;">Post your team welcome message on Instagram tagging @topkpopio when you register. One-time bonus.</p>
       </div>
       <div class="scoring-card" style="border-color:rgba(255,191,0,0.2);">
         <p class="scoring-card-label" style="color:#E6005C;">Final Accusation</p>
@@ -183,7 +142,7 @@
       <a href="/pages/resources">Resources</a>
     </div>
   </div>
-  <p class="footer-copy">&copy; 2025 Top K-Pop Entertainment &middot; AI Super Sleuth &middot; Phase 1 Design Preview</p>
+  <p class="footer-copy">&copy; 2026 Top K-Pop Entertainment &middot; AI Super Sleuth</p>
 </footer>
 <script src="/js/nav.js"></script>
 <script>
@@ -203,15 +162,19 @@ async function loadLeaderboard() {
     tbody.innerHTML = data.map((t, i) => {
       const rankClass = rankStyles[i] || '';
       const total = t.total || 0;
-      const barWidth = Math.round((total / 400) * 120);
+      const barWidth = Math.round((total / 500) * 120);
+      const bonus = t.bonus || 0;
+      const accStatus = t.accusation_correct === true ? 'acc-correct' : t.accusation_correct === false ? 'acc-wrong' : (t.accusation_submitted ? 'acc-pending' : 'acc-locked');
+      const accLabel = t.accusation_correct === true ? 'Correct ✓' : t.accusation_correct === false ? 'Incorrect' : (t.accusation_submitted ? 'Pending' : 'Locked');
       return `<tr>
         <td><span class="rank-num ${rankClass}">${String(i+1).padStart(2,'0')}</span></td>
         <td><span class="team-name">${t.team_name}</span></td>
         <td>${t.trove1 || '&mdash;'}</td>
         <td>${t.trove2 || '&mdash;'}</td>
         <td>${t.trove3 || '&mdash;'}</td>
+        <td style="color:#00B464; font-family:'Syncopate',sans-serif; font-size:0.7rem;">${bonus > 0 ? '+' + bonus : '&mdash;'}</td>
         <td><div class="score-bar-wrap"><div class="score-bar" style="width:${barWidth}px;"></div><span class="score-num">${total} pts</span></div></td>
-        <td><span class="accusation-badge acc-pending">Pending</span></td>
+        <td><span class="accusation-badge ${accStatus}">${accLabel}</span></td>
       </tr>`;
     }).join('');
     document.getElementById('leaderboard-status').textContent = 'Live scores — updated automatically on each submission.';

@@ -212,9 +212,14 @@
         <p style="font-size:0.85rem; color:rgba(224,224,224,0.7); line-height:1.6; margin:0;">Teachers can access <a href="https://chatgpt.com/edu" target="_blank" style="color:var(--crimson);">free ChatGPT for educators</a> through the educator access program. Verify your school district email to unlock educator-specific AI tools. Most game activities work best in ChatGPT.</p>
       </div>
 
-      <div class="box" style="background:rgba(230,0,92,0.04); border:1px solid rgba(230,0,92,0.15); border-radius:6px; padding:20px 24px; margin-bottom:0;">
-        <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; color:var(--crimson); text-transform:uppercase; margin-bottom:8px;">Step 3 &mdash; Post Your Welcome Message on Instagram</p>
-        <p style="font-size:0.85rem; color:rgba(224,224,224,0.7); line-height:1.6; margin:0;">Once you follow @topkpopio, post a welcome message on Instagram tagging <strong>@topkpopio</strong>. Include your K-Pop Trainee Name and Team Name. This confirms your registration and earns your team&rsquo;s first game points.</p>
+      <div class="box" style="background:rgba(0,180,100,0.05); border:1px solid rgba(0,180,100,0.2); border-radius:6px; padding:20px 24px; margin-bottom:0;">
+        <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; color:#00B464; text-transform:uppercase; margin-bottom:8px;">Step 3 &mdash; Post Your Welcome Message on Instagram &nbsp;&middot;&nbsp; +25 Bonus Points</p>
+        <p style="font-size:0.85rem; color:rgba(224,224,224,0.7); line-height:1.6; margin-bottom:14px;">Once you follow @topkpopio, post a welcome message on Instagram tagging <strong>@topkpopio</strong>. Include your K-Pop Trainee Name and Team Name. Then paste the post URL below to earn your team&rsquo;s first <strong style="color:#00B464;">+25 bonus points</strong> automatically.</p>
+        <div class="field-group" style="margin-bottom:0;">
+          <label class="field-label" for="welcomePostUrl" style="color:#00B464;">Instagram Welcome Post URL <span class="optional-tag">(Optional — paste after posting)</span></label>
+          <input class="field-input" type="url" id="welcomePostUrl" name="welcomePostUrl" placeholder="https://www.instagram.com/p/your-post-id/" style="border-color:rgba(0,180,100,0.3);" />
+          <p class="field-hint">Paste the link to your Instagram welcome post. You can also submit this after registration by emailing admin. Both earn +25 pts.</p>
+        </div>
       </div>
     </div>
 
@@ -322,8 +327,9 @@
       member3_email:  raw.member3Email,
       member4_name:   raw.member4Name,
       member4_email:  raw.member4Email,
-      agree_terms:    raw.agreeTerms ? 'true' : 'false',
-      agree_iste:     raw.agreeEmails ? 'true' : 'false',
+      agree_terms:       raw.agreeTerms ? 'true' : 'false',
+      agree_iste:        raw.agreeEmails ? 'true' : 'false',
+      welcome_post_url:  raw.welcomePostUrl || '',
     };
     try {
       const res = await fetch('/api/register', {
@@ -334,7 +340,14 @@
       const result = await res.json();
       if (res.ok && result.success) {
         document.getElementById('registerForm').style.display = 'none';
-        document.getElementById('successMsg').style.display = 'block';
+        const successEl = document.getElementById('successMsg');
+        if (result.welcome_bonus) {
+          const bonusNote = document.createElement('div');
+          bonusNote.style.cssText = 'margin:16px 0; padding:14px 20px; background:rgba(0,180,100,0.08); border:1px solid rgba(0,180,100,0.3); border-radius:6px; font-size:0.88rem; color:#00B464;';
+          bonusNote.textContent = '\u2713 ' + result.welcome_bonus;
+          successEl.insertBefore(bonusNote, successEl.querySelector('.success-body'));
+        }
+        successEl.style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         btn.disabled = false;

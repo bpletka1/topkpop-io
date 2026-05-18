@@ -160,7 +160,7 @@ router.post('/register', async (req, res) => {
     const {
       team_name, captain_name, captain_email, school_name, district, role,
       grade_levels, member2_name, member2_email, member3_name, member3_email,
-      member4_name, member4_email, agree_terms, agree_iste
+      member4_name, member4_email, agree_terms, agree_iste, welcome_post_url
     } = req.body;
 
     // Validate required fields
@@ -228,10 +228,36 @@ router.post('/register', async (req, res) => {
       await addToMailchimp(member.email.toLowerCase(), parts[0], parts.slice(1).join(' ') || '', ['registered', 'team-member']);
     }
 
+    // Auto-award +25 welcome bonus if Instagram post URL was provided
+    let welcomeBonusAwarded = false;
+    if (welcome_post_url?.trim()) {
+      try {
+        // Create a bonus submission record for the welcome post
+        await supabase.from('submissions').insert({
+          team_id: reg.id,
+          team_name: team_name.trim(),
+          trove_number: 0,  // trove 0 = registration bonus
+          notes: `Welcome Instagram post: ${welcome_post_url.trim()}`,
+          instagram_post_url: welcome_post_url.trim(),
+          bonus_score: 25,
+          bonus_awarded_at: new Date().toISOString(),
+          bonus_awarded_by: 'auto-registration',
+          oracle_score: 0,
+          final_score: 0,
+          scored_at: new Date().toISOString(),
+        });
+        welcomeBonusAwarded = true;
+        console.log(`Welcome bonus awarded to ${team_name} for Instagram post: ${welcome_post_url.trim()}`);
+      } catch (bonusErr) {
+        console.error('Welcome bonus award error:', bonusErr.message);
+      }
+    }
+
     res.json({
       success: true,
       message: `Welcome to the investigation, ${team_name}! Check your email for your mission briefing.`,
       team_id: reg.id,
+      welcome_bonus: welcomeBonusAwarded ? '+25 bonus points awarded for your Instagram welcome post!' : null,
     });
 
   } catch (err) {
@@ -402,7 +428,7 @@ router.post('/submit/:trove', upload.fields([
     // Tag in Mailchimp
     await tagSubscriber(captain_email.toLowerCase(), `trove-${troveNumber}-submitted`);
 
-    // ── Oracle AI Scoring ────────────────────────────────────────────────────
+    // ── Oracle AI Scoring ───────────────────────────────────────────────────────────────────────────
     const scoringData = {
       team_name: team_name.trim(),
       notes: notes?.trim(),
@@ -410,6 +436,9 @@ router.post('/submit/:trove', upload.fields([
       file1_name: file1Data?.name,
       file2_name: file2Data?.name,
       file3_name: file3Data?.name,
+      // Trove 1: team-written descriptions for accurate Oracle scoring
+      avatar_description: req.body.avatar_description?.trim() || null,
+      poster_description: req.body.poster_description?.trim() || null,
     };
 
     const oracleResult = await scoreWithOracle(troveNumber, scoringData);
