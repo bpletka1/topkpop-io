@@ -103,11 +103,26 @@ async function scoreWithOracle(troveNumber, submissionData) {
 
     const userMessage = buildUserMessage(troveNumber, submissionData);
 
+    // For Trove 1: use GPT-4o vision if image URLs are available
+    const hasImages = troveNumber === 1 && (submissionData.file1_url || submissionData.file2_url);
+    let userContent;
+    if (hasImages) {
+      userContent = [{ type: 'text', text: userMessage }];
+      if (submissionData.file1_url) {
+        userContent.push({ type: 'image_url', image_url: { url: submissionData.file1_url, detail: 'high' } });
+      }
+      if (submissionData.file2_url) {
+        userContent.push({ type: 'image_url', image_url: { url: submissionData.file2_url, detail: 'high' } });
+      }
+    } else {
+      userContent = userMessage;
+    }
+
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: hasImages ? 'gpt-4o' : 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
+        { role: 'user', content: userContent },
       ],
       temperature: 0.3,
       max_tokens: 1200,
@@ -494,7 +509,7 @@ router.post('/submit/:trove', upload.fields([
     // Also keep Mailchimp tag for list segmentation
     await tagSubscriber(captain_email.toLowerCase(), `trove-${troveNumber}-submitted`);
 
-    // ── Oracle AI Scoring ───────────────────────────────────────────────────────────────────────────
+    // ── Oracle AI Scoring ────────────────────────────────────────────────────────────────────────────────────────────────
     const scoringData = {
       team_name: team_name.trim(),
       notes: notes?.trim(),
@@ -502,11 +517,13 @@ router.post('/submit/:trove', upload.fields([
       file1_name: file1Data?.name,
       file2_name: file2Data?.name,
       file3_name: file3Data?.name,
-      // Trove 1: team-written descriptions for accurate Oracle scoring
+      // Trove 1: uploaded image URLs for GPT-4o vision scoring
+      file1_url: file1Data?.url || null,
+      file2_url: file2Data?.url || null,
+      // Trove 1: team-written descriptions (used as context alongside images)
       avatar_description: req.body.avatar_description?.trim() || null,
       poster_description: req.body.poster_description?.trim() || null,
     };
-
     const oracleResult = await scoreWithOracle(troveNumber, scoringData);
 
     if (oracleResult.success && oracleResult.score !== null) {

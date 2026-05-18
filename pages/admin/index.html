@@ -726,11 +726,18 @@ async function loadSubmissions() {
       const displayScore = s.final_score || s.oracle_score || null;
       const statusClass = displayScore ? 'scored' : 'pending';
       const statusLabel = displayScore ? 'Oracle Scored' : 'Awaiting Score';
+      // Build file links
+      const fileLinks = [
+        s.file1_url ? `<a href="${s.file1_url}" target="_blank" style="display:inline-flex; align-items:center; gap:5px; font-size:0.75rem; color:#b06aff; background:rgba(138,43,226,0.1); border:1px solid rgba(138,43,226,0.3); border-radius:3px; padding:4px 10px; text-decoration:none; margin-right:6px;">&#128065; ${s.file1_name || 'File 1'}</a>` : '',
+        s.file2_url ? `<a href="${s.file2_url}" target="_blank" style="display:inline-flex; align-items:center; gap:5px; font-size:0.75rem; color:#b06aff; background:rgba(138,43,226,0.1); border:1px solid rgba(138,43,226,0.3); border-radius:3px; padding:4px 10px; text-decoration:none; margin-right:6px;">&#128065; ${s.file2_name || 'File 2'}</a>` : '',
+        s.file3_url ? `<a href="${s.file3_url}" target="_blank" style="display:inline-flex; align-items:center; gap:5px; font-size:0.75rem; color:#b06aff; background:rgba(138,43,226,0.1); border:1px solid rgba(138,43,226,0.3); border-radius:3px; padding:4px 10px; text-decoration:none; margin-right:6px;">&#128065; ${s.file3_name || 'File 3'}</a>` : '',
+      ].filter(Boolean).join('');
       return `<div class="submission-row" style="flex-wrap:wrap; gap:10px;">
         <div style="flex:1; min-width:200px;">
           <p class="sub-team">${s.team_name || 'Unknown Team'}</p>
           <p class="sub-trove">${troveLabel}</p>
-          ${s.oracle_feedback ? '<p style="font-size:0.75rem; color:rgba(224,224,224,0.4); margin-top:4px; cursor:pointer;" onclick="toggleFeedback(this)">\u25b6 View Oracle Feedback</p><div style="display:none; margin-top:8px; font-size:0.8rem; color:rgba(224,224,224,0.65); white-space:pre-wrap; background:rgba(0,0,0,0.3); padding:12px; border-radius:4px;">${s.oracle_feedback.replace(/</g,"&lt;")}</div>' : ''}
+          ${fileLinks ? `<div style="margin-top:8px;">${fileLinks}</div>` : '<p style="font-size:0.72rem; color:rgba(224,224,224,0.25); margin-top:4px;">No files uploaded</p>'}
+          ${s.oracle_feedback ? '<p style="font-size:0.75rem; color:rgba(224,224,224,0.4); margin-top:6px; cursor:pointer;" onclick="toggleFeedback(this)">\u25b6 View Oracle Feedback</p><div style="display:none; margin-top:8px; font-size:0.8rem; color:rgba(224,224,224,0.65); white-space:pre-wrap; background:rgba(0,0,0,0.3); padding:12px; border-radius:4px;">${s.oracle_feedback.replace(/</g,"&lt;")}</div>' : ''}
         </div>
         <p class="sub-time">${ts}</p>
         <span class="sub-status ${statusClass}">${displayScore ? displayScore + '/100' : statusLabel}</span>
