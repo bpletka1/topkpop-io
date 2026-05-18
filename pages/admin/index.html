@@ -516,6 +516,54 @@ Team Gamma: 78" style="width:100%; padding:14px 16px; background:rgba(255,255,25
       </div>
     </div>
 
+    <!-- NEW GAME INSTANCE -->
+    <div class="admin-panel" style="border-color:rgba(255,80,80,0.3); background:rgba(255,30,30,0.04);">
+      <div class="panel-header" style="border-color:rgba(255,80,80,0.2);">
+        <span class="panel-title" style="color:#ff6060;">&#9888; New Game Instance</span>
+        <span style="font-size:0.7rem; color:rgba(224,224,224,0.35); font-family:monospace; margin-left:12px;">Resets schedule &amp; winner state &mdash; teams &amp; submissions preserved</span>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:0.82rem; color:rgba(224,224,224,0.5); margin-bottom:20px; line-height:1.6;">
+          Use this when starting a <strong style="color:rgba(224,224,224,0.8);">fresh run of the game</strong> with new participants. The schedule will be auto-calculated from the new start date. All email-sent flags and winner state will be reset. <strong style="color:#ff9090;">Team registrations and submission history are preserved</strong> (not deleted).
+        </p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+          <div>
+            <label class="unlock-label">New Game Start Date (Day 1)</label>
+            <input type="datetime-local" id="new-game-start-date" class="unlock-input" style="border-color:rgba(255,80,80,0.3);">
+            <p class="unlock-note">Trove 02, 03, Accusation &amp; Reveal will auto-calculate from this date.</p>
+          </div>
+          <div>
+            <label class="unlock-label">Correct Saboteur (for this instance)</label>
+            <input type="text" id="new-game-saboteur" class="unlock-input" placeholder="e.g. Emilise" style="border-color:rgba(255,80,80,0.3);">
+            <p class="unlock-note">Leave blank to keep the current saboteur. You can change this any time.</p>
+          </div>
+        </div>
+        <div style="background:rgba(255,80,80,0.06); border:1px solid rgba(255,80,80,0.2); border-radius:6px; padding:16px; margin-bottom:20px;">
+          <p style="font-size:0.75rem; color:#ff9090; font-family:'Syncopate',sans-serif; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:10px;">What will be reset:</p>
+          <ul style="font-size:0.8rem; color:rgba(224,224,224,0.5); line-height:1.8; margin:0; padding-left:18px;">
+            <li>Game schedule (start date + all unlock dates auto-calculated)</li>
+            <li>Winner state (pending approval, announced, winner data)</li>
+            <li>All email-sent flags (Trove 01&ndash;03, Accusation, Prize)</li>
+            <li>Correct saboteur answer (if you enter a new one above)</li>
+          </ul>
+          <p style="font-size:0.75rem; color:#4caf50; font-family:'Syncopate',sans-serif; letter-spacing:0.1em; text-transform:uppercase; margin-top:12px; margin-bottom:6px;">What is preserved:</p>
+          <ul style="font-size:0.8rem; color:rgba(224,224,224,0.5); line-height:1.8; margin:0; padding-left:18px;">
+            <li>All team registrations</li>
+            <li>All Trove submissions and scores</li>
+            <li>All Final Accusation records</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label class="unlock-label" style="color:#ff9090;">Type <strong>START NEW GAME</strong> to confirm</label>
+          <input type="text" id="new-game-confirm" class="unlock-input" placeholder="Type: START NEW GAME" style="border-color:rgba(255,80,80,0.4); font-family:monospace;">
+        </div>
+        <button onclick="startNewGameInstance()" style="background:rgba(255,60,60,0.15); border:1px solid rgba(255,60,60,0.5); color:#ff8080; font-family:'Syncopate',sans-serif; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; padding:12px 28px; cursor:pointer; border-radius:3px;">
+          &#9888; Start New Game Instance
+        </button>
+        <div id="new-game-result" style="display:none; margin-top:16px; padding:14px; border-radius:6px; font-size:0.82rem;"></div>
+      </div>
+    </div>
+
   </div><!-- end #dashboard -->
 </div><!-- end .admin-wrap -->
 
@@ -955,6 +1003,75 @@ async function approveWinner() {
     }
   } catch (err) {
     alert('Network error. Please try again.');
+  }
+}
+
+// ── New Game Instance ──────────────────────────────────────────────────────
+async function startNewGameInstance() {
+  const startDate = document.getElementById('new-game-start-date').value;
+  const saboteur  = document.getElementById('new-game-saboteur').value.trim();
+  const confirm   = document.getElementById('new-game-confirm').value.trim();
+  const resultDiv = document.getElementById('new-game-result');
+
+  if (!startDate) {
+    alert('Please enter a Game Start Date before continuing.');
+    return;
+  }
+  if (confirm !== 'START NEW GAME') {
+    alert('You must type exactly: START NEW GAME\n\nThis prevents accidental resets.');
+    return;
+  }
+
+  resultDiv.style.display = 'block';
+  resultDiv.style.background = 'rgba(255,255,255,0.03)';
+  resultDiv.style.border = '1px solid rgba(255,255,255,0.08)';
+  resultDiv.style.color = 'rgba(224,224,224,0.5)';
+  resultDiv.innerHTML = 'Starting new game instance...';
+
+  try {
+    const res = await fetch('/api/admin/new-game-instance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', password: ADMIN_PASS },
+      body: JSON.stringify({
+        game_start_date: startDate,
+        correct_saboteur: saboteur || undefined,
+        confirm: 'START NEW GAME',
+      })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      const s = data.schedule;
+      const fmt = iso => iso ? new Date(iso).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' }) : '—';
+      resultDiv.style.background = 'rgba(0,180,100,0.06)';
+      resultDiv.style.border = '1px solid rgba(0,180,100,0.25)';
+      resultDiv.style.color = '#e0e0e0';
+      resultDiv.innerHTML = `
+        <p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.2em; color:#00B464; text-transform:uppercase; margin-bottom:14px;">&#10003; New Game Instance Started</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; font-size:0.82rem; color:rgba(224,224,224,0.6);">
+          <div><strong style="color:#fff;">Game Start (Day 1):</strong> ${fmt(s.game_start_date)}</div>
+          <div><strong style="color:#fff;">Trove 02 Unlock:</strong> ${fmt(s.trove2_unlock)}</div>
+          <div><strong style="color:#fff;">Trove 03 Unlock:</strong> ${fmt(s.trove3_unlock)}</div>
+          <div><strong style="color:#fff;">Accusation Opens:</strong> ${fmt(s.accusation_open)}</div>
+          <div><strong style="color:#fff;">Accusation Closes:</strong> ${fmt(s.accusation_close)}</div>
+          <div><strong style="color:#fff;">Final Reveal:</strong> ${fmt(s.reveal_unlock)}</div>
+          <div><strong style="color:#fff;">Saboteur:</strong> ${data.correct_saboteur}</div>
+        </div>
+        <p style="margin-top:14px; font-size:0.78rem; color:rgba(224,224,224,0.4);">Schedule saved. Refreshing dashboard...</p>
+      `;
+      document.getElementById('new-game-confirm').value = '';
+      setTimeout(() => loadDashboard(), 1500);
+    } else {
+      resultDiv.style.background = 'rgba(255,60,60,0.06)';
+      resultDiv.style.border = '1px solid rgba(255,60,60,0.3)';
+      resultDiv.style.color = '#ff9090';
+      resultDiv.innerHTML = '&#10007; Error: ' + (data.error || 'Unknown error');
+    }
+  } catch (err) {
+    resultDiv.style.background = 'rgba(255,60,60,0.06)';
+    resultDiv.style.border = '1px solid rgba(255,60,60,0.3)';
+    resultDiv.style.color = '#ff9090';
+    resultDiv.innerHTML = '&#10007; Network error: ' + err.message;
   }
 }
 </script>

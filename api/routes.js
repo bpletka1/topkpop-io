@@ -370,8 +370,7 @@ router.post('/submit/final-accusation', upload.none(), async (req, res) => {
 
   if (existing) return res.status(409).json({ error: 'Your team has already submitted a Final Accusation.' });
 
-  const isCorrect = settings?.correct_saboteur &&
-    accused_suspect.toLowerCase().trim() === settings.correct_saboteur.toLowerCase().trim();
+  const isCorrect = fuzzyMatchSaboteur(accused_suspect, settings?.correct_saboteur);
   const accusationScore = isCorrect ? 100 : 0;
 
   const { data: acc, error: accError } = await supabase
@@ -648,8 +647,7 @@ router.post('/accuse', async (req, res) => {
     }
 
     // Check if correct
-    const isCorrect = settings?.correct_saboteur &&
-      accused_suspect.toLowerCase().trim() === settings.correct_saboteur.toLowerCase().trim();
+    const isCorrect = fuzzyMatchSaboteur(accused_suspect, settings?.correct_saboteur);
     const accusationScore = isCorrect ? 100 : 0;
 
     // Insert accusation
@@ -869,6 +867,42 @@ router.post('/admin/approve-winner', adminAuth, async (req, res) => {
 // ════════════════════════════════════════════════════════════════════════════
 // ADMIN ENDPOINTS
 // ════════════════════════════════════════════════════════════════════════════
+
+// ── Fuzzy Saboteur Match ────────────────────────────────────────────────────
+// Accepts misspellings, partial names, and case variations.
+// e.g. "emilise", "Emilese", "Emilis", "emilise park" all match "Emilise"
+function fuzzyMatchSaboteur(guess, correct) {
+  if (!guess || !correct) return false;
+  const normalize = s => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+  const g = normalize(guess);
+  const c = normalize(correct);
+  if (g === c) return true;
+  if (g.includes(c) || c.includes(g)) return true;
+  // Levenshtein distance for short names (<=12 chars) — allows 1-2 char typos
+  if (c.length <= 12) {
+    function lev(a, b) {
+      const m = a.length, n = b.length;
+      const dp = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) {
+        dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+      }
+      return dp[m][n];
+    }
+    const dist = lev(g, c);
+    const maxDist = c.length <= 6 ? 1 : 2; // 1 typo for short names, 2 for longer
+    if (dist <= maxDist) return true;
+  }
+  // Word overlap: any word in guess matches any word in correct
+  const gWords = g.split(' ');
+  const cWords = c.split(' ');
+  for (const gw of gWords) {
+    for (const cw of cWords) {
+      if (gw.length >= 4 && cw.length >= 4 && (gw.includes(cw) || cw.includes(gw))) return true;
+    }
+  }
+  return false;
+}
 
 // Middleware: check admin password
 function adminAuth(req, res, next) {
@@ -1786,5 +1820,109 @@ async function pollGmailForScores() {
     console.error('[GMAIL POLL] Poll error:', err.message);
   }
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// NEW GAME INSTANCE
+// POST /api/admin/new-game-instance
+// Resets schedule, winner state, and email-sent flags for a fresh game run.
+// Does NOT delete teams or submissions — history is preserved.
+// Requires: { game_start_date, correct_saboteur, confirm: 'START NEW GAME' }
+// ════════════════════════════════════════════════════════════════════════════
+
+router.post('/admin/new-game-instance', adminAuth, async (req, res) => {
+  try {
+    const { game_start_date, correct_saboteur, confirm } = req.body;
+
+    // Safety confirmation — must type exactly "START NEW GAME"
+    if (confirm !== 'START NEW GAME') {
+      return res.status(400).json({
+        error: 'Confirmation required. Send { confirm: "START NEW GAME" } to proceed.',
+      });
+    }
+
+    if (!game_start_date) {
+      return res.status(400).json({ error: 'game_start_date is required.' });
+    }
+
+    const start = new Date(game_start_date);
+    if (isNaN(start.getTime())) {
+      return res.status(400).json({ error: 'Invalid game_start_date.' });
+    }
+
+    // Auto-calculate schedule from start date
+    function nextSunday7pm(baseDate, daysOffset) {
+      const d = new Date(baseDate);
+      d.setDate(d.getDate() + daysOffset);
+      // Snap to Sunday if not already
+      const dow = d.getDay(); // 0=Sun
+      if (dow !== 0) d.setDate(d.getDate() + (7 - dow));
+      d.setHours(19, 0, 0, 0); // 7pm
+      return d.toISOString();
+    }
+
+    const trove2Unlock    = nextSunday7pm(start, 7);   // Day 8 Sunday
+    const trove3Unlock    = nextSunday7pm(start, 14);  // Day 15 Sunday
+    const accusationOpen  = nextSunday7pm(start, 21);  // Day 22 Sunday
+    const accusationClose = new Date(new Date(accusationOpen).getTime() + 48 * 60 * 60 * 1000).toISOString(); // +48h
+    const revealUnlock    = new Date(new Date(start).setDate(start.getDate() + 24)); // Day 25 midnight
+    revealUnlock.setHours(0, 0, 0, 0);
+
+    const resetData = {
+      game_start_date:        start.toISOString().slice(0, 10),
+      trove1_unlock:          start.toISOString().slice(0, 10),
+      trove2_unlock:          trove2Unlock,
+      trove3_unlock:          trove3Unlock,
+      accusation_open:        accusationOpen,
+      accusation_close:       accusationClose,
+      reveal_unlock:          revealUnlock.toISOString(),
+      correct_saboteur:       correct_saboteur || null,
+      // Reset all email-sent flags
+      trove1_email_sent:      false,
+      trove2_email_sent:      false,
+      trove3_email_sent:      false,
+      accusation_email_sent:  false,
+      // Reset winner state
+      winner_announced:       false,
+      winner_pending_approval: false,
+      winner_team_id:         null,
+      winner_team_name:       null,
+      winner_captain_email:   null,
+      winner_total_score:     null,
+      winner_accusation_correct: null,
+      winner_data:            null,
+      prize_email_sent:       false,
+      updated_at:             new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from('game_settings')
+      .update(resetData)
+      .eq('id', 1)
+      .select()
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    console.log(`[NEW GAME INSTANCE] Started: ${game_start_date}, Saboteur: ${correct_saboteur || '(not set)'}`);
+
+    res.json({
+      success: true,
+      message: 'New game instance started. Schedule auto-calculated. Winner state and email flags reset. Team registrations and submissions preserved.',
+      schedule: {
+        game_start_date:  resetData.game_start_date,
+        trove2_unlock:    trove2Unlock,
+        trove3_unlock:    trove3Unlock,
+        accusation_open:  accusationOpen,
+        accusation_close: accusationClose,
+        reveal_unlock:    revealUnlock.toISOString(),
+      },
+      correct_saboteur: correct_saboteur || '(not set — update separately)',
+    });
+
+  } catch (err) {
+    console.error('[NEW GAME INSTANCE] Error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = { router, startScheduler };
