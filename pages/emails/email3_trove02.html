@@ -3,77 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trove 02 Complete — TopKpop.io</title>
+  <title>Evidence Logged — Trove 02 Complete</title>
   <style>
-    body { margin: 0; padding: 0; background-color: #0B0C10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #E0E0E0; }
-    .email-container { max-width: 600px; margin: 0 auto; background-color: #0F1016; border: 1px solid rgba(255,191,0,0.3); border-radius: 8px; overflow: hidden; margin-top: 40px; margin-bottom: 40px; }
-    .header { background-image: url('https://topkpop-io-production-ff28.up.railway.app/assets/images/poetic_clue_bg.jpg'); background-size: cover; background-position: center; padding: 40px; text-align: center; position: relative; }
-    .header-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11,12,16,0.85); }
-    .header-content { position: relative; z-index: 2; }
-    .logo { font-size: 24px; font-weight: 700; letter-spacing: 2px; color: #fff; text-decoration: none; }
-    .logo span { color: #E6005C; }
-    .title { font-size: 28px; font-weight: 700; color: #fff; margin: 20px 0 0; text-transform: uppercase; letter-spacing: 2px; }
-    .subtitle { font-size: 12px; letter-spacing: 3px; color: #FFBF00; text-transform: uppercase; margin-top: 10px; }
-    .content { padding: 40px; }
-    p { font-size: 15px; line-height: 1.6; margin-bottom: 20px; color: #D0D0D0; }
-    h2 { font-size: 18px; color: #fff; margin: 30px 0 15px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-    .accent { color: #FFBF00; }
-    .btn { display: inline-block; padding: 14px 28px; background-color: #E6005C; color: #fff; text-decoration: none; font-size: 13px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; border-radius: 4px; margin-top: 20px; }
-    .score-box { background-color: rgba(255,191,0,0.08); border: 1px solid rgba(255,191,0,0.3); border-radius: 6px; padding: 25px; margin-bottom: 30px; text-align: center; }
-    .score-label { font-size: 12px; letter-spacing: 2px; color: #FFBF00; text-transform: uppercase; margin-bottom: 10px; display: block; }
-    .score-num { font-size: 48px; font-weight: 700; color: #fff; margin: 0; line-height: 1; font-family: 'Syncopate', sans-serif; }
-    .score-pts { font-size: 14px; color: rgba(224,224,224,0.5); }
-    .clue-box { background-color: rgba(138,43,226,0.05); border: 1px solid rgba(138,43,226,0.2); border-radius: 6px; padding: 20px; margin-bottom: 20px; border-left: 3px solid #b06aff; }
-    .clue-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 16px; color: #d09cff; margin: 0; line-height: 1.6; }
-    .footer { background-color: #08090E; padding: 30px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-    .footer p { font-size: 12px; color: rgba(224,224,224,0.4); margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #0d0d1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color: #e0e0e0; }
+    .email-wrapper { max-width: 640px; margin: 0 auto; background-color: #0d0d1a; }
+    .header-banner { width: 100%; display: block; }
+    .classified-strip {
+      background: linear-gradient(90deg, #1a1200, #2a1e00, #1a1200);
+      border-top: 2px solid #ffd700; border-bottom: 2px solid #ffd700;
+      text-align: center; padding: 10px 20px;
+      font-size: 11px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #ffd700;
+    }
+    .case-header {
+      background: linear-gradient(135deg, #0d0d1a 0%, #1a1200 50%, #0d0d1a 100%);
+      padding: 36px 40px 28px; border-bottom: 1px solid rgba(255,215,0,0.3);
+    }
+    .case-number { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #ffd700; margin-bottom: 8px; }
+    .case-title { font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1.2; margin-bottom: 6px; }
+    .case-subtitle { font-size: 13px; color: #ffd700; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+    .meta-block {
+      background: rgba(255,215,0,0.06); border-left: 3px solid #ffd700;
+      padding: 14px 20px; margin: 0 40px;
+      font-size: 12px; color: rgba(224,224,224,0.7); line-height: 1.8;
+    }
+    .meta-block strong { color: #ffd700; }
+    .content { padding: 32px 40px; }
+    .content p { font-size: 15px; line-height: 1.8; color: #d0d0d0; margin-bottom: 18px; }
+    .content h2 {
+      font-size: 13px; font-weight: 700; color: #e91e8c;
+      text-transform: uppercase; letter-spacing: 3px;
+      margin: 32px 0 14px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(233,30,140,0.2);
+    }
+    .accent { color: #ffd700; font-weight: 600; }
+    .score-box {
+      background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 8px; padding: 28px; margin-bottom: 28px; text-align: center;
+    }
+    .score-label { font-size: 11px; letter-spacing: 3px; color: #ffd700; text-transform: uppercase; margin-bottom: 12px; display: block; font-weight: 700; }
+    .score-num { font-size: 52px; font-weight: 700; color: #fff; line-height: 1; }
+    .score-pts { font-size: 16px; color: rgba(224,224,224,0.5); font-weight: 400; }
+    .score-note { font-size: 12px; color: rgba(224,224,224,0.4); margin-top: 12px; }
+    .clue-box {
+      background: rgba(176,106,255,0.05); border: 1px solid rgba(176,106,255,0.2);
+      border-left: 3px solid #b06aff; border-radius: 8px;
+      padding: 24px 28px; margin-bottom: 24px;
+    }
+    .clue-label { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #b06aff; margin-bottom: 12px; }
+    .clue-text { font-style: italic; font-size: 16px; color: #d09cff; line-height: 1.7; }
+    .clue-note { font-size: 12px; color: rgba(224,224,224,0.45); margin-top: 12px; font-style: normal; }
+    .progress-bar-wrap { background: rgba(255,255,255,0.06); border-radius: 20px; height: 8px; margin: 16px 0 8px; overflow: hidden; }
+    .progress-bar { background: linear-gradient(90deg, #e91e8c, #b06aff); height: 100%; border-radius: 20px; width: 66%; }
+    .progress-label { font-size: 11px; color: rgba(224,224,224,0.5); text-align: right; }
+    .btn-wrapper { text-align: center; margin: 28px 0; }
+    .btn {
+      display: inline-block; padding: 16px 36px;
+      background: linear-gradient(135deg, #e91e8c, #b06aff);
+      color: #fff; text-decoration: none; font-size: 13px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; border-radius: 6px;
+    }
+    .btn-outline {
+      display: inline-block; padding: 14px 28px;
+      background: transparent; border: 2px solid #ffd700;
+      color: #ffd700; text-decoration: none; font-size: 12px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; border-radius: 6px; margin-left: 10px;
+    }
+    .signoff {
+      background: linear-gradient(135deg, #0d0d1a, #1a1200);
+      border-top: 1px solid rgba(255,215,0,0.2); padding: 28px 40px;
+    }
+    .signoff-warning { font-size: 15px; font-style: italic; color: rgba(224,224,224,0.7); margin-bottom: 20px; line-height: 1.7; }
+    .signoff-name { font-size: 17px; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
+    .signoff-title { font-size: 11px; color: #e91e8c; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .footer { background-color: #08090e; padding: 24px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+    .footer p { font-size: 11px; color: rgba(224,224,224,0.3); margin: 0; line-height: 1.8; }
+    .footer a { color: rgba(176,106,255,0.6); text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="email-container">
-    <div class="header">
-      <div class="header-overlay"></div>
-      <div class="header-content">
-        <a href="https://topkpop-io.up.railway.app" class="logo"><span>TOP</span>KPOP.IO</a>
-        <h1 class="title">Evidence Logged</h1>
-        <p class="subtitle">Treasure Trove 02 Complete</p>
-      </div>
-    </div>
-    <div class="content">
-      <p><strong>From:</strong> Anna Im, Lead Detective<br>
-      <strong>To:</strong> Top K-Pop Detective Recruit<br>
-      <strong>Subject:</strong> Trove 02 Evaluation & Next Steps</p>
+  <div class="email-wrapper">
 
-      <p>Well done, Recruit. Your Evidence Song has been successfully processed by the Oracle of the Rubric. You have proven you can weave complex clues into a cohesive, multilingual narrative.</p>
-      
+    <img src="https://www.topkpop.io/assets/email_header_banner.png" alt="TopKpop.io Investigation Unit" class="header-banner" width="640">
+
+    <div class="classified-strip">&#9632; Evidence Logged &mdash; Trove 02 Evaluation Complete &#9632;</div>
+
+    <div class="case-header">
+      <div class="case-number">Case Update &mdash; Lyrical Evidence Processed</div>
+      <div class="case-title">The Song Has Been Heard.</div>
+      <div class="case-subtitle">Treasure Trove 02 &mdash; Mission Complete</div>
+    </div>
+
+    <div class="meta-block">
+      <strong>FROM:</strong> Anna Im, Lead Detective &mdash; TopKpop Investigation Unit<br>
+      <strong>TO:</strong> Active AI Super Sleuth Recruit<br>
+      <strong>CLASSIFICATION:</strong> Confidential &mdash; Case File Update
+    </div>
+
+    <div class="content">
+
+      <p>Your Evidence Song has been processed by the <span class="accent">Oracle of the Rubric</span>. I listened to every word. The way you wove the clues into the lyrics &mdash; I will admit, it was more precise than I expected. You are getting better at this.</p>
+
+      <p>Two Troves complete. Two sets of clues in hand. The picture is becoming clearer, but the most dangerous clue is still ahead. The final cipher is the one the saboteur tried hardest to bury.</p>
+
       <div class="score-box">
         <span class="score-label">Running Total Score</span>
-        <p class="score-num">385 <span class="score-pts">pts</span></p>
-        <p style="font-size:12px; color:rgba(224,224,224,0.5); margin-top:15px; margin-bottom:0;">*Note: This is a placeholder score. In Phase 3, your actual running total will appear here automatically.</p>
+        <div class="score-num">*SCORE* <span class="score-pts">pts</span></div>
+        <div class="score-note">Your cumulative score is reflected above. Check the leaderboard to see how you rank.</div>
+        <div class="progress-bar-wrap"><div class="progress-bar"></div></div>
+        <div class="progress-label">2 of 3 Troves Complete</div>
       </div>
 
       <h2>The Case is Building</h2>
-      <p>You now have two sets of clues. The picture is becoming clearer, but there is still one piece missing. The final clues are hidden in the last mission.</p>
+      <p>You now hold two sets of clues. Cross-reference them. The suspects who seemed unlikely in Week 1 may look very different now. The lyrical evidence in Trove 02 was not random &mdash; every word points somewhere. Do not move forward without reviewing what you already know.</p>
 
-      <h2>What Happens Next</h2>
-      <p>Treasure Trove 03 unlocks automatically on Monday of Week 3. You will be tasked with creating an <strong>AI Lesson Plan</strong> that brings the investigation into the classroom.</p>
-      
-      <p>Here is a fragment of the final poetic cipher to guide your thinking:</p>
-      
+      <h2>The Final Cipher Has Reached Me</h2>
+      <p>I intercepted this fragment. It is connected to Trove 03 &mdash; the last mission before the Final Accusation. Read it carefully. The answer to the entire case is hidden in these words.</p>
+
       <div class="clue-box">
-        <p class="clue-text">"Where the overlooked linger at the edge of gentle light, a quiet resentment stirs beneath the calm..."</p>
+        <div class="clue-label">&#128274; Intercepted Cipher &mdash; Trove 03 Preview</div>
+        <div class="clue-text">&ldquo;Where the overlooked linger at the edge of gentle light, a quiet resentment stirs beneath the calm&hellip;&rdquo;</div>
+        <div class="clue-note">Who has been overlooked? Who harbors a resentment that no one noticed? Review the dossiers before Trove 03 opens.</div>
       </div>
 
-      <p>Review the suspects again. Who has been overlooked? Who harbors resentment?</p>
+      <p>Trove 03 unlocks automatically on <strong style="color:#fff;">Sunday at 7 PM PT, Week 3.</strong> You will unpack a curriculum standard, build an interdisciplinary lesson, and perform the team dance. All three deliverables unlock the final clues. Do not skip any of them.</p>
 
-      <a href="https://topkpop-io-production-ff28.up.railway.app/pages/leaderboard" class="btn">Check the Leaderboard</a>
+      <div class="btn-wrapper">
+        <a href="https://www.topkpop.io/pages/leaderboard" class="btn">Check the Leaderboard</a>
+        <a href="https://www.topkpop.io/pages/cast" class="btn-outline">Review Suspects</a>
+      </div>
 
-      <p style="margin-top:40px;">The truth is close.<br>Anna Im<br><span style="color:#E6005C; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Lead Detective, Top K-Pop</span></p>
     </div>
+
+    <div class="signoff">
+      <div class="signoff-warning">
+        &ldquo;The truth is close, Recruit. Closer than the saboteur wants you to know.<br>
+        Trust no one. The final mission begins soon.&rdquo;
+      </div>
+      <div class="signoff-name">Anna Im</div>
+      <div class="signoff-title">Lead Detective &mdash; TopKpop Investigation Unit</div>
+      <div style="margin-top:14px; font-size:11px; color:rgba(224,224,224,0.3); line-height:1.8;">
+        Dr. Robert Pletka &nbsp;&middot;&nbsp; Esther Kim &nbsp;&middot;&nbsp; Anna Im &nbsp;&middot;&nbsp; Pablo Diaz &nbsp;&middot;&nbsp; Jason Chong<br>
+        Fullerton School District &nbsp;&middot;&nbsp; TopKpop.io AI Super Sleuth Investigation
+      </div>
+    </div>
+
     <div class="footer">
-      <p>&copy; 2025 Top K-Pop Entertainment. All rights reserved.</p>
-      <p style="margin-top:5px;">This is an automated briefing. Do not reply directly to this transmission.</p>
+      <p>&copy; 2026 TopKpop.io &mdash; AI Super Sleuth Investigation. All rights reserved.</p>
+      <p style="margin-top:6px;">This is a classified automated transmission. Do not reply directly to this message.</p>
+      <p style="margin-top:6px;"><a href="https://www.topkpop.io">topkpop.io</a> &nbsp;&middot;&nbsp; <a href="https://www.instagram.com/topkpopio">@topkpopio</a></p>
     </div>
+
   </div>
 </body>
 </html>

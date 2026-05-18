@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trove 03 Is Live — The Final Clues Are In</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #0d0d1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color: #e0e0e0; }
+    .email-wrapper { max-width: 640px; margin: 0 auto; background-color: #0d0d1a; }
+    .header-banner { width: 100%; display: block; }
+    .unlock-strip {
+      background: linear-gradient(90deg, #1a0533, #2d0a5e, #1a0533);
+      border-top: 2px solid #b06aff; border-bottom: 2px solid #b06aff;
+      text-align: center; padding: 12px 20px;
+      font-size: 12px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: #b06aff;
+    }
+    .case-header {
+      background: linear-gradient(135deg, #0d0d1a 0%, #1a0533 50%, #0d0d1a 100%);
+      padding: 36px 40px 28px; border-bottom: 1px solid rgba(176,106,255,0.3);
+    }
+    .case-number { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #b06aff; margin-bottom: 8px; }
+    .case-title { font-size: 30px; font-weight: 700; color: #ffffff; line-height: 1.2; margin-bottom: 6px; }
+    .case-subtitle { font-size: 13px; color: #b06aff; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+    .meta-block {
+      background: rgba(176,106,255,0.06); border-left: 3px solid #b06aff;
+      padding: 14px 20px; margin: 0 40px;
+      font-size: 12px; color: rgba(224,224,224,0.7); line-height: 1.8;
+    }
+    .meta-block strong { color: #b06aff; }
+    .content { padding: 32px 40px; }
+    .content p { font-size: 15px; line-height: 1.8; color: #d0d0d0; margin-bottom: 18px; }
+    .content h2 {
+      font-size: 13px; font-weight: 700; color: #ffd700;
+      text-transform: uppercase; letter-spacing: 3px;
+      margin: 32px 0 14px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,215,0,0.2);
+    }
+    .accent { color: #b06aff; font-weight: 600; }
+    .mission-box {
+      background: rgba(176,106,255,0.06); border: 1px solid rgba(176,106,255,0.25);
+      border-radius: 10px; padding: 28px; margin-bottom: 28px;
+    }
+    .mission-label { font-size: 11px; letter-spacing: 3px; color: #b06aff; text-transform: uppercase; margin-bottom: 14px; display: block; font-weight: 700; }
+    .deliverable { display: flex; align-items: flex-start; margin-bottom: 16px; }
+    .deliverable-num { background: #b06aff; color: #fff; font-size: 11px; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px; margin-top: 2px; }
+    .deliverable-text { font-size: 14px; color: #d0d0d0; line-height: 1.6; }
+    .deliverable-text strong { color: #fff; }
+    .deliverable-pts { font-size: 11px; color: #b06aff; font-weight: 700; margin-top: 4px; }
+    .clue-box {
+      background: rgba(255,215,0,0.05); border: 1px solid rgba(255,215,0,0.2);
+      border-left: 3px solid #ffd700; border-radius: 8px;
+      padding: 24px 28px; margin-bottom: 24px;
+    }
+    .clue-label { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #ffd700; margin-bottom: 12px; }
+    .clue-text { font-style: italic; font-size: 16px; color: #ffd78a; line-height: 1.7; }
+    .dance-options { margin-bottom: 20px; }
+    .dance-option { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; font-size: 13px; color: rgba(224,224,224,0.8); }
+    .dance-option strong { color: #b06aff; }
+    .deadline-box {
+      background: rgba(233,30,140,0.06); border: 1px solid rgba(233,30,140,0.2);
+      border-radius: 8px; padding: 18px 22px; margin-bottom: 24px;
+    }
+    .deadline-text { font-size: 13px; color: rgba(224,224,224,0.8); line-height: 1.6; }
+    .deadline-text strong { color: #e91e8c; }
+    .btn-wrapper { text-align: center; margin: 28px 0; }
+    .btn {
+      display: inline-block; padding: 16px 40px;
+      background: linear-gradient(135deg, #b06aff, #e91e8c);
+      color: #fff; text-decoration: none; font-size: 13px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; border-radius: 6px;
+    }
+    .signoff {
+      background: linear-gradient(135deg, #0d0d1a, #1a0533);
+      border-top: 1px solid rgba(176,106,255,0.2); padding: 28px 40px;
+    }
+    .signoff-warning { font-size: 15px; font-style: italic; color: rgba(224,224,224,0.7); margin-bottom: 20px; line-height: 1.7; }
+    .signoff-name { font-size: 17px; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
+    .signoff-title { font-size: 11px; color: #e91e8c; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .footer { background-color: #08090e; padding: 24px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+    .footer p { font-size: 11px; color: rgba(224,224,224,0.3); margin: 0; line-height: 1.8; }
+    .footer a { color: rgba(176,106,255,0.6); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+
+    <img src="https://www.topkpop.io/assets/email_header_banner.png" alt="TopKpop.io Investigation Unit" class="header-banner" width="640">
+
+    <div class="unlock-strip">&#127775; UNLOCKED &mdash; Treasure Trove 03 Is Now Live &#127775;</div>
+
+    <div class="case-header">
+      <div class="case-number">Mission Briefing &mdash; Week 3 &mdash; Final Evidence Phase</div>
+      <div class="case-title">The Final Clues Are Waiting.</div>
+      <div class="case-subtitle">Treasure Trove 03 &mdash; Teach, Perform, Solve</div>
+    </div>
+
+    <div class="meta-block">
+      <strong>FROM:</strong> Anna Im, Lead Detective &mdash; TopKpop Investigation Unit<br>
+      <strong>TO:</strong> Active AI Super Sleuth Recruit<br>
+      <strong>CLASSIFICATION:</strong> Confidential &mdash; Final Mission Briefing
+    </div>
+
+    <div class="content">
+
+      <p>This is the final Trove. After this, there are no more missions &mdash; only the accusation. Everything you build in Trove 03 will either confirm your theory or unravel it. The last cipher is buried in this mission. You will not find it unless you complete all three deliverables.</p>
+
+      <p>The saboteur believes you are not paying attention. They are wrong. Prove it.</p>
+
+      <h2>Trove 03 Deliverables</h2>
+
+      <div class="mission-box">
+        <span class="mission-label">&#128203; Your Mission &mdash; 3 Deliverables</span>
+        <div class="deliverable">
+          <div class="deliverable-num">1</div>
+          <div class="deliverable-text">
+            <strong>Unpack a Grade-Level ELA Standard</strong> — Use AI to break down a real curriculum standard into student-friendly language, teacher notes, and cross-curricular connections.
+            <div class="deliverable-pts">Up to 100 pts &mdash; Oracle scored</div>
+          </div>
+        </div>
+        <div class="deliverable">
+          <div class="deliverable-num">2</div>
+          <div class="deliverable-text">
+            <strong>Create an Interdisciplinary Lesson</strong> — Design a lesson that connects your ELA standard to K-Pop, AI, and at least one other subject. Include learning objectives, activities, and an AI tool integration.
+            <div class="deliverable-pts">Up to 100 pts &mdash; Oracle scored</div>
+          </div>
+        </div>
+        <div class="deliverable">
+          <div class="deliverable-num">3</div>
+          <div class="deliverable-text">
+            <strong>Perform the Team Dance</strong> — Joyce's custom K-Pop routine. Choose your format: Full Live Team, Full Avatar Team, or Hybrid. Scored by Joyce of BbCat.
+            <div class="deliverable-pts">Up to 100 pts &mdash; Joyce scored</div>
+          </div>
+        </div>
+      </div>
+
+      <h2>The Dance Performance Options</h2>
+      <div class="dance-options">
+        <div class="dance-option"><strong>Option A — Full Live Team:</strong> All members perform on camera together. Most points available.</div>
+        <div class="dance-option"><strong>Option B — Full Avatar Team:</strong> All members perform as their K-Pop avatars using AI video tools.</div>
+        <div class="dance-option"><strong>Option C — Hybrid:</strong> Mix of live members and AI avatars. Creative freedom encouraged.</div>
+      </div>
+
+      <h2>The Final Cipher</h2>
+      <p>I have been holding this fragment until now. It is the last piece. Combined with the first two ciphers, it completes the map. Read it carefully. The answer to the entire case is hidden in these words.</p>
+
+      <div class="clue-box">
+        <div class="clue-label">&#128274; Intercepted Cipher &mdash; Fragment 03 &mdash; Final</div>
+        <div class="clue-text">&ldquo;Where the overlooked linger at the edge of gentle light, a quiet resentment stirs beneath the calm&hellip;&rdquo;</div>
+      </div>
+
+      <div class="deadline-box">
+        <div class="deadline-text">&#9201; Trove 03 is due before <strong>the Final Accusation window opens on Day 22 (Sunday at 7 PM PT).</strong> All three deliverables must be submitted. The dance video link must be included in your submission.</div>
+      </div>
+
+      <div class="btn-wrapper">
+        <a href="https://www.topkpop.io/pages/trove-03" class="btn">Open Trove 03 Now</a>
+      </div>
+
+    </div>
+
+    <div class="signoff">
+      <div class="signoff-warning">
+        &ldquo;Three ciphers. One saboteur. The answer is in front of you, Recruit.<br>
+        Complete this mission. Then name your suspect. Trust no one.&rdquo;
+      </div>
+      <div class="signoff-name">Anna Im</div>
+      <div class="signoff-title">Lead Detective &mdash; TopKpop Investigation Unit</div>
+      <div style="margin-top:14px; font-size:11px; color:rgba(224,224,224,0.3); line-height:1.8;">
+        Dr. Robert Pletka &nbsp;&middot;&nbsp; Esther Kim &nbsp;&middot;&nbsp; Anna Im &nbsp;&middot;&nbsp; Pablo Diaz &nbsp;&middot;&nbsp; Jason Chong<br>
+        Fullerton School District &nbsp;&middot;&nbsp; TopKpop.io AI Super Sleuth Investigation
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>&copy; 2026 TopKpop.io &mdash; AI Super Sleuth Investigation. All rights reserved.</p>
+      <p style="margin-top:6px;">This is a classified automated transmission. Do not reply directly to this message.</p>
+      <p style="margin-top:6px;"><a href="https://www.topkpop.io">topkpop.io</a> &nbsp;&middot;&nbsp; <a href="https://www.instagram.com/topkpopio">@topkpopio</a></p>
+    </div>
+
+  </div>
+</body>
+</html>

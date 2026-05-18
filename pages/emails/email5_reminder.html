@@ -3,65 +3,143 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Final Accusation Due — TopKpop.io</title>
+  <title>URGENT — Final Accusation Due Tomorrow</title>
   <style>
-    body { margin: 0; padding: 0; background-color: #0B0C10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #E0E0E0; }
-    .email-container { max-width: 600px; margin: 0 auto; background-color: #0F1016; border: 1px solid rgba(230,0,92,0.5); border-radius: 8px; overflow: hidden; margin-top: 40px; margin-bottom: 40px; box-shadow: 0 0 20px rgba(230,0,92,0.15); }
-    .header { background-image: url('https://topkpop-io-production-ff28.up.railway.app/assets/images/hero_bg.jpg'); background-size: cover; background-position: center; padding: 40px; text-align: center; position: relative; }
-    .header-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(230,0,92,0.85); mix-blend-mode: multiply; }
-    .header-overlay-dark { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11,12,16,0.75); }
-    .header-content { position: relative; z-index: 2; }
-    .logo { font-size: 24px; font-weight: 700; letter-spacing: 2px; color: #fff; text-decoration: none; }
-    .logo span { color: #E6005C; }
-    .title { font-size: 28px; font-weight: 700; color: #fff; margin: 20px 0 0; text-transform: uppercase; letter-spacing: 2px; }
-    .subtitle { font-size: 12px; letter-spacing: 3px; color: #FFBF00; text-transform: uppercase; margin-top: 10px; }
-    .content { padding: 40px; }
-    p { font-size: 15px; line-height: 1.6; margin-bottom: 20px; color: #D0D0D0; }
-    h2 { font-size: 18px; color: #fff; margin: 30px 0 15px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-    .accent { color: #E6005C; }
-    .btn { display: inline-block; padding: 14px 28px; background-color: #E6005C; color: #fff; text-decoration: none; font-size: 13px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; border-radius: 4px; margin-top: 20px; }
-    .warning-box { background-color: rgba(230,0,92,0.08); border: 1px solid rgba(230,0,92,0.3); border-radius: 6px; padding: 20px; margin-bottom: 20px; border-left: 3px solid #E6005C; }
-    .warning-title { color: #E6005C; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
-    .footer { background-color: #08090E; padding: 30px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-    .footer p { font-size: 12px; color: rgba(224,224,224,0.4); margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #0d0d1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color: #e0e0e0; }
+    .email-wrapper { max-width: 640px; margin: 0 auto; background-color: #0d0d1a; }
+    .header-banner { width: 100%; display: block; }
+    .urgent-strip {
+      background: linear-gradient(90deg, #3a0000, #5a0000, #3a0000);
+      border-top: 2px solid #e91e8c; border-bottom: 2px solid #e91e8c;
+      text-align: center; padding: 12px 20px;
+      font-size: 12px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: #ff4444;
+    }
+    .case-header {
+      background: linear-gradient(135deg, #1a0000 0%, #2a0000 50%, #1a0000 100%);
+      padding: 36px 40px 28px; border-bottom: 1px solid rgba(233,30,140,0.5);
+    }
+    .case-number { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #ff4444; margin-bottom: 8px; }
+    .case-title { font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1.2; margin-bottom: 6px; }
+    .case-subtitle { font-size: 13px; color: #e91e8c; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+    .meta-block {
+      background: rgba(233,30,140,0.08); border-left: 3px solid #e91e8c;
+      padding: 14px 20px; margin: 0 40px;
+      font-size: 12px; color: rgba(224,224,224,0.7); line-height: 1.8;
+    }
+    .meta-block strong { color: #e91e8c; }
+    .content { padding: 32px 40px; }
+    .content p { font-size: 15px; line-height: 1.8; color: #d0d0d0; margin-bottom: 18px; }
+    .content h2 {
+      font-size: 13px; font-weight: 700; color: #ffd700;
+      text-transform: uppercase; letter-spacing: 3px;
+      margin: 32px 0 14px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,215,0,0.2);
+    }
+    .accent { color: #e91e8c; font-weight: 600; }
+    .countdown-box {
+      background: linear-gradient(135deg, rgba(233,30,140,0.1), rgba(100,0,0,0.15));
+      border: 2px solid rgba(233,30,140,0.5); border-radius: 8px;
+      padding: 28px; margin-bottom: 28px; text-align: center;
+    }
+    .countdown-label { font-size: 11px; letter-spacing: 4px; color: #ff4444; text-transform: uppercase; margin-bottom: 12px; display: block; font-weight: 700; }
+    .countdown-num { font-size: 64px; font-weight: 700; color: #e91e8c; line-height: 1; }
+    .countdown-unit { font-size: 14px; color: rgba(224,224,224,0.5); font-weight: 400; }
+    .countdown-note { font-size: 13px; color: rgba(224,224,224,0.6); margin-top: 12px; line-height: 1.6; }
+    .warning-box {
+      background: rgba(233,30,140,0.08); border: 1px solid rgba(233,30,140,0.35);
+      border-left: 3px solid #e91e8c; border-radius: 8px;
+      padding: 20px 24px; margin-bottom: 24px;
+    }
+    .warning-title { color: #e91e8c; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; display: block; }
+    .btn-wrapper { text-align: center; margin: 28px 0; }
+    .btn {
+      display: inline-block; padding: 18px 44px;
+      background: linear-gradient(135deg, #e91e8c, #b06aff);
+      color: #fff; text-decoration: none; font-size: 14px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; border-radius: 6px;
+    }
+    .signoff {
+      background: linear-gradient(135deg, #1a0000, #0d0d1a);
+      border-top: 1px solid rgba(233,30,140,0.3); padding: 28px 40px;
+    }
+    .signoff-warning { font-size: 15px; font-style: italic; color: rgba(224,224,224,0.7); margin-bottom: 20px; line-height: 1.7; }
+    .signoff-name { font-size: 17px; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
+    .signoff-title { font-size: 11px; color: #e91e8c; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .footer { background-color: #08090e; padding: 24px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+    .footer p { font-size: 11px; color: rgba(224,224,224,0.3); margin: 0; line-height: 1.8; }
+    .footer a { color: rgba(176,106,255,0.6); text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="email-container">
-    <div class="header">
-      <div class="header-overlay"></div>
-      <div class="header-overlay-dark"></div>
-      <div class="header-content">
-        <a href="https://topkpop-io.up.railway.app" class="logo"><span>TOP</span>KPOP.IO</a>
-        <h1 class="title">Deadline Approaching</h1>
-        <p class="subtitle">Final Accusation Due Tomorrow</p>
-      </div>
+  <div class="email-wrapper">
+
+    <img src="https://www.topkpop.io/assets/email_header_banner.png" alt="TopKpop.io Investigation Unit" class="header-banner" width="640">
+
+    <div class="urgent-strip">&#9888; URGENT &mdash; Final Accusation Deadline: Tomorrow at Midnight &#9888;</div>
+
+    <div class="case-header">
+      <div class="case-number">Critical Alert &mdash; Investigation Window Closing</div>
+      <div class="case-title">The Saboteur Is About to Walk Free.</div>
+      <div class="case-subtitle">Final Accusation Due &mdash; Tomorrow at Midnight</div>
     </div>
+
+    <div class="meta-block">
+      <strong>FROM:</strong> Anna Im, Lead Detective &mdash; TopKpop Investigation Unit<br>
+      <strong>TO:</strong> Active AI Super Sleuth Recruit<br>
+      <strong>CLASSIFICATION:</strong> URGENT &mdash; Immediate Action Required
+    </div>
+
     <div class="content">
-      <p><strong>From:</strong> Anna Im, Lead Detective<br>
-      <strong>To:</strong> Top K-Pop Detective Recruit<br>
-      <strong>Subject:</strong> URGENT: Submit Your Accusation</p>
 
-      <p>Recruit, the investigation window is closing. Tomorrow is Day 32. If your Final Accusation is not submitted by the deadline, your team will be disqualified from winning the investigation, regardless of your current score.</p>
-      
-      <div class="warning-box">
-        <span class="warning-title">Current Standings</span>
-        <p style="margin:0; font-size:14px; color:#D0D0D0;">Your current score places you in the top tier of the Leaderboard. But remember: <strong>only teams who correctly identify the saboteur are eligible to win.</strong> If the top-scoring team accuses the wrong suspect, the victory passes to the next highest-scoring team with the correct answer.</p>
+      <p>Recruit. I need you to listen carefully. The investigation window closes <span class="accent">tomorrow at midnight</span>. If your Final Accusation is not submitted before then, your team is disqualified from winning &mdash; regardless of your score, regardless of how hard you worked, regardless of how close you are to the truth.</p>
+
+      <p>I have been working this case for weeks. I know who did it. But I cannot make the accusation. That is your role. And right now, the saboteur is watching the clock, counting on you to hesitate.</p>
+
+      <div class="countdown-box">
+        <span class="countdown-label">&#9201; Time Remaining</span>
+        <div class="countdown-num">24 <span class="countdown-unit">hours</span></div>
+        <div class="countdown-note">Day 25 &mdash; Midnight PT &mdash; The window closes permanently.<br>No extensions. No exceptions.</div>
       </div>
 
-      <h2>How to Submit</h2>
-      <p>Log into the TopKpop.io portal and open the Final Accusation form. You must name the saboteur and provide your evidence based on the clues embedded in the three Treasure Troves.</p>
+      <h2>What You Must Do Right Now</h2>
+      <p>Log into the TopKpop.io portal and open the <strong style="color:#fff;">Final Accusation form</strong>. Name the saboteur. Submit your evidence. The form is live and waiting.</p>
 
-      <p>The saboteur knows we are close. They are watching the leaderboard just as closely as you are. Do not let them escape.</p>
+      <div class="warning-box">
+        <span class="warning-title">&#9888; Remember the Rule</span>
+        <p style="margin:0; font-size:14px; color:#d0d0d0; line-height:1.7;">The highest score alone does not win. You must have the <strong>highest score AND the correct accusation.</strong> If the top-scoring team names the wrong suspect, the prize passes to the next highest-scoring team with the right answer. Do not guess. The clues point to exactly one person.</p>
+      </div>
 
-      <a href="https://topkpop-io-production-ff28.up.railway.app/pages/missions" class="btn">Submit Final Accusation</a>
+      <h2>The Ciphers Point to One Answer</h2>
+      <p>Review the three ciphers. Cross-reference them with the dossiers. Look at who had access, who had motive, and who has been quietly present in every corner of this story. The answer is there. You have everything you need.</p>
 
-      <p style="margin-top:40px;">Choose carefully.<br>Anna Im<br><span style="color:#E6005C; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Lead Detective, Top K-Pop</span></p>
+      <p>The saboteur is watching the leaderboard right now. They are counting on your silence. Do not give them the satisfaction.</p>
+
+      <div class="btn-wrapper">
+        <a href="https://www.topkpop.io/pages/missions" class="btn">Submit Final Accusation Now</a>
+      </div>
+
     </div>
+
+    <div class="signoff">
+      <div class="signoff-warning">
+        &ldquo;I have done everything I can. The rest is yours, Recruit.<br>
+        Choose carefully. The debut of Jeanie KMZ is in your hands.&rdquo;
+      </div>
+      <div class="signoff-name">Anna Im</div>
+      <div class="signoff-title">Lead Detective &mdash; TopKpop Investigation Unit</div>
+      <div style="margin-top:14px; font-size:11px; color:rgba(224,224,224,0.3); line-height:1.8;">
+        Dr. Robert Pletka &nbsp;&middot;&nbsp; Esther Kim &nbsp;&middot;&nbsp; Anna Im &nbsp;&middot;&nbsp; Pablo Diaz &nbsp;&middot;&nbsp; Jason Chong<br>
+        Fullerton School District &nbsp;&middot;&nbsp; TopKpop.io AI Super Sleuth Investigation
+      </div>
+    </div>
+
     <div class="footer">
-      <p>&copy; 2025 Top K-Pop Entertainment. All rights reserved.</p>
-      <p style="margin-top:5px;">This is an automated briefing. Do not reply directly to this transmission.</p>
+      <p>&copy; 2026 TopKpop.io &mdash; AI Super Sleuth Investigation. All rights reserved.</p>
+      <p style="margin-top:6px;">This is a classified automated transmission. Do not reply directly to this message.</p>
+      <p style="margin-top:6px;"><a href="https://www.topkpop.io">topkpop.io</a> &nbsp;&middot;&nbsp; <a href="https://www.instagram.com/topkpopio">@topkpopio</a></p>
     </div>
+
   </div>
 </body>
 </html>

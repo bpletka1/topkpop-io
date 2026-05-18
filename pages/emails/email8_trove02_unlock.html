@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trove 02 Is Live — The Evidence Is Mounting</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #0d0d1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color: #e0e0e0; }
+    .email-wrapper { max-width: 640px; margin: 0 auto; background-color: #0d0d1a; }
+    .header-banner { width: 100%; display: block; }
+    .unlock-strip {
+      background: linear-gradient(90deg, #1a1200, #2a1e00, #1a1200);
+      border-top: 2px solid #ffd700; border-bottom: 2px solid #ffd700;
+      text-align: center; padding: 12px 20px;
+      font-size: 12px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: #ffd700;
+    }
+    .case-header {
+      background: linear-gradient(135deg, #0d0d1a 0%, #1a1200 50%, #0d0d1a 100%);
+      padding: 36px 40px 28px; border-bottom: 1px solid rgba(255,215,0,0.3);
+    }
+    .case-number { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #ffd700; margin-bottom: 8px; }
+    .case-title { font-size: 30px; font-weight: 700; color: #ffffff; line-height: 1.2; margin-bottom: 6px; }
+    .case-subtitle { font-size: 13px; color: #ffd700; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+    .meta-block {
+      background: rgba(255,215,0,0.06); border-left: 3px solid #ffd700;
+      padding: 14px 20px; margin: 0 40px;
+      font-size: 12px; color: rgba(224,224,224,0.7); line-height: 1.8;
+    }
+    .meta-block strong { color: #ffd700; }
+    .content { padding: 32px 40px; }
+    .content p { font-size: 15px; line-height: 1.8; color: #d0d0d0; margin-bottom: 18px; }
+    .content h2 {
+      font-size: 13px; font-weight: 700; color: #e91e8c;
+      text-transform: uppercase; letter-spacing: 3px;
+      margin: 32px 0 14px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(233,30,140,0.2);
+    }
+    .accent { color: #ffd700; font-weight: 600; }
+    .mission-box {
+      background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.25);
+      border-radius: 10px; padding: 28px; margin-bottom: 28px;
+    }
+    .mission-label { font-size: 11px; letter-spacing: 3px; color: #ffd700; text-transform: uppercase; margin-bottom: 14px; display: block; font-weight: 700; }
+    .deliverable { display: flex; align-items: flex-start; margin-bottom: 14px; }
+    .deliverable-num { background: #ffd700; color: #0d0d1a; font-size: 11px; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px; margin-top: 2px; }
+    .deliverable-text { font-size: 14px; color: #d0d0d0; line-height: 1.6; }
+    .deliverable-text strong { color: #fff; }
+    .clue-box {
+      background: rgba(176,106,255,0.05); border: 1px solid rgba(176,106,255,0.2);
+      border-left: 3px solid #b06aff; border-radius: 8px;
+      padding: 24px 28px; margin-bottom: 24px;
+    }
+    .clue-label { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #b06aff; margin-bottom: 12px; }
+    .clue-text { font-style: italic; font-size: 16px; color: #d09cff; line-height: 1.7; }
+    .lang-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .lang-pill { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 20px; padding: 4px 14px; font-size: 12px; color: #ffd700; font-weight: 600; }
+    .deadline-box {
+      background: rgba(233,30,140,0.06); border: 1px solid rgba(233,30,140,0.2);
+      border-radius: 8px; padding: 18px 22px; margin-bottom: 24px;
+    }
+    .deadline-text { font-size: 13px; color: rgba(224,224,224,0.8); line-height: 1.6; }
+    .deadline-text strong { color: #e91e8c; }
+    .btn-wrapper { text-align: center; margin: 28px 0; }
+    .btn {
+      display: inline-block; padding: 16px 40px;
+      background: linear-gradient(135deg, #e91e8c, #b06aff);
+      color: #fff; text-decoration: none; font-size: 13px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; border-radius: 6px;
+    }
+    .signoff {
+      background: linear-gradient(135deg, #0d0d1a, #1a1200);
+      border-top: 1px solid rgba(255,215,0,0.2); padding: 28px 40px;
+    }
+    .signoff-warning { font-size: 15px; font-style: italic; color: rgba(224,224,224,0.7); margin-bottom: 20px; line-height: 1.7; }
+    .signoff-name { font-size: 17px; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
+    .signoff-title { font-size: 11px; color: #e91e8c; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .footer { background-color: #08090e; padding: 24px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+    .footer p { font-size: 11px; color: rgba(224,224,224,0.3); margin: 0; line-height: 1.8; }
+    .footer a { color: rgba(176,106,255,0.6); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+
+    <img src="https://www.topkpop.io/assets/email_header_banner.png" alt="TopKpop.io Investigation Unit" class="header-banner" width="640">
+
+    <div class="unlock-strip">&#127925; UNLOCKED &mdash; Treasure Trove 02 Is Now Live &#127925;</div>
+
+    <div class="case-header">
+      <div class="case-number">Mission Briefing &mdash; Week 2</div>
+      <div class="case-title">The Evidence Song Begins.</div>
+      <div class="case-subtitle">Treasure Trove 02 &mdash; The Lyrics Remix</div>
+    </div>
+
+    <div class="meta-block">
+      <strong>FROM:</strong> Anna Im, Lead Detective &mdash; TopKpop Investigation Unit<br>
+      <strong>TO:</strong> Active AI Super Sleuth Recruit<br>
+      <strong>CLASSIFICATION:</strong> Confidential &mdash; Mission Briefing
+    </div>
+
+    <div class="content">
+
+      <p>You survived Trove 01. Your cover is established. Now the real investigation begins. The saboteur left traces in the music &mdash; in the lyrics, in the language, in the rhythm. Your job this week is to find them and weave them into a song that only the sharpest detective could write.</p>
+
+      <p>The <span class="accent">Oracle of the Rubric</span> will score your Evidence Song. It is listening for precision, for cultural authenticity, and for the clues embedded in the words. Do not write generic lyrics. Write like a detective who knows what they are looking for.</p>
+
+      <h2>Trove 02 Deliverable</h2>
+
+      <div class="mission-box">
+        <span class="mission-label">&#127925; Your Mission &mdash; The Lyrics Remix</span>
+        <div class="deliverable">
+          <div class="deliverable-num">1</div>
+          <div class="deliverable-text"><strong>Create Your Evidence Song</strong> — Use AI to remix a K-Pop song. Your lyrics must include at least 3 languages, embed the investigation clues, and reflect your avatar's cultural identity.</div>
+        </div>
+        <div class="deliverable">
+          <div class="deliverable-num">2</div>
+          <div class="deliverable-text"><strong>Required Languages</strong> — Your song must include Korean, English, and at least one additional language. The Oracle scores multilingual precision.</div>
+        </div>
+        <div class="deliverable">
+          <div class="deliverable-num">3</div>
+          <div class="deliverable-text"><strong>Decode the Second Cipher</strong> — The Trove 02 briefing contains the second poetic clue. Find it. Add it to your case notes.</div>
+        </div>
+      </div>
+
+      <div class="lang-pills">
+        <div class="lang-pill">Korean &#127472;&#127479;</div>
+        <div class="lang-pill">English &#127482;&#127480;</div>
+        <div class="lang-pill">Spanish &#127466;&#127480;</div>
+        <div class="lang-pill">Tagalog &#127477;&#127469;</div>
+        <div class="lang-pill">Japanese &#127471;&#127477;</div>
+        <div class="lang-pill">+ Your Choice</div>
+      </div>
+
+      <h2>The Second Cipher</h2>
+      <p>This fragment was intercepted from inside the label. It connects to a specific suspect. Read it alongside the first cipher. The pattern is becoming visible.</p>
+
+      <div class="clue-box">
+        <div class="clue-label">&#128274; Intercepted Cipher &mdash; Fragment 02</div>
+        <div class="clue-text">&ldquo;Where knives hum and spices rise like smoke, a son stirs dreams his father once broke&hellip;&rdquo;</div>
+      </div>
+
+      <div class="deadline-box">
+        <div class="deadline-text">&#9201; Trove 02 is due before <strong>Trove 03 unlocks on Sunday at 7 PM PT, Week 3.</strong> The Oracle scores on submission &mdash; your score is locked the moment you submit.</div>
+      </div>
+
+      <div class="btn-wrapper">
+        <a href="https://www.topkpop.io/pages/trove-02" class="btn">Open Trove 02 Now</a>
+      </div>
+
+    </div>
+
+    <div class="signoff">
+      <div class="signoff-warning">
+        &ldquo;The lyrics do not lie, Recruit. Neither do the ciphers.<br>
+        Write carefully. The saboteur is listening. Trust no one.&rdquo;
+      </div>
+      <div class="signoff-name">Anna Im</div>
+      <div class="signoff-title">Lead Detective &mdash; TopKpop Investigation Unit</div>
+      <div style="margin-top:14px; font-size:11px; color:rgba(224,224,224,0.3); line-height:1.8;">
+        Dr. Robert Pletka &nbsp;&middot;&nbsp; Esther Kim &nbsp;&middot;&nbsp; Anna Im &nbsp;&middot;&nbsp; Pablo Diaz &nbsp;&middot;&nbsp; Jason Chong<br>
+        Fullerton School District &nbsp;&middot;&nbsp; TopKpop.io AI Super Sleuth Investigation
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>&copy; 2026 TopKpop.io &mdash; AI Super Sleuth Investigation. All rights reserved.</p>
+      <p style="margin-top:6px;">This is a classified automated transmission. Do not reply directly to this message.</p>
+      <p style="margin-top:6px;"><a href="https://www.topkpop.io">topkpop.io</a> &nbsp;&middot;&nbsp; <a href="https://www.instagram.com/topkpopio">@topkpopio</a></p>
+    </div>
+
+  </div>
+</body>
+</html>

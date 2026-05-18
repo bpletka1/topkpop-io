@@ -3,73 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Case Closed — TopKpop.io</title>
+  <title>Case Closed — The Saboteur Is Revealed</title>
   <style>
-    body { margin: 0; padding: 0; background-color: #0B0C10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #E0E0E0; }
-    .email-container { max-width: 600px; margin: 0 auto; background-color: #0F1016; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; overflow: hidden; margin-top: 40px; margin-bottom: 40px; }
-    .header { background-image: url('https://topkpop-io-production-ff28.up.railway.app/assets/images/missions_hero.jpg'); background-size: cover; background-position: center; padding: 40px; text-align: center; position: relative; }
-    .header-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11,12,16,0.85); }
-    .header-content { position: relative; z-index: 2; }
-    .logo { font-size: 24px; font-weight: 700; letter-spacing: 2px; color: #fff; text-decoration: none; }
-    .logo span { color: #E6005C; }
-    .title { font-size: 28px; font-weight: 700; color: #fff; margin: 20px 0 0; text-transform: uppercase; letter-spacing: 2px; }
-    .subtitle { font-size: 12px; letter-spacing: 3px; color: #b06aff; text-transform: uppercase; margin-top: 10px; }
-    .content { padding: 40px; }
-    p { font-size: 15px; line-height: 1.6; margin-bottom: 20px; color: #D0D0D0; }
-    h2 { font-size: 18px; color: #fff; margin: 30px 0 15px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-    .accent { color: #fff; }
-    .btn { display: inline-block; padding: 14px 28px; background-color: #E6005C; color: #fff; text-decoration: none; font-size: 13px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; border-radius: 4px; margin-top: 20px; }
-    .reveal-box { background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 25px; margin-bottom: 30px; text-align: center; }
-    .reveal-label { font-size: 12px; letter-spacing: 2px; color: rgba(224,224,224,0.5); text-transform: uppercase; margin-bottom: 10px; display: block; }
-    .reveal-name { font-size: 24px; font-weight: 700; color: #fff; margin: 0; line-height: 1.2; text-transform: uppercase; letter-spacing: 2px; }
-    .winner-box { background-color: rgba(255,191,0,0.08); border: 1px solid rgba(255,191,0,0.3); border-radius: 6px; padding: 20px; margin-bottom: 20px; text-align: center; }
-    .winner-title { color: #FFBF00; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
-    .winner-team { font-size: 20px; font-weight: 700; color: #fff; margin: 0; }
-    .footer { background-color: #08090E; padding: 30px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-    .footer p { font-size: 12px; color: rgba(224,224,224,0.4); margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #0d0d1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color: #e0e0e0; }
+    .email-wrapper { max-width: 640px; margin: 0 auto; background-color: #0d0d1a; }
+    .header-banner { width: 100%; display: block; }
+    .reveal-strip {
+      background: linear-gradient(90deg, #1a0533, #2d0a5e, #1a0533);
+      border-top: 2px solid #b06aff; border-bottom: 2px solid #b06aff;
+      text-align: center; padding: 12px 20px;
+      font-size: 11px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #b06aff;
+    }
+    .case-header {
+      background: linear-gradient(135deg, #0d0d1a 0%, #1a0533 50%, #0d0d1a 100%);
+      padding: 36px 40px 28px; border-bottom: 1px solid rgba(176,106,255,0.3);
+    }
+    .case-number { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #b06aff; margin-bottom: 8px; }
+    .case-title { font-size: 30px; font-weight: 700; color: #ffffff; line-height: 1.2; margin-bottom: 6px; }
+    .case-subtitle { font-size: 13px; color: #ffd700; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+    .meta-block {
+      background: rgba(176,106,255,0.06); border-left: 3px solid #b06aff;
+      padding: 14px 20px; margin: 0 40px;
+      font-size: 12px; color: rgba(224,224,224,0.7); line-height: 1.8;
+    }
+    .meta-block strong { color: #b06aff; }
+    .content { padding: 32px 40px; }
+    .content p { font-size: 15px; line-height: 1.8; color: #d0d0d0; margin-bottom: 18px; }
+    .content h2 {
+      font-size: 13px; font-weight: 700; color: #ffd700;
+      text-transform: uppercase; letter-spacing: 3px;
+      margin: 32px 0 14px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,215,0,0.2);
+    }
+    .accent { color: #b06aff; font-weight: 600; }
+    .saboteur-reveal {
+      background: linear-gradient(135deg, rgba(233,30,140,0.12), rgba(176,106,255,0.12));
+      border: 2px solid rgba(233,30,140,0.4); border-radius: 12px;
+      padding: 36px; margin-bottom: 28px; text-align: center;
+    }
+    .reveal-label { font-size: 11px; letter-spacing: 4px; color: rgba(224,224,224,0.5); text-transform: uppercase; margin-bottom: 16px; display: block; font-weight: 700; }
+    .reveal-name { font-size: 36px; font-weight: 700; color: #e91e8c; line-height: 1.1; letter-spacing: 2px; text-transform: uppercase; }
+    .reveal-subtitle { font-size: 13px; color: rgba(224,224,224,0.5); margin-top: 10px; font-style: italic; }
+    .winner-box {
+      background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.04));
+      border: 1px solid rgba(255,215,0,0.4); border-radius: 10px;
+      padding: 28px; margin-bottom: 24px; text-align: center;
+    }
+    .winner-label { font-size: 11px; letter-spacing: 4px; color: #ffd700; text-transform: uppercase; margin-bottom: 14px; display: block; font-weight: 700; }
+    .winner-team { font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1.2; }
+    .winner-score { font-size: 14px; color: rgba(224,224,224,0.6); margin-top: 8px; }
+    .all-teams-box {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px; padding: 20px 24px; margin-bottom: 24px;
+    }
+    .all-teams-title { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: rgba(224,224,224,0.4); margin-bottom: 14px; }
+    .team-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; color: rgba(224,224,224,0.7); }
+    .team-row:last-child { border-bottom: none; }
+    .team-correct { color: #00b464; font-weight: 700; }
+    .team-wrong { color: rgba(224,224,224,0.3); }
+    .btn-wrapper { text-align: center; margin: 28px 0; }
+    .btn {
+      display: inline-block; padding: 16px 36px;
+      background: linear-gradient(135deg, #ffd700, #e91e8c);
+      color: #fff; text-decoration: none; font-size: 13px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; border-radius: 6px;
+    }
+    .signoff {
+      background: linear-gradient(135deg, #0d0d1a, #1a0533);
+      border-top: 1px solid rgba(176,106,255,0.2); padding: 28px 40px;
+    }
+    .signoff-closing { font-size: 15px; font-style: italic; color: rgba(224,224,224,0.7); margin-bottom: 20px; line-height: 1.7; }
+    .signoff-name { font-size: 17px; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
+    .signoff-title { font-size: 11px; color: #e91e8c; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .footer { background-color: #08090e; padding: 24px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+    .footer p { font-size: 11px; color: rgba(224,224,224,0.3); margin: 0; line-height: 1.8; }
+    .footer a { color: rgba(176,106,255,0.6); text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="email-container">
-    <div class="header">
-      <div class="header-overlay"></div>
-      <div class="header-content">
-        <a href="https://topkpop-io.up.railway.app" class="logo"><span>TOP</span>KPOP.IO</a>
-        <h1 class="title">Case Closed</h1>
-        <p class="subtitle">The Investigation is Over</p>
-      </div>
-    </div>
-    <div class="content">
-      <p><strong>From:</strong> Anna Im, Lead Detective<br>
-      <strong>To:</strong> All Detective Recruits<br>
-      <strong>Subject:</strong> The Saboteur Revealed</p>
+  <div class="email-wrapper">
 
-      <p>The investigation is officially closed. All evidence has been reviewed, all accusations have been processed, and the truth is finally out. The debut is safe.</p>
-      
-      <div class="reveal-box">
-        <span class="reveal-label">The Saboteur Is</span>
-        <p class="reveal-name">[Saboteur Name Revealed Here]</p>
+    <img src="https://www.topkpop.io/assets/email_header_banner.png" alt="TopKpop.io Investigation Unit" class="header-banner" width="640">
+
+    <div class="reveal-strip">&#9632; Case Closed &mdash; The Investigation Is Over &mdash; The Truth Is Out &#9632;</div>
+
+    <div class="case-header">
+      <div class="case-number">Final Transmission &mdash; TopKpop Investigation Unit</div>
+      <div class="case-title">The Saboteur Has Been Unmasked.</div>
+      <div class="case-subtitle">Case Closed &mdash; The Debut of Jeanie KMZ Is Saved</div>
+    </div>
+
+    <div class="meta-block">
+      <strong>FROM:</strong> Anna Im, Lead Detective &mdash; TopKpop Investigation Unit<br>
+      <strong>TO:</strong> All AI Super Sleuth Recruits<br>
+      <strong>CLASSIFICATION:</strong> Final Briefing &mdash; Case Resolved
+    </div>
+
+    <div class="content">
+
+      <p>It is over. The investigation is closed. The accusations have been reviewed, the evidence has been verified, and the truth that the saboteur worked so hard to bury is now fully exposed. The debut of Jeanie KMZ is safe.</p>
+
+      <p>I want to be honest with you. This was not an easy case. The saboteur was careful, patient, and deeply embedded in the label. They counted on everyone being too distracted by the competition to notice the details. Some of you noticed. Some of you got very, very close.</p>
+
+      <h2>The Saboteur</h2>
+
+      <div class="saboteur-reveal">
+        <span class="reveal-label">&#128274; The Saboteur Is Revealed</span>
+        <div class="reveal-name">[SABOTEUR_NAME]</div>
+        <div class="reveal-subtitle">The ciphers all pointed here. The motive was real. The evidence was there all along.</div>
       </div>
 
       <h2>The Winning Team</h2>
-      <p>Many teams submitted incredible AI artifacts. Some teams earned perfect scores from the Oracle. But only the team with the highest score <strong>who also correctly identified the saboteur</strong> can claim victory.</p>
-      
+      <p>Many teams produced extraordinary work. The Oracle of the Rubric was impressed by the depth of creativity, the precision of the lyrics, the quality of the lesson plans, and the courage of the performances. But only the team with the highest score who correctly named the saboteur can hold the title of <strong style="color:#ffd700;">AI Super Sleuth Champions.</strong></p>
+
       <div class="winner-box">
-        <span class="winner-title">Investigation Champions</span>
-        <p class="winner-team">[Winning Team Name Here]</p>
-        <p style="font-size:14px; color:rgba(224,224,224,0.7); margin-top:8px; margin-bottom:0;">Final Score: [Score] pts</p>
+        <span class="winner-label">&#127942; Investigation Champions</span>
+        <div class="winner-team">[WINNING_TEAM_NAME]</div>
+        <div class="winner-score">Final Score: [SCORE] pts &nbsp;&middot;&nbsp; Accusation: Correct &#10003;</div>
       </div>
 
-      <p>Congratulations to the winners, and to all recruits who participated. You have mastered generative AI tools, analyzed complex clues, and saved Top K-Pop Entertainment from disaster.</p>
+      <p>Congratulations to the winning team. Your prize &mdash; the <strong style="color:#ffd700;">K-Pop Superfan Experience Box</strong> &mdash; is on its way. You earned it.</p>
 
-      <a href="https://topkpop-io-production-ff28.up.railway.app/pages/leaderboard" class="btn">View Final Leaderboard</a>
+      <h2>To Every Team That Played</h2>
+      <p>You did not just play a game. You used AI to create, to investigate, to teach, and to perform. You built K-Pop identities, wrote multilingual lyrics, designed interdisciplinary lessons, and danced. You proved that AI is not something to fear &mdash; it is a tool that amplifies what humans can already do.</p>
 
-      <p style="margin-top:40px;">Dismissed.<br>Anna Im<br><span style="color:#E6005C; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Lead Detective, Top K-Pop</span></p>
+      <p>The case is closed. But the skills you built here? Those are yours to keep.</p>
+
+      <div class="btn-wrapper">
+        <a href="https://www.topkpop.io/pages/leaderboard" class="btn">View the Final Leaderboard</a>
+      </div>
+
     </div>
+
+    <div class="signoff">
+      <div class="signoff-closing">
+        &ldquo;It has been an honor working this case alongside you.<br>
+        The debut is saved. The truth is out. You can stand down, Recruit.&rdquo;
+      </div>
+      <div class="signoff-name">Anna Im</div>
+      <div class="signoff-title">Lead Detective &mdash; TopKpop Investigation Unit (Retired, Case Closed)</div>
+      <div style="margin-top:14px; font-size:11px; color:rgba(224,224,224,0.3); line-height:1.8;">
+        Dr. Robert Pletka &nbsp;&middot;&nbsp; Esther Kim &nbsp;&middot;&nbsp; Anna Im &nbsp;&middot;&nbsp; Pablo Diaz &nbsp;&middot;&nbsp; Jason Chong<br>
+        Fullerton School District &nbsp;&middot;&nbsp; TopKpop.io AI Super Sleuth Investigation
+      </div>
+    </div>
+
     <div class="footer">
-      <p>&copy; 2025 Top K-Pop Entertainment. All rights reserved.</p>
-      <p style="margin-top:5px;">This is an automated briefing. Do not reply directly to this transmission.</p>
+      <p>&copy; 2026 TopKpop.io &mdash; AI Super Sleuth Investigation. All rights reserved.</p>
+      <p style="margin-top:6px;">This is the final transmission. The investigation is closed.</p>
+      <p style="margin-top:6px;"><a href="https://www.topkpop.io">topkpop.io</a> &nbsp;&middot;&nbsp; <a href="https://www.instagram.com/topkpopio">@topkpopio</a></p>
     </div>
+
   </div>
 </body>
 </html>

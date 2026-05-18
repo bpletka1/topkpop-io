@@ -3,87 +3,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to TopKpop.io</title>
+  <title>Your Mission Has Been Accepted — Welcome, Recruit</title>
   <style>
-    body { margin: 0; padding: 0; background-color: #0B0C10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #E0E0E0; }
-    .email-container { max-width: 600px; margin: 0 auto; background-color: #0F1016; border: 1px solid rgba(230,0,92,0.3); border-radius: 8px; overflow: hidden; margin-top: 40px; margin-bottom: 40px; }
-    .header { background-image: url('https://www.topkpop.io/assets/images/hero_bg.jpg'); background-size: cover; background-position: center; padding: 40px; text-align: center; position: relative; }
-    .header-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11,12,16,0.85); }
-    .header-content { position: relative; z-index: 2; }
-    .logo { font-size: 24px; font-weight: 700; letter-spacing: 2px; color: #fff; text-decoration: none; }
-    .logo span { color: #E6005C; }
-    .title { font-size: 28px; font-weight: 700; color: #fff; margin: 20px 0 0; text-transform: uppercase; letter-spacing: 2px; }
-    .subtitle { font-size: 12px; letter-spacing: 3px; color: #E6005C; text-transform: uppercase; margin-top: 10px; }
-    .content { padding: 40px; }
-    p { font-size: 15px; line-height: 1.6; margin-bottom: 20px; color: #D0D0D0; }
-    h2 { font-size: 18px; color: #fff; margin: 30px 0 15px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-    .accent { color: #E6005C; }
-    .btn { display: inline-block; padding: 14px 28px; background-color: #E6005C; color: #fff; text-decoration: none; font-size: 13px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; border-radius: 4px; margin-top: 20px; }
-    .box { background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 20px; margin-bottom: 20px; }
-    .role-title { color: #FFBF00; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
-    .footer { background-color: #08090E; padding: 30px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-    .footer p { font-size: 12px; color: rgba(224,224,224,0.4); margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #0d0d1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color: #e0e0e0; }
+    .email-wrapper { max-width: 640px; margin: 0 auto; background-color: #0d0d1a; }
+    .header-banner { width: 100%; display: block; }
+    .classified-strip {
+      background: linear-gradient(90deg, #1a0533, #2d0a5e, #1a0533);
+      border-top: 2px solid #e91e8c; border-bottom: 2px solid #e91e8c;
+      text-align: center; padding: 10px 20px;
+      font-size: 11px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #e91e8c;
+    }
+    .case-header {
+      background: linear-gradient(135deg, #0d0d1a 0%, #1a0533 50%, #0d0d1a 100%);
+      padding: 36px 40px 28px; border-bottom: 1px solid rgba(233,30,140,0.3);
+    }
+    .case-number { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #ffd700; margin-bottom: 8px; }
+    .case-title { font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1.2; margin-bottom: 6px; }
+    .case-subtitle { font-size: 13px; color: #e91e8c; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+    .meta-block {
+      background: rgba(233,30,140,0.06); border-left: 3px solid #e91e8c;
+      padding: 14px 20px; margin: 0 40px;
+      font-size: 12px; color: rgba(224,224,224,0.7); line-height: 1.8;
+    }
+    .meta-block strong { color: #e91e8c; }
+    .content { padding: 32px 40px; }
+    .content p { font-size: 15px; line-height: 1.8; color: #d0d0d0; margin-bottom: 18px; }
+    .content h2 {
+      font-size: 13px; font-weight: 700; color: #ffd700;
+      text-transform: uppercase; letter-spacing: 3px;
+      margin: 32px 0 14px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,215,0,0.2);
+    }
+    .accent { color: #e91e8c; font-weight: 600; }
+    .gold { color: #ffd700; font-weight: 600; }
+    .intro-quote {
+      background: linear-gradient(135deg, rgba(233,30,140,0.08), rgba(176,106,255,0.08));
+      border: 1px solid rgba(233,30,140,0.25); border-radius: 8px;
+      padding: 24px 28px; margin-bottom: 28px;
+      font-size: 15px; line-height: 1.8; color: #e0e0e0; font-style: italic;
+    }
+    .prize-box {
+      background: linear-gradient(135deg, rgba(255,215,0,0.06), rgba(255,165,0,0.06));
+      border: 1px solid rgba(255,215,0,0.3); border-radius: 8px;
+      padding: 22px 26px; margin-bottom: 28px; text-align: center;
+    }
+    .prize-title { font-size: 15px; font-weight: 700; color: #ffd700; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; }
+    .prize-desc { font-size: 13px; color: rgba(224,224,224,0.8); line-height: 1.8; }
+    .video-link {
+      display: block; background: rgba(176,106,255,0.07);
+      border: 1px solid rgba(176,106,255,0.2); border-radius: 8px;
+      padding: 14px 18px; margin-bottom: 10px; text-decoration: none;
+      color: #ffffff;
+    }
+    .video-title { font-size: 13px; font-weight: 700; color: #ffffff; margin-bottom: 3px; }
+    .video-sub { font-size: 11px; color: rgba(224,224,224,0.5); }
+    .video-arrow { color: #e91e8c; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+    .step-box {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px; padding: 18px 22px; margin-bottom: 12px;
+    }
+    .step-title { font-weight: 700; color: #ffffff; font-size: 14px; margin-bottom: 6px; }
+    .step-title .step-num {
+      display: inline-block; background: linear-gradient(135deg, #e91e8c, #b06aff);
+      color: #fff; font-size: 11px; font-weight: 700;
+      width: 22px; height: 22px; border-radius: 50%;
+      text-align: center; line-height: 22px; margin-right: 8px;
+    }
+    .step-desc { font-size: 13px; color: rgba(224,224,224,0.75); line-height: 1.7; padding-left: 30px; }
+    .step-desc a { color: #b06aff; text-decoration: none; }
+    .step-badge {
+      display: inline-block; background: rgba(255,215,0,0.15);
+      border: 1px solid rgba(255,215,0,0.4); color: #ffd700;
+      font-size: 11px; font-weight: 700; padding: 3px 10px;
+      border-radius: 20px; margin-top: 8px; margin-left: 30px; letter-spacing: 1px;
+    }
+    .timeline-item {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .timeline-item:last-child { border-bottom: none; }
+    .timeline-day {
+      background: rgba(233,30,140,0.15); border: 1px solid rgba(233,30,140,0.35);
+      color: #e91e8c; font-weight: 700; font-size: 10px;
+      padding: 4px 8px; border-radius: 4px; white-space: nowrap;
+      min-width: 56px; text-align: center; letter-spacing: 1px; flex-shrink: 0; margin-top: 2px;
+    }
+    .timeline-desc { font-size: 14px; color: #d0d0d0; line-height: 1.6; }
+    .timeline-desc strong { color: #ffffff; }
+    .btn-wrapper { text-align: center; margin: 28px 0; }
+    .btn {
+      display: inline-block; padding: 16px 36px;
+      background: linear-gradient(135deg, #e91e8c, #b06aff);
+      color: #fff; text-decoration: none; font-size: 13px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; border-radius: 6px;
+    }
+    .btn-outline {
+      display: inline-block; padding: 14px 28px;
+      background: transparent; border: 2px solid #e91e8c;
+      color: #e91e8c; text-decoration: none; font-size: 12px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; border-radius: 6px; margin-left: 10px;
+    }
+    .signoff {
+      background: linear-gradient(135deg, #0d0d1a, #1a0533);
+      border-top: 1px solid rgba(233,30,140,0.2);
+      padding: 28px 40px;
+    }
+    .signoff-warning { font-size: 15px; font-style: italic; color: rgba(224,224,224,0.7); margin-bottom: 20px; line-height: 1.7; }
+    .signoff-name { font-size: 17px; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
+    .signoff-title { font-size: 11px; color: #e91e8c; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .footer { background-color: #08090e; padding: 24px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+    .footer p { font-size: 11px; color: rgba(224,224,224,0.3); margin: 0; line-height: 1.8; }
+    .footer a { color: rgba(176,106,255,0.6); text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="email-container">
-    <div class="header">
-      <div class="header-overlay"></div>
-      <div class="header-content">
-        <a href="https://www.topkpop.io" class="logo"><span>TOP</span>KPOP.IO</a>
-        <h1 class="title">Welcome, Recruit</h1>
-        <p class="subtitle">Investigative Briefing 01</p>
-      </div>
+  <div class="email-wrapper">
+
+    <!-- LOGO BANNER -->
+    <img src="https://www.topkpop.io/assets/email_header_banner.png" alt="TopKpop.io Investigation Unit" class="header-banner" width="640">
+
+    <!-- CLASSIFIED STRIP -->
+    <div class="classified-strip">&#9632; Classified Transmission &mdash; TopKpop.io Investigation Unit &#9632;</div>
+
+    <!-- CASE FILE HEADER -->
+    <div class="case-header">
+      <div class="case-number">Case File #001 &mdash; Initial Briefing</div>
+      <div class="case-title">Your Mission Has Been Accepted.</div>
+      <div class="case-subtitle">Welcome, Recruit &mdash; Operation Debut is Active</div>
     </div>
+
+    <!-- META -->
+    <div class="meta-block">
+      <strong>FROM:</strong> Anna Im, Lead Detective &mdash; TopKpop Investigation Unit<br>
+      <strong>TO:</strong> Newly Recruited AI Super Sleuth<br>
+      <strong>CLASSIFICATION:</strong> Confidential &mdash; Do Not Forward
+    </div>
+
+    <!-- CONTENT -->
     <div class="content">
-      <p><strong>From:</strong> Anna Im, Lead Detective<br>
-      <strong>To:</strong> Top K-Pop Detective Recruit<br>
-      <strong>Subject:</strong> Operation Debut &mdash; Preparation</p>
 
-      <p>I see your registration came through. Welcome to the investigation. I am Anna Im, Lead Detective at Top K-Pop Entertainment. I brought you in because a major sabotage incident has compromised the debut of our newest group, and I cannot trust the people inside this building.</p>
-      
-      <p>You and your team have limited time to find the culprit before the showcase is canceled permanently. To blend in, you must operate as K-Pop trainees. Over the coming weeks, you will complete three <span class="accent">Treasure Troves</span>. Each Trove contains AI missions that, when completed, unlock vital clues. The team that correctly identifies the saboteur and earns the highest score wins.</p>
-
-      <h2>Phase 1: Pre-Requisites</h2>
-      <p>Before you begin investigating, you must set up your operational tools. Complete these three steps immediately:</p>
-      
-      <div class="box">
-        <p style="margin-top:0;"><strong>1. Activate Your AI Teaching Tools</strong><br>
-        Teachers receive free access to ChatGPT for Teachers through the educator access program. Visit <a href="https://chatgpt.com/edu" style="color:#b06aff;">chatgpt.com/edu</a> and verify your school district email. You will need these tools to complete the missions.</p>
-        
-        <p><strong>2. Follow the Official Clue Channel</strong><br>
-        All mission briefings and evidence drops are posted to our private Instagram. Follow <a href="https://www.instagram.com/topkpopio" style="color:#b06aff;">@topkpopio</a> immediately. Clue access requires this step.</p>
-        
-        <p style="margin-bottom:0;"><strong>3. Post Your Welcome Message</strong><br>
-        Once you follow the Instagram account, post a welcome message tagging <strong>@topkpopio</strong>. Include your K-Pop Trainee Name and Team Name. This confirms your registration and earns your first game points.</p>
+      <div class="intro-quote">
+        "Your registration came through. Good. I have been waiting for someone I can trust &mdash; because inside these walls, I cannot trust anyone. My name is Anna Im. I am the Lead Detective assigned to the most high-profile sabotage case in K-Pop history. And now, Recruit, you are part of it."
       </div>
 
-      <h2>Phase 2: The Schedule</h2>
-      <p>The investigation unfolds on a strict timeline. Mark your calendars. All clues drop on the <a href="https://www.instagram.com/topkpopio" style="color:#b06aff;">@topkpopio</a> Instagram account and unlock on the <a href="https://www.topkpop.io/pages/missions" style="color:#b06aff;">Missions Hub</a> simultaneously:</p>
-      
-      <div class="box">
-        <p style="margin-top:0;"><strong>Day 1:</strong> Trove 01 opens (Mission + Clues 1a, 1b, 1c)</p>
-        <p><strong>Day 8 (Sunday 7pm):</strong> Trove 02 opens (Mission + Clues 1, 2, 3)</p>
-        <p><strong>Day 15 (Sunday 7pm):</strong> Trove 03 opens (Mission + Clues 1, 2, 3, 4)</p>
-        <p><strong>Day 22 (Sunday 7pm):</strong> Guess the Saboteur (Final Accusation opens)</p>
-        <p style="margin-bottom:0;"><strong>Day 25 (Midnight):</strong> The Final Reveal</p>
+      <p>Here is what we know: <span class="accent">Jeanie KMZ</span>, one of the most anticipated K-Pop debuts of the year, was sabotaged from the inside. Someone with access, someone with motive, someone who knew exactly how to make it look like an accident. The showcase is in jeopardy. The label is covering it up. And I have seven suspects and not enough time.</p>
+
+      <p>That is where you come in. You and your team will go undercover as <span class="gold">K-Pop AI Super Sleuths</span> &mdash; part trainee, part investigator. You will complete three <span class="accent">Treasure Troves</span> of AI-powered missions. Each mission you complete unlocks a new clue. The team that earns the highest score <em>and</em> correctly identifies the saboteur wins the case &mdash; and the prize.</p>
+
+      <!-- PRIZE -->
+      <div class="prize-box">
+        <div class="prize-title">&#127942; Grand Prize</div>
+        <div class="prize-desc">
+          A <strong style="color:#ffd700;">$250 Disney Gift Card</strong> + exclusive admission for you and a guest to <strong style="color:#ffd700;">The Preservation Room</strong> &mdash; Fullerton&rsquo;s hidden speakeasy.<br>
+          Digital badges and recognition will honor exceptional creativity, problem-solving, and mission achievement.
+        </div>
       </div>
 
-      <h2>Phase 3: Understand the Suspects</h2>
-      <p>There are seven suspects. Read their dossiers carefully. The saboteur is one of them. Pay attention to their motives, their roles, and their alibis.</p>
-      <a href="https://www.topkpop.io/pages/cast" class="btn" style="margin-top:0; margin-bottom:30px;">Review the Dossiers</a>
+      <!-- INTRO VIDEOS -->
+      <h2>&#127916; Watch These First</h2>
+      <p>Before you do anything else, watch these two videos. They establish the storyline and give you your first briefing from the field.</p>
 
-      <h2>Next Steps</h2>
-      <p>Your first mission &mdash; Treasure Trove 01 &mdash; is active now. You must create your K-Pop trainee identity using AI before you can proceed with the investigation.</p>
-      <a href="https://www.topkpop.io/pages/missions" class="btn">Start Trove 01</a>
+      <a href="https://vimeo.com/1141813845?share=copy&fl=sv&fe=ci" class="video-link">
+        <div class="video-arrow">&#9654; WATCH NOW</div>
+        <div class="video-title">Welcome &amp; Recruitment Briefing</div>
+        <div class="video-sub">Your official induction into the investigation &mdash; watch before you begin</div>
+      </a>
+      <a href="https://vimeo.com/1139810578?share=copy&fl=sv&fe=ci" class="video-link">
+        <div class="video-arrow">&#9654; WATCH NOW</div>
+        <div class="video-title">&ldquo;Breaking News of Sabotage&rdquo; &mdash; Jeanie KMZ Storyline Intro</div>
+        <div class="video-sub">The incident that started everything &mdash; know your case before you investigate</div>
+      </a>
 
-      <p style="margin-top:40px;">Good luck, Recruit. Trust no one.<br>The saboteur is watching.</p>
-      <p style="color:#fff; font-weight:bold;">Anna Im<br><span style="color:#E6005C; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Lead Detective, Top K-Pop</span></p>
+      <!-- PHASE 1 -->
+      <h2>Phase 1 &mdash; Operational Setup (Complete Immediately)</h2>
+      <p>Before you can access the missions, complete these three steps. They are your cover, your tools, and your first proof of commitment to the investigation.</p>
+
+      <div class="step-box">
+        <div class="step-title"><span class="step-num">1</span> Activate ChatGPT for Teachers</div>
+        <div class="step-desc">You have free access to ChatGPT for Teachers through the educator access program. Visit <a href="https://chatgpt.com/edu">chatgpt.com/edu</a> and verify your school district email. You will use AI tools to complete every mission. Most activities are optimized for ChatGPT, though other AI platforms are permitted.</div>
+      </div>
+
+      <div class="step-box">
+        <div class="step-title"><span class="step-num">2</span> Follow @topkpopio on Instagram</div>
+        <div class="step-desc">All evidence drops, clue videos, and mission briefings are posted to our private Instagram. Go to <a href="https://www.instagram.com/topkpopio">@topkpopio</a> and send a follow request. Wait for approval. Clue access requires this step &mdash; do not skip it.</div>
+      </div>
+
+      <div class="step-box">
+        <div class="step-title"><span class="step-num">3</span> Post Your Welcome Message</div>
+        <div class="step-desc">Once approved on Instagram, post a welcome message tagging <strong>@topkpopio</strong> and using <strong>#TopKpopSleuth</strong>. Include your K-Pop Trainee Name and your Team Name. You may post publicly, use a K-Pop persona handle, or DM us a private Google Drive link &mdash; all three count.</div>
+        <div class="step-badge">+25 Bonus Points Awarded</div>
+      </div>
+
+      <!-- PHASE 2 -->
+      <h2>Phase 2 &mdash; The Investigation Timeline</h2>
+      <p>The case unfolds on a strict schedule. Every Sunday at 7 PM PT, a new Trove unlocks. Miss a deadline and you fall behind. The saboteur is counting on you to lose focus.</p>
+
+      <div class="timeline-item">
+        <div class="timeline-day">DAY 1</div>
+        <div class="timeline-desc"><strong>Trove 01 Opens</strong> &mdash; Create your K-Pop AI avatar and promotional poster. Your identity begins here.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-day">DAY 8</div>
+        <div class="timeline-desc"><strong>Trove 02 Opens</strong> &mdash; Sunday 7 PM PT. The lyrical evidence drops. Analyze the music. The clues are in the words.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-day">DAY 15</div>
+        <div class="timeline-desc"><strong>Trove 03 Opens</strong> &mdash; Sunday 7 PM PT. The final evidence. Unpack the curriculum, build the lesson, perform the dance.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-day">DAY 22</div>
+        <div class="timeline-desc"><strong>Final Accusation Opens</strong> &mdash; Sunday 7 PM PT. Name your suspect. You have 48 hours. Wrong accusations are disqualified.</div>
+      </div>
+      <div class="timeline-item" style="border-bottom:none;">
+        <div class="timeline-day">DAY 25</div>
+        <div class="timeline-desc"><strong>Midnight &mdash; The Reveal</strong> &mdash; The saboteur is unmasked. The case is closed. The winner is announced.</div>
+      </div>
+
+      <!-- PHASE 3 -->
+      <h2>Phase 3 &mdash; Study the Suspects</h2>
+      <p>There are <span class="gold">seven suspects</span>. Each one had access. Each one had a reason. The saboteur is exactly one of them &mdash; and the clues in the Troves point to a single answer. Read every dossier. Study the motives. Pay attention to what they are <em>not</em> saying.</p>
+
+      <div class="btn-wrapper">
+        <a href="https://www.topkpop.io/pages/cast" class="btn">Review the Dossiers</a>
+        <a href="https://www.topkpop.io/pages/missions" class="btn-outline">Missions Hub</a>
+      </div>
+
+      <p style="font-size:12px; color:rgba(224,224,224,0.4); text-align:center; margin-top:-10px;">
+        Complete the <a href="https://drive.google.com/file/d/1lSv2stw3AXvM9AypUg5A6UcuMQkDgfxp/view" style="color:#b06aff;">Teacher Prerequisite Checklist</a> before the event begins &nbsp;&middot;&nbsp; <a href="https://www.topkpop.io" style="color:#b06aff;">topkpop.io</a>
+      </p>
+
     </div>
+
+    <!-- SIGN-OFF -->
+    <div class="signoff">
+      <div class="signoff-warning">
+        &ldquo;I will be watching the leaderboard. So will the saboteur.<br>
+        Trust no one. The investigation begins now.&rdquo;
+      </div>
+      <div class="signoff-name">Anna Im</div>
+      <div class="signoff-title">Lead Detective &mdash; TopKpop Investigation Unit</div>
+      <div style="margin-top:14px; font-size:11px; color:rgba(224,224,224,0.3); line-height:1.8;">
+        Dr. Robert Pletka &nbsp;&middot;&nbsp; Esther Kim &nbsp;&middot;&nbsp; Anna Im &nbsp;&middot;&nbsp; Pablo Diaz &nbsp;&middot;&nbsp; Jason Chong<br>
+        Fullerton School District &nbsp;&middot;&nbsp; TopKpop.io AI Super Sleuth Investigation
+      </div>
+    </div>
+
+    <!-- FOOTER -->
     <div class="footer">
-      <p>&copy; 2026 Top K-Pop Entertainment. All rights reserved.</p>
-      <p style="margin-top:5px;">This is an automated briefing. Do not reply directly to this transmission.</p>
+      <p>&copy; 2026 TopKpop.io &mdash; AI Super Sleuth Investigation. All rights reserved.</p>
+      <p style="margin-top:6px;">This is a classified automated transmission. Do not reply directly to this message.</p>
+      <p style="margin-top:6px;"><a href="https://www.topkpop.io">topkpop.io</a> &nbsp;&middot;&nbsp; <a href="https://www.instagram.com/topkpopio">@topkpopio</a></p>
     </div>
+
   </div>
 </body>
 </html>

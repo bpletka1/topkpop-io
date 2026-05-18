@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Identity Confirmed — Trove 01 Complete</title>
+  <title>Trove 01 Is Live — Your First Mission Awaits</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background-color: #0d0d1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color: #e0e0e0; }
     .email-wrapper { max-width: 640px; margin: 0 auto; background-color: #0d0d1a; }
     .header-banner { width: 100%; display: block; }
-    .classified-strip {
+    .unlock-strip {
       background: linear-gradient(90deg, #0a2a1a, #0d3a22, #0a2a1a);
       border-top: 2px solid #00b464; border-bottom: 2px solid #00b464;
-      text-align: center; padding: 10px 20px;
-      font-size: 11px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #00b464;
+      text-align: center; padding: 12px 20px;
+      font-size: 12px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: #00b464;
     }
     .case-header {
       background: linear-gradient(135deg, #0d0d1a 0%, #0a2a1a 50%, #0d0d1a 100%);
       padding: 36px 40px 28px; border-bottom: 1px solid rgba(0,180,100,0.3);
     }
     .case-number { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #00b464; margin-bottom: 8px; }
-    .case-title { font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1.2; margin-bottom: 6px; }
+    .case-title { font-size: 30px; font-weight: 700; color: #ffffff; line-height: 1.2; margin-bottom: 6px; }
     .case-subtitle { font-size: 13px; color: #00b464; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
     .meta-block {
       background: rgba(0,180,100,0.06); border-left: 3px solid #00b464;
@@ -37,14 +37,15 @@
       border-bottom: 1px solid rgba(255,215,0,0.2);
     }
     .accent { color: #00b464; font-weight: 600; }
-    .score-box {
+    .mission-box {
       background: rgba(0,180,100,0.08); border: 1px solid rgba(0,180,100,0.3);
-      border-radius: 8px; padding: 28px; margin-bottom: 28px; text-align: center;
+      border-radius: 10px; padding: 28px; margin-bottom: 28px;
     }
-    .score-label { font-size: 11px; letter-spacing: 3px; color: #00b464; text-transform: uppercase; margin-bottom: 12px; display: block; font-weight: 700; }
-    .score-num { font-size: 52px; font-weight: 700; color: #fff; line-height: 1; }
-    .score-pts { font-size: 16px; color: rgba(224,224,224,0.5); font-weight: 400; }
-    .score-note { font-size: 12px; color: rgba(224,224,224,0.4); margin-top: 12px; }
+    .mission-label { font-size: 11px; letter-spacing: 3px; color: #00b464; text-transform: uppercase; margin-bottom: 14px; display: block; font-weight: 700; }
+    .deliverable { display: flex; align-items: flex-start; margin-bottom: 14px; }
+    .deliverable-num { background: #00b464; color: #0d0d1a; font-size: 11px; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px; margin-top: 2px; }
+    .deliverable-text { font-size: 14px; color: #d0d0d0; line-height: 1.6; }
+    .deliverable-text strong { color: #fff; }
     .clue-box {
       background: rgba(255,215,0,0.05); border: 1px solid rgba(255,215,0,0.2);
       border-left: 3px solid #ffd700; border-radius: 8px;
@@ -52,19 +53,20 @@
     }
     .clue-label { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #ffd700; margin-bottom: 12px; }
     .clue-text { font-style: italic; font-size: 16px; color: #ffd78a; line-height: 1.7; }
-    .clue-note { font-size: 12px; color: rgba(224,224,224,0.45); margin-top: 12px; font-style: normal; }
+    .deadline-box {
+      background: rgba(233,30,140,0.06); border: 1px solid rgba(233,30,140,0.2);
+      border-radius: 8px; padding: 18px 22px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .deadline-icon { font-size: 22px; flex-shrink: 0; }
+    .deadline-text { font-size: 13px; color: rgba(224,224,224,0.8); line-height: 1.6; }
+    .deadline-text strong { color: #e91e8c; }
     .btn-wrapper { text-align: center; margin: 28px 0; }
     .btn {
-      display: inline-block; padding: 16px 36px;
-      background: linear-gradient(135deg, #e91e8c, #b06aff);
+      display: inline-block; padding: 16px 40px;
+      background: linear-gradient(135deg, #00b464, #007a42);
       color: #fff; text-decoration: none; font-size: 13px; font-weight: 700;
       letter-spacing: 2px; text-transform: uppercase; border-radius: 6px;
-    }
-    .btn-outline {
-      display: inline-block; padding: 14px 28px;
-      background: transparent; border: 2px solid #00b464;
-      color: #00b464; text-decoration: none; font-size: 12px; font-weight: 700;
-      letter-spacing: 2px; text-transform: uppercase; border-radius: 6px; margin-left: 10px;
     }
     .signoff {
       background: linear-gradient(135deg, #0d0d1a, #0a1a10);
@@ -83,57 +85,67 @@
 
     <img src="https://www.topkpop.io/assets/email_header_banner.png" alt="TopKpop.io Investigation Unit" class="header-banner" width="640">
 
-    <div class="classified-strip">&#9632; Evidence Logged &mdash; Trove 01 Evaluation Complete &#9632;</div>
+    <div class="unlock-strip">&#128274; UNLOCKED &mdash; Treasure Trove 01 Is Now Live &#128274;</div>
 
     <div class="case-header">
-      <div class="case-number">Case Update &mdash; Identity Confirmed</div>
-      <div class="case-title">Your Cover is Established.</div>
-      <div class="case-subtitle">Treasure Trove 01 &mdash; Mission Complete</div>
+      <div class="case-number">Mission Briefing &mdash; Week 1</div>
+      <div class="case-title">Your First Mission Is Active.</div>
+      <div class="case-subtitle">Treasure Trove 01 &mdash; Identity &amp; Cover</div>
     </div>
 
     <div class="meta-block">
       <strong>FROM:</strong> Anna Im, Lead Detective &mdash; TopKpop Investigation Unit<br>
-      <strong>TO:</strong> Confirmed AI Super Sleuth Recruit<br>
-      <strong>CLASSIFICATION:</strong> Confidential &mdash; Case File Update
+      <strong>TO:</strong> AI Super Sleuth Recruit<br>
+      <strong>CLASSIFICATION:</strong> Confidential &mdash; Mission Briefing
     </div>
 
     <div class="content">
 
-      <p>I have reviewed your submission. Your K-Pop avatar and promotional poster have been processed by the <span class="accent">Oracle of the Rubric</span>. Your identity within the industry is now established. You are no longer just a recruit &mdash; you are embedded.</p>
+      <p>Recruit. The first Treasure Trove is now live. This is not a warm-up. The investigation begins the moment you open this mission. Every choice you make &mdash; every detail you build into your cover identity &mdash; will matter when the Final Accusation arrives.</p>
 
-      <p>The Oracle does not give points lightly. What you earned reflects the depth of your creative work. Study the score carefully. The gap between you and the top of the leaderboard is not just about points &mdash; it is about who is paying attention.</p>
+      <p>Jeanie KMZ was sabotaged. Her debut was stolen from her. The evidence is buried inside the K-Pop industry, and you are the only one positioned to find it. But first, you need a cover. You need an identity inside the label.</p>
 
-      <div class="score-box">
-        <span class="score-label">Trove 01 Score Recorded</span>
-        <div class="score-num">*SCORE* <span class="score-pts">pts</span></div>
-        <div class="score-note">Your actual Oracle score is reflected above. Check the leaderboard to see where you stand.</div>
+      <h2>Trove 01 Deliverables</h2>
+
+      <div class="mission-box">
+        <span class="mission-label">&#128203; Your Mission &mdash; 3 Deliverables</span>
+        <div class="deliverable">
+          <div class="deliverable-num">1</div>
+          <div class="deliverable-text"><strong>Create Your K-Pop Avatar</strong> — Use AI to design your idol persona. Name, backstory, visual style, cultural identity. This is your cover inside the label.</div>
+        </div>
+        <div class="deliverable">
+          <div class="deliverable-num">2</div>
+          <div class="deliverable-text"><strong>Design a Promotional Poster</strong> — Use AI to create a debut poster for your avatar. It must look like it belongs on a real K-Pop billboard.</div>
+        </div>
+        <div class="deliverable">
+          <div class="deliverable-num">3</div>
+          <div class="deliverable-text"><strong>Decode the First Cipher</strong> — Hidden in the Trove 01 briefing is the first poetic clue. Find it. Document it. You will need it for your Final Accusation.</div>
+        </div>
       </div>
 
-      <h2>What Your Score Unlocks</h2>
-      <p>Your Trove 01 score is now live on the leaderboard. But points are only half the mission. Embedded in the Trove 01 briefing were the <span class="accent">first set of clues</span>. If you have not documented them, go back now. You will need every fragment for your Final Accusation.</p>
-
-      <h2>A Fragment Has Reached Me</h2>
-      <p>I intercepted this from a source inside the label. It is connected to Trove 02. Read it carefully. It is not poetry for its own sake &mdash; it is evidence.</p>
+      <h2>The First Clue</h2>
+      <p>I intercepted this fragment before it was destroyed. It is the first piece of the cipher. Read it carefully &mdash; it is not decoration.</p>
 
       <div class="clue-box">
-        <div class="clue-label">&#128274; Intercepted Cipher &mdash; Trove 02 Preview</div>
-        <div class="clue-text">&ldquo;Where knives hum and spices rise like smoke, a son stirs dreams his father once broke&hellip;&rdquo;</div>
-        <div class="clue-note">Think carefully about which suspect this points to. Review the dossiers before Trove 02 opens.</div>
+        <div class="clue-label">&#128274; Intercepted Cipher &mdash; Fragment 01</div>
+        <div class="clue-text">&ldquo;In the city where neon bleeds into rain, a voice once silenced stirs again&hellip;&rdquo;</div>
       </div>
 
-      <p>Trove 02 unlocks automatically on <strong style="color:#fff;">Sunday at 7 PM PT, Week 2.</strong> You will be tasked with producing the Evidence Song &mdash; a multilingual track that weaves the clues into the lyrics. The Oracle will score your lyrical precision.</p>
+      <div class="deadline-box">
+        <div class="deadline-icon">&#9201;</div>
+        <div class="deadline-text">Trove 01 is due before <strong>Trove 02 unlocks on Sunday at 7 PM PT, Week 2.</strong> Submit early. The Oracle scores on submission &mdash; your score is locked the moment you submit.</div>
+      </div>
 
       <div class="btn-wrapper">
-        <a href="https://www.topkpop.io/pages/leaderboard" class="btn">Check the Leaderboard</a>
-        <a href="https://www.topkpop.io/pages/cast" class="btn-outline">Review Suspects</a>
+        <a href="https://www.topkpop.io/pages/trove-01" class="btn">Open Trove 01 Now</a>
       </div>
 
     </div>
 
     <div class="signoff">
       <div class="signoff-warning">
-        &ldquo;Stay sharp, Recruit. The saboteur knows you are watching.<br>
-        So am I. Trust no one.&rdquo;
+        &ldquo;Your cover identity is your most important asset, Recruit.<br>
+        Build it carefully. The saboteur will be watching. Trust no one.&rdquo;
       </div>
       <div class="signoff-name">Anna Im</div>
       <div class="signoff-title">Lead Detective &mdash; TopKpop Investigation Unit</div>
