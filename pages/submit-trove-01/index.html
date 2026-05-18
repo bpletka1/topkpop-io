@@ -147,42 +147,24 @@
     <!-- Avatar Description -->
     <div class="form-section" style="border-color:rgba(138,43,226,0.3);">
       <p class="form-section-label" style="color:#b06aff;">Step 03b &nbsp;&middot;&nbsp; Required for Scoring</p>
-      <h2 class="form-section-title">Describe Your Avatar</h2>
-      <p class="form-section-desc">The Oracle of the Rubric scores your avatar based on your description. Describe what you created: the idol persona name, visual style, AI tool used, K-Pop aesthetic choices, and any cultural or character details. The more specific you are, the more accurately the Oracle can evaluate your work.</p>
+      <h2 class="form-section-title">Your Avatar AI Prompt</h2>
+      <p class="form-section-desc">Copy and paste the prompt you used to generate your avatar. The Oracle uses your prompt to evaluate your work.</p>
       <div class="field-group">
-        <label class="field-label" for="avatarDescription">Avatar Description <span class="field-required">*</span></label>
-        <textarea class="field-input" id="avatarDescription" name="avatar_description" rows="5" required placeholder="Example: Our idol is named Aria Sol. We used OpenArt AI to generate a K-Pop avatar with neon-lit studio lighting, holographic costume elements, and a futuristic Seoul cityscape background. The avatar wears a silver and purple outfit with LED-style accessories. The style blends traditional Korean hanbok silhouette with cyberpunk aesthetics..." style="resize:vertical;"></textarea>
-        <p class="field-hint">Include: idol name, AI tool used, visual style, costume/setting details, cultural references, and what makes it distinctly K-Pop.</p>
+        <label class="field-label" for="avatarDescription">Avatar AI Prompt <span class="field-required">*</span></label>
+        <textarea class="field-input" id="avatarDescription" name="avatar_description" rows="5" required placeholder="Paste the exact prompt you gave the AI to create your avatar..." style="resize:vertical;"></textarea>
+        <p class="field-hint">Copy and paste the exact prompt you entered into the AI tool (e.g. OpenArt, Adobe Firefly, Canva AI, etc.).</p>
       </div>
     </div>
 
     <!-- Poster Description -->
     <div class="form-section" style="border-color:rgba(138,43,226,0.3);">
       <p class="form-section-label" style="color:#b06aff;">Step 04b &nbsp;&middot;&nbsp; Required for Scoring</p>
-      <h2 class="form-section-title">Describe Your Promotional Poster</h2>
-      <p class="form-section-desc">Describe your promotional poster so the Oracle can evaluate it. Include the design concept, AI tool used, text/typography choices, color palette, imagery, and how it represents your idol persona.</p>
+      <h2 class="form-section-title">Your Poster AI Prompt</h2>
+      <p class="form-section-desc">Copy and paste the prompt you used to generate your promotional poster. The Oracle uses your prompt to evaluate your work.</p>
       <div class="field-group">
-        <label class="field-label" for="posterDescription">Poster Description <span class="field-required">*</span></label>
-        <textarea class="field-input" id="posterDescription" name="poster_description" rows="5" required placeholder="Example: Our poster was created using Adobe Firefly. It features Aria Sol in a dramatic split-screen layout with Korean text reading 'New Era' across the top. The color palette is deep purple and electric blue with gold accents. The background shows a stylized Seoul skyline at night. The poster includes a debut date, the idol's name in both English and Hangul, and a QR code element for the fictional debut single..." style="resize:vertical;"></textarea>
-        <p class="field-hint">Include: AI tool used, layout, colors, text/typography, imagery, and how it captures K-Pop promotional style.</p>
-      </div>
-    </div>
-
-    <!-- Oracle Feedback -->
-    <div class="form-section">
-      <p class="form-section-label">Step 05 &nbsp;&middot;&nbsp; Optional but Recommended</p>
-      <h2 class="form-section-title">Oracle Feedback Screenshot</h2>
-      <p class="form-section-desc">Upload a screenshot of the feedback you received from the Oracle of the Rubric. This is optional but demonstrates your engagement with the formative feedback process.</p>
-
-      <div class="field-group">
-        <label class="field-label">Oracle Feedback Screenshot</label>
-        <div class="upload-zone" id="oracleZone">
-          <input type="file" name="file3" id="file3" accept="image/*,.pdf,.heic,.heif" />
-          <div class="upload-icon">🔮</div>
-          <p class="upload-text">Click or drag to upload Oracle feedback</p>
-          <p class="upload-sub">JPG, PNG, PDF &nbsp;&middot;&nbsp; Max 100MB</p>
-          <p class="upload-filename" id="oracleFilename"></p>
-        </div>
+        <label class="field-label" for="posterDescription">Poster AI Prompt <span class="field-required">*</span></label>
+        <textarea class="field-input" id="posterDescription" name="poster_description" rows="5" required placeholder="Paste the exact prompt you gave the AI to create your poster..." style="resize:vertical;"></textarea>
+        <p class="field-hint">Copy and paste the exact prompt you entered into the AI tool (e.g. Adobe Firefly, Canva AI, Midjourney, etc.).</p>
       </div>
     </div>
 
@@ -262,7 +244,6 @@
   }
   setupUpload('file1', 'avatarFilename', 'avatarZone');
   setupUpload('file2', 'posterFilename', 'posterZone');
-  setupUpload('file3', 'oracleFilename', 'oracleZone');
 
   function showError(msg) {
     const banner = document.getElementById('errorBanner');

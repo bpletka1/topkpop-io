@@ -160,24 +160,8 @@
       </div>
     </div>
 
-    <!-- Oracle Feedback -->
     <div class="form-section">
       <p class="form-section-label">Step 05 &nbsp;&middot;&nbsp; Optional</p>
-      <h2 class="form-section-title">Oracle Feedback Screenshot</h2>
-      <p class="form-section-desc">Upload a screenshot of your Evidence Song Rubric Evaluator feedback.</p>
-      <div class="field-group">
-        <div class="upload-zone" id="oracleZone">
-          <input type="file" name="oracle_screenshot" id="oracle_screenshot" accept="image/*,.pdf" />
-          <div class="upload-icon">🔮</div>
-          <p class="upload-text">Click or drag to upload Oracle feedback</p>
-          <p class="upload-sub">JPG, PNG, PDF &nbsp;&middot;&nbsp; Max 10MB</p>
-          <p class="upload-filename" id="oracleFilename"></p>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <p class="form-section-label">Step 06 &nbsp;&middot;&nbsp; Optional</p>
       <h2 class="form-section-title">Notes for the Evaluator</h2>
       <div class="field-group">
         <textarea class="field-input" name="notes" rows="4" placeholder="Optional notes about your creative process, AI tools used, or anything else you'd like the evaluator to know..." style="resize:vertical;"></textarea>
@@ -234,7 +218,6 @@
   setupUpload('file1', 'lyricsFilename', 'lyricsZone');
   setupUpload('file2', 'musicFilename', 'musicZone');
   setupUpload('file3', 'videoFilename', 'videoZone');
-  setupUpload('oracle_screenshot', 'oracleFilename', 'oracleZone');
 
   function showError(msg) {
     const banner = document.getElementById('errorBanner');

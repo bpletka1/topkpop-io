@@ -180,21 +180,6 @@
       </div>
     </div>
 
-    <!-- Oracle Feedback -->
-    <div class="form-section">
-      <p class="form-section-label">Step 07 &nbsp;&middot;&nbsp; Optional</p>
-      <h2 class="form-section-title">Oracle Feedback Screenshot</h2>
-      <div class="field-group">
-        <div class="upload-zone" id="oracleZone">
-          <input type="file" name="file2" id="file2" accept="image/*,.pdf,.heic,.heif" />
-          <div class="upload-icon">🔮</div>
-          <p class="upload-text">Click or drag to upload Oracle feedback</p>
-          <p class="upload-sub">JPG, PNG, PDF &nbsp;&middot;&nbsp; Max 100MB</p>
-          <p class="upload-filename" id="oracleFilename"></p>
-        </div>
-      </div>
-    </div>
-
     <div id="errorBanner" class="error-banner"></div>
     <div style="text-align:center; padding: 0 0 20px;">
       <p style="font-size:0.82rem; color:rgba(224,224,224,0.45); margin-bottom:20px; line-height:1.6;">By submitting, you confirm this is your team's original work. Submissions are final.</p>
@@ -241,7 +226,6 @@
     zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('dragover'); if (e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; filename.textContent = '✓ ' + e.dataTransfer.files[0].name; filename.style.display = 'block'; zone.style.borderColor = 'var(--crimson)'; } });
   }
   setupUpload('file1', 'lessonFilename', 'lessonZone');
-  setupUpload('file2', 'oracleFilename', 'oracleZone');
 
   function showError(msg) {
     const banner = document.getElementById('errorBanner');
