@@ -178,31 +178,39 @@
         <span class="panel-badge badge-pending">Set Before Launch</span>
       </div>
       <div class="panel-body">
-        <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.6); margin-bottom:24px;">These dates control when Trove 02 and Trove 03 automatically unlock on the Missions page. Trove 01 is always visible. Set your game start date first, then fill in the Monday unlock dates for each subsequent week.</p>
-        <div class="unlock-grid">
-          <div class="unlock-field">
-            <label>Game Start Date (Day 1 — Monday)</label>
+        <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.6); margin-bottom:16px;">Enter the game start date and click <strong style="color:#fff;">Auto-Calculate Schedule</strong> — all drop dates will fill in automatically based on the fluid schedule (Trove 2 = Day 8 Sunday 7pm, Trove 3 = Day 15 Sunday 7pm, Guess the Saboteur = Day 22 Sunday 7pm, Final Reveal = Day 25 midnight). Then save.</p>
+        <div style="display:flex; gap:16px; align-items:flex-end; margin-bottom:24px;">
+          <div class="unlock-field" style="flex:1;">
+            <label>Game Start Date (Day 1)</label>
             <input type="datetime-local" id="game-start-date" />
             <p class="unlock-note">The first day participants can access Trove 01.</p>
           </div>
+          <button class="unlock-save-btn" style="margin-top:0; margin-bottom:22px; white-space:nowrap;" onclick="autoCalcDates()">⚡ Auto-Calculate Schedule</button>
+        </div>
+        <div class="unlock-grid">
           <div class="unlock-field">
-            <label>Trove 02 Unlock — Week 2 Monday</label>
+            <label>Trove 02 Unlock — Day 8 (Sunday 7pm PT)</label>
             <input type="datetime-local" id="trove02-date" />
-            <p class="unlock-note">Recommended: 7 days after game start at 6:00 AM.</p>
+            <p class="unlock-note">Auto-filled: 7 days after start, Sunday 7:00 PM PT.</p>
           </div>
           <div class="unlock-field">
-            <label>Trove 03 Unlock — Week 3 Monday</label>
+            <label>Trove 03 Unlock — Day 15 (Sunday 7pm PT)</label>
             <input type="datetime-local" id="trove03-date" />
-            <p class="unlock-note">Recommended: 14 days after game start at 6:00 AM.</p>
+            <p class="unlock-note">Auto-filled: 14 days after start, Sunday 7:00 PM PT.</p>
           </div>
           <div class="unlock-field">
-            <label>Final Accusation Deadline — Day 32</label>
+            <label>Guess the Saboteur — Day 22 (Sunday 7pm PT)</label>
             <input type="datetime-local" id="accusation-date" />
-            <p class="unlock-note">The deadline for all Final Accusation submissions.</p>
+            <p class="unlock-note">Auto-filled: 21 days after start, Sunday 7:00 PM PT.</p>
+          </div>
+          <div class="unlock-field">
+            <label>Final Reveal — Day 25 (Midnight PT)</label>
+            <input type="datetime-local" id="reveal-date" />
+            <p class="unlock-note">Auto-filled: 24 days after start at midnight PT.</p>
           </div>
         </div>
-        <button class="unlock-save-btn" onclick="saveDates()">Save Unlock Dates</button>
-        <p class="unlock-save-note">Phase 2: dates are saved to this browser only. Phase 3: dates will sync to the server and update the Missions page for all visitors automatically.</p>
+        <button class="unlock-save-btn" onclick="saveDates()">Save Full Schedule</button>
+        <p class="unlock-save-note">Dates sync to the server immediately and update the Missions page for all participants. The scheduler runs every Sunday at 7pm PT to send unlock emails and post to Instagram.</p>
       </div>
     </div>
 
@@ -485,9 +493,10 @@ async function loadDashboard() {
     if (settingsRes.ok) {
       const { data } = await settingsRes.json();
       if (data.game_start_date) document.getElementById('game-start-date').value = data.game_start_date.slice(0,16);
+      if (data.reveal_unlock) document.getElementById('reveal-date').value = data.reveal_unlock.slice(0,16);
       if (data.trove2_unlock)   document.getElementById('trove02-date').value = data.trove2_unlock.slice(0,16);
       if (data.trove3_unlock)   document.getElementById('trove03-date').value = data.trove3_unlock.slice(0,16);
-      if (data.accusation_close) document.getElementById('accusation-date').value = data.accusation_close.slice(0,16);
+      if (data.accusation_open) document.getElementById('accusation-date').value = data.accusation_open.slice(0,16);
       if (data.accusation_close) {
         const diff = Math.ceil((new Date(data.accusation_close) - new Date()) / 86400000);
         document.getElementById('stat-days').textContent = diff > 0 ? diff : 0;
@@ -598,26 +607,59 @@ async function rescoreSubmission(submissionId, troveId) {
   }
 }
 
+function autoCalcDates() {
+  const startVal = document.getElementById('game-start-date').value;
+  if (!startVal) { alert('Please enter a Game Start Date first.'); return; }
+  const start = new Date(startVal);
+
+  // Helper: add days, then force to Sunday 7pm PT (19:00)
+  function addDaysSunday7pm(base, days) {
+    const d = new Date(base);
+    d.setDate(d.getDate() + days);
+    d.setHours(19, 0, 0, 0); // 7pm local — admin should be in PT
+    return toDatetimeLocal(d);
+  }
+  function addDaysMidnight(base, days) {
+    const d = new Date(base);
+    d.setDate(d.getDate() + days);
+    d.setHours(0, 0, 0, 0);
+    return toDatetimeLocal(d);
+  }
+  function toDatetimeLocal(d) {
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  document.getElementById('trove02-date').value   = addDaysSunday7pm(start, 7);
+  document.getElementById('trove03-date').value   = addDaysSunday7pm(start, 14);
+  document.getElementById('accusation-date').value = addDaysSunday7pm(start, 21);
+  document.getElementById('reveal-date').value    = addDaysMidnight(start, 24);
+
+  alert('\u2713 Schedule auto-calculated! Review the dates below, then click Save Full Schedule.');
+}
+
 async function saveDates() {
-  const start = document.getElementById('game-start-date').value;
-  const t02   = document.getElementById('trove02-date').value;
-  const t03   = document.getElementById('trove03-date').value;
-  const acc   = document.getElementById('accusation-date').value;
+  const start  = document.getElementById('game-start-date').value;
+  const t02    = document.getElementById('trove02-date').value;
+  const t03    = document.getElementById('trove03-date').value;
+  const acc    = document.getElementById('accusation-date').value;
+  const reveal = document.getElementById('reveal-date').value;
   try {
     const res = await fetch('/api/admin/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', password: ADMIN_PASS },
       body: JSON.stringify({
-        game_start_date:  start || null,
-        trove2_unlock:    t02 || null,
-        trove3_unlock:    t03 || null,
-        accusation_open:  start || null,
-        accusation_close: acc || null,
+        game_start_date:  start  || null,
+        trove2_unlock:    t02    || null,
+        trove3_unlock:    t03    || null,
+        accusation_open:  acc    || null,
+        accusation_close: reveal || null,
+        reveal_unlock:    reveal || null,
       })
     });
     const data = await res.json();
     if (res.ok) {
-      alert('\u2713 Dates saved to server! The game schedule is now live for all participants.');
+      alert('\u2713 Full schedule saved! The game is now live for all participants.');
     } else {
       alert('Error saving dates: ' + (data.error || 'Unknown error'));
     }

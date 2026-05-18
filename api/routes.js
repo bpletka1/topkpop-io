@@ -754,7 +754,7 @@ router.get('/admin/settings', adminAuth, async (req, res) => {
 
 router.post('/admin/settings', adminAuth, async (req, res) => {
   const allowed = ['game_start_date', 'trove1_unlock', 'trove2_unlock', 'trove3_unlock',
-    'accusation_open', 'accusation_close', 'correct_saboteur'];
+    'accusation_open', 'accusation_close', 'reveal_unlock', 'correct_saboteur'];
   const updates = {};
   allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
   updates.updated_at = new Date().toISOString();
@@ -951,9 +951,10 @@ async function sendWeeklyScoreSummary() {
 }
 
 function startScheduler() {
-  // Run every Monday at 8:00 AM Pacific (16:00 UTC) — Trove unlock checks
-  cron.schedule('0 16 * * 1', async () => {
-    console.log('Scheduler running — checking Trove unlocks...');
+  // ── Sunday 7:00 PM Pacific — Trove / Accusation unlock checks ──────────────
+  // Runs every Sunday at 19:00 PT (03:00 UTC Monday)
+  cron.schedule('0 3 * * 1', async () => {
+    console.log('Scheduler running — Sunday 7pm PT drop check...');
     try {
       const { data: settings } = await supabase
         .from('game_settings')
@@ -962,35 +963,105 @@ function startScheduler() {
         .single();
 
       if (!settings) return;
-      const today = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      const nowISO = now.toISOString();
 
-      if (settings.trove1_unlock && settings.trove1_unlock <= today && !settings.trove1_email_sent) {
+      // Trove 1 — Day 1 (game start)
+      if (settings.game_start_date && settings.game_start_date <= nowISO && !settings.trove1_email_sent) {
         await sendTroveUnlockEmail(1);
         await supabase.from('game_settings').update({ trove1_email_sent: true }).eq('id', 1);
+        console.log('Trove 1 unlock email sent.');
       }
-      if (settings.trove2_unlock && settings.trove2_unlock <= today && !settings.trove2_email_sent) {
+      // Trove 2 — Day 8 Sunday 7pm
+      if (settings.trove2_unlock && settings.trove2_unlock <= nowISO && !settings.trove2_email_sent) {
         await sendTroveUnlockEmail(2);
         await supabase.from('game_settings').update({ trove2_email_sent: true }).eq('id', 1);
+        console.log('Trove 2 unlock email sent.');
       }
-      if (settings.trove3_unlock && settings.trove3_unlock <= today && !settings.trove3_email_sent) {
+      // Trove 3 — Day 15 Sunday 7pm
+      if (settings.trove3_unlock && settings.trove3_unlock <= nowISO && !settings.trove3_email_sent) {
         await sendTroveUnlockEmail(3);
         await supabase.from('game_settings').update({ trove3_email_sent: true }).eq('id', 1);
+        console.log('Trove 3 unlock email sent.');
       }
-      if (settings.accusation_close && settings.accusation_close <= today && !settings.winner_announced) {
-        await checkAndAnnounceWinner();
+      // Guess the Saboteur — Day 22 Sunday 7pm
+      if (settings.accusation_open && settings.accusation_open <= nowISO && !settings.accusation_email_sent) {
+        await sendAccusationUnlockEmail();
+        await supabase.from('game_settings').update({ accusation_email_sent: true }).eq('id', 1);
+        console.log('Guess the Saboteur unlock email sent.');
       }
     } catch (err) {
-      console.error('Scheduler error:', err);
+      console.error('Sunday scheduler error:', err);
     }
   }, { timezone: 'America/Los_Angeles' });
 
-  // Weekly score summary — every Friday at 5 PM Pacific (01:00 UTC Saturday)
+  // ── Wednesday midnight Pacific — Final Reveal drop ───────────────────────
+  // Runs every Wednesday/Thursday at 00:00 PT (08:00 UTC)
+  cron.schedule('0 8 * * 3', async () => {
+    console.log('Scheduler running — Final Reveal midnight check...');
+    try {
+      const { data: settings } = await supabase
+        .from('game_settings')
+        .select('*')
+        .eq('id', 1)
+        .single();
+
+      if (!settings) return;
+      const nowISO = new Date().toISOString();
+
+      if (settings.reveal_unlock && settings.reveal_unlock <= nowISO && !settings.reveal_email_sent) {
+        await sendRevealEmail();
+        await supabase.from('game_settings').update({ reveal_email_sent: true }).eq('id', 1);
+        console.log('Final Reveal email sent.');
+      }
+      // Also check winner announcement
+      if (settings.accusation_close && settings.accusation_close <= nowISO && !settings.winner_announced) {
+        await checkAndAnnounceWinner();
+      }
+    } catch (err) {
+      console.error('Reveal scheduler error:', err);
+    }
+  }, { timezone: 'America/Los_Angeles' });
+
+  // ── Weekly score summary — every Friday at 5 PM Pacific ───────────────────
   cron.schedule('0 1 * * 6', async () => {
     console.log('Sending weekly score summary emails...');
     await sendWeeklyScoreSummary();
   }, { timezone: 'America/Los_Angeles' });
 
-  console.log('TopKpop.io scheduler started — Trove unlocks Mondays 8AM PT, Score summaries Fridays 5PM PT');
+  console.log('TopKpop.io scheduler started — Trove drops Sundays 7PM PT | Reveal Wednesdays midnight PT | Summaries Fridays 5PM PT');
+}
+
+// ── Helper: Send Guess the Saboteur unlock email ─────────────────────────────
+async function sendAccusationUnlockEmail() {
+  try {
+    const { data: teams } = await supabase
+      .from('registrations')
+      .select('captain_email')
+      .eq('status', 'active');
+    for (const team of teams || []) {
+      await tagSubscriber(team.captain_email, 'accusation-unlocked');
+    }
+    console.log(`Tagged ${teams?.length || 0} teams with accusation-unlocked`);
+  } catch (err) {
+    console.error('Accusation unlock email error:', err);
+  }
+}
+
+// ── Helper: Send Final Reveal email ──────────────────────────────────────────
+async function sendRevealEmail() {
+  try {
+    const { data: teams } = await supabase
+      .from('registrations')
+      .select('captain_email')
+      .eq('status', 'active');
+    for (const team of teams || []) {
+      await tagSubscriber(team.captain_email, 'final-reveal-live');
+    }
+    console.log(`Tagged ${teams?.length || 0} teams with final-reveal-live`);
+  } catch (err) {
+    console.error('Final Reveal email error:', err);
+  }
 }
 
 module.exports = { router, startScheduler };
