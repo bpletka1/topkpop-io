@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Final Reveal — TopKpop.io</title>
+  <link rel="icon" href="/assets/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .reveal-body { max-width: 860px; margin: 0 auto; padding: 60px 24px 100px; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.2em; color: rgba(224,224,224,0.45); text-transform: uppercase; text-decoration: none; margin-bottom: 40px; transition: color 0.2s; }
+    .back-link:hover { color: var(--crimson); }
+    .section-label { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 12px; }
+    .video-wrap { position: relative; padding-top: 56.25%; border-radius: 6px; overflow: hidden; background: #000; margin-bottom: 40px; }
+    .video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+    .reveal-note { background: rgba(230,0,92,0.06); border: 1px solid rgba(230,0,92,0.2); border-radius: 8px; padding: 28px 32px; margin-bottom: 40px; }
+  </style>
+</head>
+<body>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">&#9776;</button>
+    <div class="nav-links" id="navLinks">
+      <a href="/">Home</a>
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/cast">Cast</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-hero" style="background-image:url('/assets/hero-bg.jpg'); min-height:260px;">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Top K-Pop &nbsp;&middot;&nbsp; The Final Reveal</p>
+    <h1 class="page-title">The <span>Saboteur</span> Revealed.</h1>
+    <p class="page-subtitle">The investigation is over. The truth comes out.</p>
+  </div>
+</section>
+
+<div class="reveal-body">
+  <a href="/pages/missions" class="back-link">&#8592; Back to Missions</a>
+
+  <!-- REVEAL VIDEO -->
+  <p class="section-label" style="color:rgba(224,224,224,0.4);">Top K-Pop Entertainment &nbsp;&middot;&nbsp; The Final Reveal</p>
+  <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">The investigation has concluded. Watch the final reveal to find out who sabotaged the Top K-Pop 10th Anniversary Season — and whether your team named the right suspect.</p>
+  <div class="video-wrap">
+    <iframe src="https://player.vimeo.com/video/1193253297?badge=0&byline=0&portrait=0&title=0&autoplay=0&loop=0&muted=0&controls=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Top K-Pop — The Final Reveal"></iframe>
+  </div>
+
+  <!-- POST-REVEAL NOTE -->
+  <div class="reveal-note">
+    <p class="section-label" style="color:var(--crimson);">What Happens Next</p>
+    <p style="font-size:0.9rem; line-height:1.75; color:rgba(224,224,224,0.75);">Final scores and winner announcements will be sent to all registered teams by email. Check the leaderboard for your final ranking. Thank you for participating in the Top K-Pop 10th Anniversary Super Sleuth Season.</p>
+    <p style="margin-top:16px;">
+      <a href="/pages/leaderboard" style="font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:var(--crimson); text-decoration:none; text-transform:uppercase;">View Final Leaderboard →</a>
+    </p>
+  </div>
+
+</div>
+
+<script>
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  if (navToggle && navLinks) {
+    navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+  }
+</script>
+</body>
+</html>
