@@ -3,3 +3,6 @@ node_modules/
 .env.local
 .DS_Store
 *.log
+rescore_all.js
+rescore_direct.js
+trigger_rescore.sh

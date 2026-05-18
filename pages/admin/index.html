@@ -328,6 +328,62 @@
       </div>
     </div>
 
+    <!-- SCORE BY NAME (Joyce Dance / Manual) -->
+    <div class="admin-panel" style="border-color:rgba(0,180,100,0.25);">
+      <div class="panel-header" style="border-bottom-color:rgba(0,180,100,0.15);">
+        <span class="panel-title" style="color:#00B464;">&#9998; Score by Name &mdash; Joyce Dance / Manual</span>
+        <span class="panel-badge" style="background:rgba(0,180,100,0.1); border:1px solid rgba(0,180,100,0.3); color:#00B464;">Paste &amp; Auto-Apply</span>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.6); margin-bottom:20px;">Paste Joyce's email body (or any list of team names and scores) below. The system will automatically match team names and apply scores to the leaderboard. Use for <strong style="color:#00B464;">dance scores</strong>, <strong style="color:#b06aff;">bonus points</strong>, or any manual override.</p>
+
+        <div style="background:rgba(0,180,100,0.05); border:1px solid rgba(0,180,100,0.15); border-radius:6px; padding:16px 18px; margin-bottom:20px;">
+          <p style="font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.2em; color:#00B464; text-transform:uppercase; margin-bottom:10px;">Accepted Formats (any of these work)</p>
+          <p style="font-family:'Inter',monospace; font-size:0.82rem; color:rgba(224,224,224,0.6); line-height:1.9;">
+            Team Alpha: 87<br>
+            Team Beta - 92 pts<br>
+            Team Gamma scored 78<br>
+            Team Delta (85)<br>
+            95 - Team Epsilon<br>
+            Team Zeta = 88/100
+          </p>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div>
+            <label style="display:block; font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(224,224,224,0.5); margin-bottom:8px;">Trove</label>
+            <select id="score-by-name-trove" style="width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; color:#fff; font-size:0.88rem;">
+              <option value="3">Trove 03 (Dance / Lesson)</option>
+              <option value="1">Trove 01 (Poster / Avatar)</option>
+              <option value="2">Trove 02 (Lyrics Remix)</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block; font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(224,224,224,0.5); margin-bottom:8px;">Score Type</label>
+            <select id="score-by-name-type" style="width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; color:#fff; font-size:0.88rem;">
+              <option value="admin">Admin / Dance Score (replaces final score)</option>
+              <option value="bonus">Bonus Points (added on top of score)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(224,224,224,0.5); margin-bottom:8px;">Paste Email Body or Score List</label>
+          <textarea id="score-by-name-text" rows="8" placeholder="Paste Joyce's email here, or type scores one per line:
+Team Alpha: 87
+Team Beta: 92
+Team Gamma: 78" style="width:100%; padding:14px 16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:4px; color:#fff; font-family:'Inter',monospace; font-size:0.88rem; resize:vertical; outline:none; box-sizing:border-box;"></textarea>
+        </div>
+
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <button onclick="applyScoresByName()" style="padding:12px 28px; background:rgba(0,180,100,0.2); border:1px solid rgba(0,180,100,0.5); border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.18em; text-transform:uppercase; color:#00B464; cursor:pointer;">&#9654; Apply Scores</button>
+          <button onclick="document.getElementById('score-by-name-text').value=''; document.getElementById('score-by-name-result').style.display='none';" style="padding:12px 18px; background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:4px; font-size:0.8rem; color:rgba(224,224,224,0.4); cursor:pointer;">Clear</button>
+        </div>
+
+        <div id="score-by-name-result" style="display:none; margin-top:20px;"></div>
+      </div>
+    </div>
+
     <!-- FINAL ACCUSATIONS -->
     <div class="admin-panel">
       <div class="panel-header">
@@ -734,7 +790,66 @@ async function saveDates() {
   }
 }
 
-// ── Instagram Bonus Points ─────────────────────────────────────────────────
+// ── Score by Name (Joyce Dance / Manual) ───────────────────────────────────────────
+async function applyScoresByName() {
+  const text = document.getElementById('score-by-name-text').value.trim();
+  const trove = document.getElementById('score-by-name-trove').value;
+  const scoreType = document.getElementById('score-by-name-type').value;
+  const resultDiv = document.getElementById('score-by-name-result');
+
+  if (!text) { alert('Please paste the email body or score list first.'); return; }
+
+  const typeLabel = scoreType === 'bonus' ? 'bonus points' : 'final scores';
+  if (!confirm(`Apply ${typeLabel} for Trove 0${trove} from the pasted text?\n\nThe system will fuzzy-match team names and apply scores immediately.`)) return;
+
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = '<p style="font-size:0.85rem; color:rgba(224,224,224,0.4);">Parsing and applying scores...</p>';
+
+  try {
+    const res = await fetch('/api/admin/score-by-name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', password: ADMIN_PASS },
+      body: JSON.stringify({ text, trove_number: parseInt(trove), score_type: scoreType })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      let html = `<div style="background:rgba(0,180,100,0.06); border:1px solid rgba(0,180,100,0.2); border-radius:6px; padding:18px 20px;">`;
+      html += `<p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.2em; color:#00B464; text-transform:uppercase; margin-bottom:14px;">&#10003; ${data.scored} Team(s) Scored</p>`;
+
+      if (data.results?.length > 0) {
+        html += data.results.map(r => {
+          const confidence = r.confidence >= 90 ? '#00B464' : r.confidence >= 70 ? 'var(--amber)' : '#ff8c00';
+          const matchNote = r.input_name !== r.matched_team ? ` <span style="color:rgba(224,224,224,0.4); font-size:0.78rem;">(matched from "${r.input_name}")</span>` : '';
+          return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-size:0.88rem; color:#fff;">${r.matched_team}${matchNote}</span>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <span style="font-family:'Syncopate',sans-serif; font-size:0.55rem; color:var(--amber); font-weight:700;">${r.score} pts</span>
+              <span style="font-size:0.72rem; color:${confidence};">${r.confidence}% match</span>
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      if (data.parse_errors?.length > 0) {
+        html += `<p style="font-family:'Syncopate',sans-serif; font-size:0.48rem; letter-spacing:0.2em; color:var(--crimson); text-transform:uppercase; margin-top:16px; margin-bottom:10px;">${data.parse_errors.length} Could Not Be Matched</p>`;
+        html += data.parse_errors.map(e => `<p style="font-size:0.82rem; color:rgba(230,0,92,0.8); margin-bottom:4px;">"${e.name}" — ${e.error}</p>`).join('');
+      }
+
+      html += `</div>`;
+      resultDiv.innerHTML = html;
+
+      // Refresh submissions list
+      loadSubmissions();
+    } else {
+      resultDiv.innerHTML = `<div style="background:rgba(230,0,92,0.08); border:1px solid rgba(230,0,92,0.3); border-radius:6px; padding:16px 18px;"><p style="color:var(--crimson); font-size:0.88rem;">${data.error || 'Failed to apply scores.'}</p>${data.hint ? '<p style="font-size:0.82rem; color:rgba(224,224,224,0.5); margin-top:8px;">' + data.hint + '</p>' : ''}</div>`;
+    }
+  } catch (err) {
+    resultDiv.innerHTML = `<p style="color:var(--crimson);">Network error: ${err.message}</p>`;
+  }
+}
+
+// ── Instagram Bonus Points ───────────────────────────────────────────
 async function loadInstagramPending() {
   const list = document.getElementById('instagram-pending-list');
   const badge = document.getElementById('instagram-pending-badge');

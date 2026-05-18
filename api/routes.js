@@ -1197,7 +1197,14 @@ function startScheduler() {
     }
   }, { timezone: 'America/Los_Angeles' });
 
-  console.log('TopKpop.io scheduler started — Trove drops Sundays 7PM PT | Reveal Wednesdays midnight PT | Summaries Fridays 5PM PT | Winner reminders daily 9AM PT');
+  // ── Gmail polling — every 30 minutes, check for forwarded score emails ────────────────────────
+  // Looks for emails with subject containing "scores" or "dance" or "joyce"
+  // forwarded to the admin inbox, and auto-applies scores via score-by-name logic
+  cron.schedule('*/30 * * * *', async () => {
+    await pollGmailForScores();
+  });
+
+  console.log('TopKpop.io scheduler started — Trove drops Sundays 7PM PT | Reveal Wednesdays midnight PT | Summaries Fridays 5PM PT | Winner reminders daily 9AM PT | Gmail score polling every 30 min');
 }
 
 // ── Helper: Send admin reminder email for pending winner approval ────────────
@@ -1250,6 +1257,344 @@ async function sendRevealEmail() {
     console.log(`Tagged ${teams?.length || 0} teams with final-reveal-live`);
   } catch (err) {
     console.error('Final Reveal email error:', err);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SCORE BY NAME — Parse free-text scores (Joyce email, Instagram, etc.)
+// POST /api/admin/score-by-name
+// Body: { text, trove_number, score_type }
+//   text: raw email body or free text like "Team Alpha: 87, Team Beta: 92"
+//   trove_number: 1, 2, or 3 (which trove these scores are for)
+//   score_type: 'dance' | 'bonus' | 'admin' (default: 'admin')
+// ════════════════════════════════════════════════════════════════════════════
+
+router.post('/admin/score-by-name', adminAuth, async (req, res) => {
+  try {
+    const { text, trove_number, score_type = 'admin' } = req.body;
+    if (!text || !trove_number) {
+      return res.status(400).json({ error: 'text and trove_number are required.' });
+    }
+    const troveNum = parseInt(trove_number);
+    if (![1, 2, 3].includes(troveNum)) {
+      return res.status(400).json({ error: 'trove_number must be 1, 2, or 3.' });
+    }
+
+    // ── Parse team name + score pairs from free text ──────────────────────────
+    // Supports many formats:
+    //   "Team Alpha: 87"  |  "Team Alpha - 87"  |  "Team Alpha = 87"
+    //   "Team Alpha 87/100"  |  "Team Alpha scored 87"  |  "87 - Team Alpha"
+    //   "Team Alpha: 87 pts"  |  "Team Alpha (87)"  |  "Team Alpha: 87 points"
+    const lines = text.split(/[\n,;]+/).map(l => l.trim()).filter(Boolean);
+    const parsed = [];
+
+    for (const line of lines) {
+      // Pattern 1: "Name: 87" or "Name - 87" or "Name = 87" or "Name (87)" or "Name 87pts"
+      let m = line.match(/^(.+?)\s*[:\-=]\s*(\d{1,3})(?:\s*(?:\/100|pts?|points?)?)?\s*$/i);
+      if (!m) {
+        // Pattern 2: "Name scored 87" or "Name received 87"
+        m = line.match(/^(.+?)\s+(?:scored?|received?|gets?|awarded?)\s+(\d{1,3})(?:\s*(?:\/100|pts?|points?)?)?\s*$/i);
+      }
+      if (!m) {
+        // Pattern 3: "87 - Name" or "87: Name" (score first)
+        m = line.match(/^(\d{1,3})\s*[:\-]\s*(.+)$/);
+        if (m) m = [m[0], m[2], m[1]]; // swap so name is [1], score is [2]
+      }
+      if (!m) {
+        // Pattern 4: "Name (87)" or "Name [87]"
+        m = line.match(/^(.+?)\s*[\(\[](\d{1,3})[\)\]]\s*$/);
+      }
+      if (m) {
+        const name = m[1].trim().replace(/^["'\s]+|["'\s]+$/g, '');
+        const score = parseInt(m[2]);
+        if (name && !isNaN(score) && score >= 0 && score <= 100) {
+          parsed.push({ name, score });
+        }
+      }
+    }
+
+    if (parsed.length === 0) {
+      return res.status(400).json({
+        error: 'No team scores could be parsed from the text. Use format: "Team Name: 87" or "Team Name - 92 pts" (one per line).',
+        hint: 'Each line should have a team name and a number 0-100. Separate entries with new lines or commas.',
+      });
+    }
+
+    // ── Fetch all team names from registrations ───────────────────────────────
+    const { data: allTeams, error: teamsErr } = await supabase
+      .from('registrations')
+      .select('id, team_name');
+    if (teamsErr) throw teamsErr;
+
+    // ── Fetch existing submissions for this trove ─────────────────────────────
+    const { data: existingSubs } = await supabase
+      .from('submissions')
+      .select('id, team_id, team_name, trove_number, final_score, admin_score, bonus_score')
+      .eq('trove_number', troveNum);
+
+    const subByTeamId = {};
+    (existingSubs || []).forEach(s => { subByTeamId[s.team_id] = s; });
+
+    // ── Fuzzy-match parsed names to registered teams ──────────────────────────
+    function normalize(str) {
+      return str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+    }
+    function similarity(a, b) {
+      const na = normalize(a), nb = normalize(b);
+      if (na === nb) return 1.0;
+      if (na.includes(nb) || nb.includes(na)) return 0.85;
+      // Word overlap score
+      const wa = new Set(na.split(' ')), wb = new Set(nb.split(' '));
+      const intersection = [...wa].filter(w => wb.has(w)).length;
+      const union = new Set([...wa, ...wb]).size;
+      return union > 0 ? intersection / union : 0;
+    }
+
+    const results = [];
+    const errors = [];
+
+    for (const { name, score } of parsed) {
+      // Find best matching team
+      let bestTeam = null, bestScore = 0;
+      for (const team of allTeams) {
+        const sim = similarity(name, team.team_name);
+        if (sim > bestScore) { bestScore = sim; bestTeam = team; }
+      }
+
+      if (!bestTeam || bestScore < 0.4) {
+        errors.push({ name, score, error: `No matching team found for "${name}" (closest: ${bestTeam?.team_name || 'none'})` });
+        continue;
+      }
+
+      const existingSub = subByTeamId[bestTeam.id];
+
+      if (score_type === 'bonus') {
+        // Award as bonus points — update or create submission
+        if (existingSub) {
+          const { error: updateErr } = await supabase
+            .from('submissions')
+            .update({
+              bonus_score: score,
+              bonus_awarded_at: new Date().toISOString(),
+              bonus_awarded_by: 'score-by-name',
+            })
+            .eq('id', existingSub.id);
+          if (updateErr) { errors.push({ name, score, error: updateErr.message }); continue; }
+        } else {
+          // Create a placeholder submission for bonus points
+          const { error: insertErr } = await supabase
+            .from('submissions')
+            .insert({
+              team_id: bestTeam.id,
+              team_name: bestTeam.team_name,
+              trove_number: troveNum,
+              bonus_score: score,
+              bonus_awarded_at: new Date().toISOString(),
+              bonus_awarded_by: 'score-by-name',
+            });
+          if (insertErr) { errors.push({ name, score, error: insertErr.message }); continue; }
+        }
+        results.push({ matched_team: bestTeam.team_name, input_name: name, score, score_type: 'bonus', confidence: Math.round(bestScore * 100) });
+
+      } else {
+        // Award as admin/dance score — updates final_score
+        if (existingSub) {
+          const { error: updateErr } = await supabase
+            .from('submissions')
+            .update({
+              admin_score: score,
+              final_score: score,
+              scored_at: new Date().toISOString(),
+            })
+            .eq('id', existingSub.id);
+          if (updateErr) { errors.push({ name, score, error: updateErr.message }); continue; }
+        } else {
+          // Create a placeholder submission with the admin score
+          const { error: insertErr } = await supabase
+            .from('submissions')
+            .insert({
+              team_id: bestTeam.id,
+              team_name: bestTeam.team_name,
+              trove_number: troveNum,
+              admin_score: score,
+              final_score: score,
+              scored_at: new Date().toISOString(),
+            });
+          if (insertErr) { errors.push({ name, score, error: insertErr.message }); continue; }
+        }
+        results.push({ matched_team: bestTeam.team_name, input_name: name, score, score_type, confidence: Math.round(bestScore * 100) });
+      }
+    }
+
+    console.log(`[SCORE-BY-NAME] Trove ${troveNum} (${score_type}): ${results.length} scored, ${errors.length} errors`);
+    res.json({
+      success: true,
+      scored: results.length,
+      errors: errors.length,
+      results,
+      parse_errors: errors,
+      message: `${results.length} team(s) scored successfully.${errors.length > 0 ? ` ${errors.length} could not be matched — check names.` : ''}`,
+    });
+
+  } catch (err) {
+    console.error('Score-by-name error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// GMAIL SCORE POLLING
+// Checks Gmail every 30 min for forwarded score emails from Joyce or admin.
+// Emails must have subject containing: score, dance, joyce, bonus, or instagram
+// Body format: "Team Name: 87" or "Team Name - 92 pts" (one per line)
+// Trove is detected from subject: "trove 1", "trove 2", "trove 3"
+// Score type is detected: "dance" → admin score, "bonus"/"instagram" → bonus score
+// Processed emails are labeled "topkpop-scored" to prevent re-processing
+// ════════════════════════════════════════════════════════════════════════════
+
+async function pollGmailForScores() {
+  try {
+    // Use the manus-mcp-cli to search Gmail for unprocessed score emails
+    const { execSync } = require('child_process');
+
+    // Search for emails with score-related subjects not yet labeled topkpop-scored
+    const searchQuery = JSON.stringify({
+      q: '(subject:score OR subject:dance OR subject:joyce OR subject:bonus OR subject:instagram) -label:topkpop-scored',
+      max_results: 20,
+    });
+
+    let searchResult;
+    try {
+      const raw = execSync(
+        `manus-mcp-cli tool call gmail_search_messages --server gmail --input '${searchQuery.replace(/'/g, "'\"'\"'")}'`,
+        { timeout: 30000, encoding: 'utf8' }
+      );
+      searchResult = JSON.parse(raw);
+    } catch (e) {
+      // Gmail MCP not available in this environment — skip silently
+      return;
+    }
+
+    const messages = searchResult?.messages || searchResult?.result?.messages || [];
+    if (!messages.length) return;
+
+    console.log(`[GMAIL POLL] Found ${messages.length} potential score email(s)`);
+
+    for (const msg of messages) {
+      try {
+        // Read the full thread
+        const threadRaw = execSync(
+          `manus-mcp-cli tool call gmail_read_threads --server gmail --input '${JSON.stringify({ thread_ids: [msg.threadId || msg.id], include_full_messages: true }).replace(/'/g, "'\"'\"'")}'`,
+          { timeout: 30000, encoding: 'utf8' }
+        );
+        const threadResult = JSON.parse(threadRaw);
+        const thread = (threadResult?.threads || threadResult?.result?.threads || [])[0];
+        if (!thread) continue;
+
+        const firstMsg = thread.messages?.[0];
+        if (!firstMsg) continue;
+
+        const subject = (firstMsg.subject || firstMsg.headers?.subject || '').toLowerCase();
+        const body = firstMsg.body || firstMsg.snippet || '';
+
+        // Detect trove number from subject
+        let troveNum = null;
+        if (/trove[\s-]?3|trove[\s-]?03/.test(subject)) troveNum = 3;
+        else if (/trove[\s-]?2|trove[\s-]?02/.test(subject)) troveNum = 2;
+        else if (/trove[\s-]?1|trove[\s-]?01/.test(subject)) troveNum = 1;
+        else troveNum = 3; // Default to Trove 3 (most likely Joyce dance scores)
+
+        // Detect score type
+        const scoreType = /bonus|instagram/.test(subject) ? 'bonus' : 'admin';
+
+        // Parse scores from body using same logic as score-by-name endpoint
+        const lines = body.split(/[\n,;]+/).map(l => l.trim()).filter(Boolean);
+        const parsed = [];
+        for (const line of lines) {
+          let m = line.match(/^(.+?)\s*[:\-=]\s*(\d{1,3})(?:\s*(?:\/100|pts?|points?)?)?\s*$/i);
+          if (!m) m = line.match(/^(.+?)\s+(?:scored?|received?|gets?|awarded?)\s+(\d{1,3})(?:\s*(?:\/100|pts?|points?)?)?\s*$/i);
+          if (!m) {
+            const sm = line.match(/^(\d{1,3})\s*[:\-]\s*(.+)$/);
+            if (sm) m = [sm[0], sm[2], sm[1]];
+          }
+          if (!m) m = line.match(/^(.+?)\s*[\(\[](\d{1,3})[\)\]]\s*$/);
+          if (m) {
+            const name = m[1].trim().replace(/^["'\s]+|["'\s]+$/g, '');
+            const score = parseInt(m[2]);
+            if (name && !isNaN(score) && score >= 0 && score <= 100) parsed.push({ name, score });
+          }
+        }
+
+        if (parsed.length === 0) {
+          console.log(`[GMAIL POLL] No parseable scores in email: "${subject}" — skipping`);
+          continue;
+        }
+
+        // Fetch teams and submissions
+        const { data: allTeams } = await supabase.from('registrations').select('id, team_name');
+        const { data: existingSubs } = await supabase.from('submissions').select('id, team_id, team_name, trove_number, final_score, admin_score, bonus_score').eq('trove_number', troveNum);
+        const subByTeamId = {};
+        (existingSubs || []).forEach(s => { subByTeamId[s.team_id] = s; });
+
+        function normalize(str) { return str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim(); }
+        function similarity(a, b) {
+          const na = normalize(a), nb = normalize(b);
+          if (na === nb) return 1.0;
+          if (na.includes(nb) || nb.includes(na)) return 0.85;
+          const wa = new Set(na.split(' ')), wb = new Set(nb.split(' '));
+          const intersection = [...wa].filter(w => wb.has(w)).length;
+          const union = new Set([...wa, ...wb]).size;
+          return union > 0 ? intersection / union : 0;
+        }
+
+        let applied = 0;
+        for (const { name, score } of parsed) {
+          let bestTeam = null, bestScore = 0;
+          for (const team of (allTeams || [])) {
+            const sim = similarity(name, team.team_name);
+            if (sim > bestScore) { bestScore = sim; bestTeam = team; }
+          }
+          if (!bestTeam || bestScore < 0.4) {
+            console.log(`[GMAIL POLL] No team match for "${name}" (best: ${bestTeam?.team_name}, sim: ${bestScore.toFixed(2)})`);
+            continue;
+          }
+          const existingSub = subByTeamId[bestTeam.id];
+          if (scoreType === 'bonus') {
+            if (existingSub) {
+              await supabase.from('submissions').update({ bonus_score: score, bonus_awarded_at: new Date().toISOString(), bonus_awarded_by: 'gmail-auto' }).eq('id', existingSub.id);
+            } else {
+              await supabase.from('submissions').insert({ team_id: bestTeam.id, team_name: bestTeam.team_name, trove_number: troveNum, bonus_score: score, bonus_awarded_at: new Date().toISOString(), bonus_awarded_by: 'gmail-auto' });
+            }
+          } else {
+            if (existingSub) {
+              await supabase.from('submissions').update({ admin_score: score, final_score: score, scored_at: new Date().toISOString() }).eq('id', existingSub.id);
+            } else {
+              await supabase.from('submissions').insert({ team_id: bestTeam.id, team_name: bestTeam.team_name, trove_number: troveNum, admin_score: score, final_score: score, scored_at: new Date().toISOString() });
+            }
+          }
+          applied++;
+          console.log(`[GMAIL POLL] Applied ${scoreType} score ${score} to ${bestTeam.team_name} (Trove ${troveNum}) from email "${subject}"`);
+        }
+
+        // Label the email as processed so it won't be re-processed
+        if (applied > 0) {
+          try {
+            execSync(
+              `manus-mcp-cli tool call gmail_manage_labels --server gmail --input '${JSON.stringify({ action: 'apply', message_ids: [msg.id], label_names: ['topkpop-scored'] }).replace(/'/g, "'\"'\"'")}'`,
+              { timeout: 15000, encoding: 'utf8' }
+            );
+          } catch (labelErr) {
+            console.log('[GMAIL POLL] Could not apply label (non-fatal):', labelErr.message);
+          }
+          console.log(`[GMAIL POLL] Processed email "${subject}" — ${applied} score(s) applied`);
+        }
+
+      } catch (msgErr) {
+        console.error('[GMAIL POLL] Error processing message:', msgErr.message);
+      }
+    }
+  } catch (err) {
+    console.error('[GMAIL POLL] Poll error:', err.message);
   }
 }
 
