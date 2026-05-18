@@ -27,6 +27,27 @@
     .scoring-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
     .scoring-cell { padding: 12px 16px; background: rgba(11,12,16,0.8); border: 1px solid rgba(138,43,226,0.15); border-radius: 4px; }
     @media (max-width: 640px) { .scoring-grid { grid-template-columns: 1fr; } }
+    .submit-cta-bar { display:flex; align-items:center; justify-content:space-between; gap:20px; background:linear-gradient(135deg,rgba(138,43,226,0.12),rgba(138,43,226,0.03)); border:1px solid rgba(138,43,226,0.45); border-radius:8px; padding:22px 28px; margin-bottom:44px; flex-wrap:wrap; }
+    .submit-cta-bar-text h3 { font-family:'Syncopate',sans-serif; font-size:0.7rem; letter-spacing:0.18em; text-transform:uppercase; color:#fff; margin:0 0 5px; }
+    .submit-cta-bar-text p { font-size:0.82rem; color:rgba(224,224,224,0.55); margin:0; }
+    .submit-cta-bar-btn { flex-shrink:0; background:#8a2be2; color:#fff; font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.18em; text-transform:uppercase; padding:14px 32px; border-radius:4px; text-decoration:none; font-weight:700; white-space:nowrap; }
+    .options-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:18px; margin:24px 0 36px; }
+    .option-card { background:rgba(15,16,22,0.95); border:1px solid rgba(138,43,226,0.18); border-radius:8px; padding:26px 22px; position:relative; }
+    .option-card.featured { border-color:rgba(138,43,226,0.55); }
+    .option-badge { position:absolute; top:-11px; left:20px; background:#8a2be2; color:#fff; font-family:'Syncopate',sans-serif; font-size:0.4rem; letter-spacing:0.18em; text-transform:uppercase; padding:4px 12px; border-radius:20px; font-weight:700; }
+    .option-icon-lg { font-size:2rem; margin-bottom:12px; display:block; }
+    .option-card-title { font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.15em; text-transform:uppercase; color:#fff; margin-bottom:6px; }
+    .option-card-pts { font-family:'Syncopate',sans-serif; font-size:0.82rem; color:#b06aff; font-weight:700; margin-bottom:10px; }
+    .option-card-desc { font-size:0.8rem; line-height:1.6; color:rgba(224,224,224,0.6); }
+    .bonus-row { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 36px; }
+    .bonus-pill { display:flex; align-items:center; gap:8px; background:rgba(0,180,100,0.06); border:1px solid rgba(0,180,100,0.25); border-radius:6px; padding:12px 16px; flex:1; min-width:180px; }
+    .bonus-pill-icon { font-size:1.2rem; }
+    .bonus-pill-text strong { display:block; font-family:'Syncopate',sans-serif; font-size:0.42rem; letter-spacing:0.15em; color:#00B464; text-transform:uppercase; margin-bottom:3px; }
+    .bonus-pill-text span { font-size:0.78rem; color:rgba(224,224,224,0.55); }
+    .dir-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin:44px 0 20px; padding-bottom:14px; border-bottom:1px solid rgba(138,43,226,0.2); }
+    .dir-header h2 { font-family:'Syncopate',sans-serif; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:#fff; margin:0; }
+    .doc-btn { display:inline-flex; align-items:center; gap:7px; background:transparent; border:1px solid rgba(138,43,226,0.4); border-radius:4px; padding:9px 18px; font-family:'Syncopate',sans-serif; font-size:0.42rem; letter-spacing:0.15em; text-transform:uppercase; color:#b06aff; text-decoration:none; white-space:nowrap; }
+    .clues-section { margin-top:60px; padding-top:40px; border-top:1px solid rgba(255,255,255,0.07); }
   </style>
 </head>
 <body>
@@ -58,6 +79,15 @@
 
 <div class="trove-body">
 
+  <!-- ══ SUBMIT CTA BAR ══ -->
+  <div class="submit-cta-bar">
+    <div class="submit-cta-bar-text">
+      <h3>Ready to Submit Trove 03?</h3>
+      <p>All submissions must be made here on the website. Instagram posts earn bonus points only.</p>
+    </div>
+    <a href="/pages/submit-trove-03" class="submit-cta-bar-btn">Submit Your Work &rarr;</a>
+  </div>
+
   <!-- Mission 03 Activity Directions Video -->
   <div style="background:rgba(138,43,226,0.04); border:1px solid rgba(138,43,226,0.2); border-radius:6px; padding:24px 28px; margin-bottom:24px;">
     <p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.25em; color:#b06aff; text-transform:uppercase; margin-bottom:10px;">Mission 03 &nbsp;&middot;&nbsp; This Is Your Mission If You Choose to Accept It</p>
@@ -67,6 +97,43 @@
     <iframe src="https://player.vimeo.com/video/1146962237?badge=0&byline=0&portrait=0&title=0&autoplay=0&loop=0&muted=0&controls=1" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Mission 03 — Activity Directions"></iframe>
   </div>
 
+  <!-- ══ SCORING OPTIONS ══ -->
+  <p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.25em; color:#b06aff; text-transform:uppercase; margin-bottom:12px;">Choose Your Path &nbsp;&middot;&nbsp; Scoring Options</p>
+  <div class="options-grid">
+    <div class="option-card">
+      <span class="option-badge">Option 1</span>
+      <span class="option-icon-lg">📚</span>
+      <p class="option-card-title">Lesson Plan Only</p>
+      <p class="option-card-pts">Up to 90 pts</p>
+      <p class="option-card-desc">Design a standards-based ELA, Social Studies, or World Language lesson plan using AI. Submit through the website.</p>
+    </div>
+    <div class="option-card featured">
+      <span class="option-badge">Option 2 — Recommended</span>
+      <span class="option-icon-lg">💃</span>
+      <p class="option-card-title">Lesson Plan + AI Dance Video</p>
+      <p class="option-card-pts">Up to 100 pts</p>
+      <p class="option-card-desc">Create an AI-generated cultural dance video AND a lesson plan that uses the dance to teach the standard.</p>
+    </div>
+    <div class="option-card">
+      <span class="option-badge">Option 3 — School Prize</span>
+      <span class="option-icon-lg">🎬</span>
+      <p class="option-card-title">Live Team Performance</p>
+      <p class="option-card-pts">Up to 100 pts + School Bonus Prize</p>
+      <p class="option-card-desc">Film your team performing the cultural dance live. Qualifies your school for a special bonus prize.</p>
+    </div>
+  </div>
+  <p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.25em; color:#00B464; text-transform:uppercase; margin-bottom:12px;">Bonus Opportunities</p>
+  <div class="bonus-row">
+    <div class="bonus-pill"><span class="bonus-pill-icon">📸</span><div class="bonus-pill-text"><strong>Instagram Post &nbsp;+25 pts</strong><span>Post your dance/lesson tagging @topkpopio by end of Week 3</span></div></div>
+    <div class="bonus-pill"><span class="bonus-pill-icon">🌍</span><div class="bonus-pill-text"><strong>Cultural Connection &nbsp;+25 pts</strong><span>Connect your lesson to a real cultural event or holiday</span></div></div>
+  </div>
+
+  <!-- DIRECTIONS HEADER WITH DOC LINK -->
+  <div class="dir-header">
+    <h2>Step-by-Step Directions</h2>
+    <a href="https://docs.google.com/document/d/1h1y8hfCWXDd4UML4tMo6JwhR_7kotmzux94vbBZSUS4/edit" target="_blank" rel="noopener" class="doc-btn">📄 Full Directions (Google Doc) &rarr;</a>
+  </div>
+
   <!-- Poetic Clue -->
   <div class="poetic-clue">
     <p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.25em; color:#b06aff; text-transform:uppercase; margin-bottom:10px;">K-Clue &nbsp;&middot;&nbsp; Poetic Cipher</p>
@@ -74,7 +141,15 @@
     <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:0.92rem; line-height:1.75; color:rgba(224,224,224,0.7);">Where the overlooked linger at the edge of gentle light, a quiet resentment stirs beneath the calm. Near the pillar where unnoticed footsteps pause, the K-Clue Treasure Trove waits — still and patient. Seek the place where gratitude thins and worth feels forgotten, where someone long dismissed leaves only a shadow behind. There, in the breath between applause and silence, the truth smolders.</p>
   </div>
 
+  <!-- K-CLUE INVESTIGATION VIDEOS: TROVE 3 (moved to bottom) -->
+  <!-- placeholder removed — clues appear at end of page -->
+
+  <!-- PLACEHOLDER TO KEEP STRUCTURE: clues moved below mission content -->
   <!-- K-CLUE INVESTIGATION VIDEOS: TROVE 3 -->
+  <div class="clues-section">
+  <p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.25em; color:#b06aff; text-transform:uppercase; margin-bottom:6px;">Trove 03 Clues &nbsp;&middot;&nbsp; K-Clue Investigation Videos</p>
+  <h2 style="font-family:'Syncopate',sans-serif; font-size:1rem; font-weight:700; text-transform:uppercase; color:#fff; margin-bottom:16px;">Clues from Trove 03</h2>
+  <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.65); margin-bottom:40px;">Watch all four clue videos carefully. Each one contains evidence about who may be behind the Top K-Pop sabotage. Piece together what you see.</p>
   <p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.25em; color:rgba(224,224,224,0.4); text-transform:uppercase; margin-bottom:10px;">K-Clue Investigation &nbsp;&middot;&nbsp; Clue 1 of 4</p>
   <p style="font-size:0.88rem; line-height:1.65; color:rgba(224,224,224,0.7); margin-bottom:16px;">The investigation deepens. Watch closely — the saboteur's motive is becoming clearer.</p>
   <div style="position:relative; padding-top:56.25%; border-radius:6px; overflow:hidden; background:#000; margin-bottom:40px;">
@@ -186,12 +261,14 @@
     <a href="https://chatgpt.com/g/g-6942aad9bafc819199753438ff8eebd7-oracle-of-the-lesson-design-rubric" target="_blank" rel="noopener" style="display:inline-block; padding:14px 32px; background:rgba(138,43,226,0.15); border:1px solid rgba(138,43,226,0.5); border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:#b06aff; text-transform:uppercase; text-decoration:none;">Open Practice Oracle &rarr;</a>
   </div>
 
-  <!-- Optional Instagram -->
-  <div style="margin-top:32px; padding:20px 24px; background:rgba(138,43,226,0.06); border:1px solid rgba(138,43,226,0.2); border-radius:6px;">
-    <p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.25em; color:#b06aff; text-transform:uppercase; margin-bottom:10px;">Optional &nbsp;&middot;&nbsp; Share with the Community</p>
-    <p style="font-size:0.82rem; line-height:1.65; color:rgba(224,224,224,0.65);">Want to share your AI dance video or lesson plan with fellow educators? Join the private TopKpop.io educator community on Instagram. This is entirely optional and has no effect on your score.</p>
-    <a href="https://www.instagram.com/topkpopio" target="_blank" rel="noopener" style="display:inline-block; margin-top:14px; font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.18em; text-transform:uppercase; color:#b06aff; text-decoration:none; border:1px solid rgba(138,43,226,0.35); padding:8px 20px; border-radius:3px;">Follow @topkpopio on Instagram &rarr;</a>
+  <!-- Instagram Required -->
+  <div style="margin-top:32px; padding:20px 24px; background:rgba(138,43,226,0.08); border:1px solid rgba(138,43,226,0.35); border-radius:6px;">
+    <p style="font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.25em; color:#b06aff; text-transform:uppercase; margin-bottom:10px;">Instagram &nbsp;&middot;&nbsp; Required Community Access</p>
+    <p style="font-size:0.82rem; line-height:1.65; color:rgba(224,224,224,0.75);">Following <strong style="color:#b06aff;">@topkpopio on Instagram</strong> is required to access the private community page. Mission videos and clue drops are posted to Instagram when each Trove opens. Posting your dance or lesson earns <strong style="color:#00B464;">+25 bonus points</strong> — tag @topkpopio and use #TopKpopSleuth. Include your post link in your submission.</p>
+    <a href="https://www.instagram.com/topkpopio" target="_blank" rel="noopener" style="display:inline-block; margin-top:14px; font-family:'Syncopate',sans-serif; font-size:0.5rem; letter-spacing:0.18em; text-transform:uppercase; color:#b06aff; text-decoration:none; border:1px solid rgba(138,43,226,0.4); padding:10px 22px; border-radius:3px; background:rgba(138,43,226,0.08);">Follow @topkpopio on Instagram &rarr;</a>
   </div>
+
+  </div><!-- end clues-section -->
 
   <!-- Back -->
   <div style="margin-top:60px; text-align:center;">

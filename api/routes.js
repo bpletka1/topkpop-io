@@ -1109,7 +1109,46 @@ function startScheduler() {
     await sendWeeklyScoreSummary();
   }, { timezone: 'America/Los_Angeles' });
 
-  console.log('TopKpop.io scheduler started — Trove drops Sundays 7PM PT | Reveal Wednesdays midnight PT | Summaries Fridays 5PM PT');
+  // ── Daily 9 AM Pacific — Winner approval reminder ────────────────────────
+  // Sends admin a reminder every day at 9 AM PT if a winner is pending approval
+  cron.schedule('0 17 * * *', async () => {
+    try {
+      const { data: settings } = await supabase
+        .from('game_settings')
+        .select('winner_pending_approval, winner_announced, admin_email')
+        .single();
+      if (settings?.winner_pending_approval && !settings?.winner_announced) {
+        const adminEmail = settings.admin_email || process.env.ADMIN_EMAIL || 'admin@topkpop.io';
+        await sendAdminReminderEmail(adminEmail);
+        console.log('Winner approval reminder sent to admin.');
+      }
+    } catch (err) {
+      console.error('Winner reminder cron error:', err);
+    }
+  }, { timezone: 'America/Los_Angeles' });
+
+  console.log('TopKpop.io scheduler started — Trove drops Sundays 7PM PT | Reveal Wednesdays midnight PT | Summaries Fridays 5PM PT | Winner reminders daily 9AM PT');
+}
+
+// ── Helper: Send admin reminder email for pending winner approval ────────────
+async function sendAdminReminderEmail(adminEmail) {
+  try {
+    // Get winner details for the reminder
+    const { data: settings } = await supabase
+      .from('game_settings')
+      .select('winner_team_name, winner_captain_email, winner_total_score, winner_accusation_correct')
+      .single();
+
+    const teamName = settings?.winner_team_name || 'Unknown Team';
+    const score = settings?.winner_total_score || 0;
+    const correct = settings?.winner_accusation_correct ? 'YES — correct accusation' : 'NO — incorrect accusation';
+
+    // Tag admin in Mailchimp with reminder tag
+    await tagSubscriber(adminEmail, 'winner-approval-reminder');
+    console.log(`Admin reminder sent: winner "${teamName}" (${score} pts, accusation correct: ${correct}) awaiting approval`);
+  } catch (err) {
+    console.error('Admin reminder email error:', err);
+  }
 }
 
 // ── Helper: Send Guess the Saboteur unlock email ─────────────────────────────
