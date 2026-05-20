@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS submissions (
   instagram_post_url TEXT,
   bonus_awarded_at TIMESTAMPTZ,
   bonus_awarded_by TEXT,
+  -- Early submission flag (Trove 01 only: submitted before Week 1 deadline)
+  early_submission BOOLEAN DEFAULT FALSE,
   UNIQUE(team_id, trove_number)
 );
 

@@ -540,6 +540,43 @@ router.post('/submit/:trove', upload.fields([
         updatePayload.bonus_awarded_by = 'auto-dance-video';
         console.log(`[BONUS] +10 dance video bonus auto-awarded to ${team_name.trim()} for Trove 3`);
       }
+      // Trove 1: flag early submission if submitted before Week 1 ends (before trove2_unlock)
+      if (troveNumber === 1) {
+        try {
+          const { data: gameSettings } = await supabase
+            .from('game_settings')
+            .select('trove2_unlock')
+            .eq('id', 1)
+            .single();
+          const trove2Deadline = gameSettings?.trove2_unlock ? new Date(gameSettings.trove2_unlock) : null;
+          const submittedAt = new Date();
+          const isEarlySubmission = trove2Deadline && submittedAt < trove2Deadline;
+          if (isEarlySubmission) {
+            updatePayload.early_submission = true;
+            console.log(`[EARLY SUBMISSION] Trove 01 submitted before Week 1 deadline by ${team_name.trim()}`);
+            // Notify admin by email
+            const adminEmail = process.env.ADMIN_EMAIL || 'bpletka1@gmail.com';
+            const deadlineStr = trove2Deadline.toLocaleString('en-US', { timeZone: 'America/Los_Angeles', dateStyle: 'full', timeStyle: 'short' });
+            await gmailTransporter.sendMail({
+              from: '"Anna Im \u2014 TopKpop.io" <bpletka1@gmail.com>',
+              to: adminEmail,
+              subject: '\ud83c\udfc6 Early Submission Prize \u2014 Trove 01 Submitted Before Week 1 Deadline',
+              html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0f1016;color:#e0e0e0;padding:32px;border-radius:8px;"><h2 style="color:#FFBF00;font-size:1.1rem;margin-bottom:8px;">&#127942; Early Submission Prize Earned</h2><p style="font-size:0.95rem;color:rgba(224,224,224,0.8);margin-bottom:20px;">A team submitted Trove 01 <strong style="color:#fff;">before the end of Week 1</strong> and qualifies for the early submission bonus prize.</p><table style="width:100%;border-collapse:collapse;font-size:0.9rem;"><tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);width:140px;">Team Name</td><td style="padding:8px 0;color:#fff;font-weight:bold;">${team_name.trim()}</td></tr><tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Captain Email</td><td style="padding:8px 0;color:#fff;">${captain_email.toLowerCase()}</td></tr><tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Submitted At</td><td style="padding:8px 0;color:#fff;">${submittedAt.toLocaleString('en-US',{timeZone:'America/Los_Angeles',dateStyle:'full',timeStyle:'short'})}</td></tr><tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Week 1 Deadline</td><td style="padding:8px 0;color:#fff;">${deadlineStr}</td></tr><tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Oracle Score</td><td style="padding:8px 0;color:#FFBF00;font-weight:bold;">${oracleResult.score}/100</td></tr></table><p style="margin-top:24px;font-size:0.85rem;color:rgba(224,224,224,0.5);">Log in to the <a href="https://www.topkpop.io/pages/admin" style="color:#b06aff;">Admin Dashboard</a> to view this submission. The early_submission flag is saved on the submission record.</p></div>`,
+            });
+            console.log(`[EARLY SUBMISSION] Admin notified at ${adminEmail}`);
+            // Send congratulations email to the team
+            await sendEmail(
+              'email_early_submission_prize.html',
+              captain_email.toLowerCase(),
+              '\ud83c\udfc6 You Moved Fast \u2014 An Early Submission Prize Is Coming Your Way',
+              { '[TEAM_NAME]': team_name.trim() }
+            );
+            console.log(`[EARLY SUBMISSION] Prize congratulations email sent to ${captain_email.toLowerCase()}`);
+          }
+        } catch (earlyCheckErr) {
+          console.error('[EARLY SUBMISSION] Check failed (non-fatal):', earlyCheckErr.message);
+        }
+      }
       const { error: updateErr } = await supabase
         .from('submissions')
         .update(updatePayload)
