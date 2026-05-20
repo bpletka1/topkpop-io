@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Guide — TopKpop.io AI Super Sleuth</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/inner.css" />
+  <style>
+    .guide-body { max-width: 900px; margin: 0 auto; padding: 60px 32px 100px; }
+    /* ── Section headers ── */
+    .guide-section { margin-bottom: 56px; }
+    .guide-section-title { font-family: 'Syncopate', sans-serif; font-size: 0.65rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--crimson); margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid rgba(230,0,92,0.2); }
+    /* ── Quick links bar ── */
+    .quick-links { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 48px; }
+    .quick-link { display: inline-block; padding: 9px 18px; background: rgba(230,0,92,0.07); border: 1px solid rgba(230,0,92,0.25); border-radius: 4px; font-family: 'Syncopate', sans-serif; font-size: 0.42rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(224,224,224,0.7); text-decoration: none; transition: border-color 0.2s, color 0.2s; }
+    .quick-link:hover { border-color: var(--crimson); color: #fff; }
+    /* ── Info cards ── */
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 32px; }
+    .info-card { background: rgba(15,16,22,0.85); border: 1px solid rgba(255,255,255,0.07); border-radius: 6px; padding: 22px 24px; }
+    .info-card-label { font-family: 'Syncopate', sans-serif; font-size: 0.45rem; letter-spacing: 0.2em; text-transform: uppercase; color: #FFBF00; margin-bottom: 8px; }
+    .info-card-value { font-family: 'Syncopate', sans-serif; font-size: 0.78rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .info-card-desc { font-size: 0.82rem; line-height: 1.6; color: rgba(224,224,224,0.6); }
+    /* ── Trove cards ── */
+    .trove-row { display: flex; gap: 16px; align-items: flex-start; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .trove-row:last-child { border-bottom: none; }
+    .trove-num { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Syncopate', sans-serif; font-size: 0.62rem; font-weight: 700; }
+    .trove-num-01 { background: rgba(230,0,92,0.12); border: 1px solid rgba(230,0,92,0.4); color: #E6005C; }
+    .trove-num-02 { background: rgba(138,43,226,0.12); border: 1px solid rgba(138,43,226,0.4); color: #b06aff; }
+    .trove-num-03 { background: rgba(255,191,0,0.12); border: 1px solid rgba(255,191,0,0.4); color: #FFBF00; }
+    .trove-content { flex: 1; }
+    .trove-title { font-family: 'Syncopate', sans-serif; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: #fff; margin-bottom: 4px; }
+    .trove-timing { font-family: 'Syncopate', sans-serif; font-size: 0.45rem; letter-spacing: 0.15em; color: rgba(224,224,224,0.4); text-transform: uppercase; margin-bottom: 8px; }
+    .trove-desc { font-size: 0.88rem; line-height: 1.65; color: rgba(224,224,224,0.7); margin-bottom: 10px; }
+    .trove-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .trove-link { font-family: 'Syncopate', sans-serif; font-size: 0.4rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--crimson); text-decoration: none; border-bottom: 1px solid rgba(230,0,92,0.3); padding-bottom: 1px; }
+    .trove-link.purple { color: #b06aff; border-bottom-color: rgba(138,43,226,0.3); }
+    .trove-link.amber { color: #FFBF00; border-bottom-color: rgba(255,191,0,0.3); }
+    /* ── Scoring table ── */
+    .score-table { width: 100%; border-collapse: collapse; margin: 16px 0 32px; font-size: 0.88rem; }
+    .score-table th { font-family: 'Syncopate', sans-serif; font-size: 0.45rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(224,224,224,0.4); padding: 10px 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .score-table td { padding: 12px 14px; color: rgba(224,224,224,0.8); border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
+    .score-table tr:last-child td { border-bottom: none; }
+    .pts-cell { font-family: 'Syncopate', sans-serif; font-size: 0.72rem; font-weight: 700; color: #E6005C; white-space: nowrap; }
+    .pts-cell.green { color: #00B464; }
+    .pts-cell.amber { color: #FFBF00; }
+    /* ── Instagram options ── */
+    .ig-option { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .ig-option:last-child { border-bottom: none; }
+    .ig-badge { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: rgba(138,43,226,0.12); border: 1px solid rgba(138,43,226,0.35); display: flex; align-items: center; justify-content: center; font-family: 'Syncopate', sans-serif; font-size: 0.5rem; font-weight: 700; color: #b06aff; }
+    .ig-content strong { display: block; font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; margin-bottom: 4px; }
+    .ig-content span { font-size: 0.85rem; line-height: 1.6; color: rgba(224,224,224,0.65); }
+    /* ── FAQ accordion ── */
+    .faq-item { border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .faq-q { font-family: 'Syncopate', sans-serif; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: #fff; padding: 20px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.06em; user-select: none; }
+    .faq-q::after { content: '+'; color: var(--crimson); font-size: 1.4rem; font-weight: 300; line-height: 1; flex-shrink: 0; margin-left: 16px; transition: transform 0.2s; }
+    .faq-q.open::after { transform: rotate(45deg); }
+    .faq-a { font-size: 0.92rem; line-height: 1.75; color: rgba(224,224,224,0.72); padding-bottom: 20px; display: none; }
+    .faq-a a { color: var(--crimson); }
+    /* ── URL reference table ── */
+    .url-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 20px; }
+    .url-table th { font-family: 'Syncopate', sans-serif; font-size: 0.42rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(224,224,224,0.35); padding: 8px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .url-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); color: rgba(224,224,224,0.75); vertical-align: middle; }
+    .url-table tr:last-child td { border-bottom: none; }
+    .url-table a { color: #b06aff; text-decoration: none; font-size: 0.8rem; }
+    .url-table a:hover { color: #fff; }
+    .url-section-head { font-family: 'Syncopate', sans-serif; font-size: 0.48rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(224,224,224,0.4); margin: 24px 0 8px; }
+    /* ── Win rule callout ── */
+    .win-rule { background: rgba(230,0,92,0.06); border: 1px solid rgba(230,0,92,0.25); border-radius: 6px; padding: 20px 24px; margin: 20px 0; }
+    .win-rule p { font-size: 0.9rem; line-height: 1.7; color: rgba(224,224,224,0.8); margin: 0; }
+    .win-rule strong { color: #fff; }
+    /* ── Prize row ── */
+    .prize-row { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .prize-row:last-child { border-bottom: none; }
+    .prize-icon { font-size: 1.4rem; flex-shrink: 0; width: 36px; text-align: center; }
+    .prize-content strong { display: block; font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.12em; text-transform: uppercase; color: #FFBF00; margin-bottom: 3px; }
+    .prize-content span { font-size: 0.85rem; line-height: 1.6; color: rgba(224,224,224,0.65); }
+    @media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } .trove-row { flex-direction: column; } }
+  </style>
+</head>
+<body>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span>TOP</span>KPOP.IO</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">&#9776;</button>
+    <div class="nav-links" id="navLinks">
+      <a href="/">Home</a>
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/cast">Cast</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-hero" style="background-image:url('/assets/hero-bg.jpg');">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <p class="page-eyebrow">Top K-Pop Entertainment &nbsp;&middot;&nbsp; Detective Recruit Handbook</p>
+    <h1 class="page-title">Game <span>Guide.</span></h1>
+    <p class="page-subtitle">Everything you need to know to play, score, and solve the investigation — in one place.</p>
+  </div>
+</section>
+
+<div class="guide-body">
+
+  <!-- QUICK LINKS -->
+  <div class="quick-links">
+    <a href="#overview" class="quick-link">Overview</a>
+    <a href="#timeline" class="quick-link">Timeline</a>
+    <a href="#troves" class="quick-link">The Troves</a>
+    <a href="#scoring" class="quick-link">Scoring</a>
+    <a href="#instagram" class="quick-link">Instagram Options</a>
+    <a href="#prizes" class="quick-link">Prizes</a>
+    <a href="#winning" class="quick-link">How to Win</a>
+    <a href="#faq" class="quick-link">FAQ</a>
+    <a href="#urls" class="quick-link">All Links</a>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="guide-section" id="overview">
+    <p class="guide-section-title">Overview</p>
+    <p style="font-size:0.95rem; line-height:1.8; color:rgba(224,224,224,0.78); margin-bottom:24px;">TopKpop.io is a 25-day professional development game for K&ndash;8 educators. You and your team play as Detective Recruits investigating sabotage at Top K-Pop Entertainment during the company&rsquo;s 10th Anniversary Season. Along the way you build real, classroom-ready AI artifacts &mdash; avatars, music, lesson plans &mdash; and collect clues pointing to the saboteur&rsquo;s identity.</p>
+    <div class="info-grid">
+      <div class="info-card">
+        <p class="info-card-label">Team Size</p>
+        <p class="info-card-value">2 &ndash; 4 Educators</p>
+        <p class="info-card-desc">One team captain registers. Additional members can be added during registration and will receive game emails.</p>
+      </div>
+      <div class="info-card">
+        <p class="info-card-label">Duration</p>
+        <p class="info-card-value">25 Days</p>
+        <p class="info-card-desc">Starts any Monday set by your administrator. Three weekly missions plus a final accusation window.</p>
+      </div>
+      <div class="info-card">
+        <p class="info-card-label">AI Experience Required</p>
+        <p class="info-card-value">None</p>
+        <p class="info-card-desc">You learn AI tools by using them. Each Trove introduces new tools progressively &mdash; no prior experience needed.</p>
+      </div>
+      <div class="info-card">
+        <p class="info-card-label">Submission Method</p>
+        <p class="info-card-value">Portal Only</p>
+        <p class="info-card-desc">All deliverables are submitted through topkpop.io. Social media is optional and earns bonus points only.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="guide-section" id="timeline">
+    <p class="guide-section-title">Game Timeline</p>
+    <div class="trove-row">
+      <div class="trove-num trove-num-01">PRE</div>
+      <div class="trove-content">
+        <p class="trove-title">Registration</p>
+        <p class="trove-timing">Before Day 1</p>
+        <p class="trove-desc">Team captain registers at topkpop.io/#register. Add team members, choose your team name, and set up your K-Pop persona Instagram account (optional). You will receive a Welcome Email with your first mission briefing from Anna Im.</p>
+      </div>
+    </div>
+    <div class="trove-row">
+      <div class="trove-num trove-num-01">W1</div>
+      <div class="trove-content">
+        <p class="trove-title">Week 1 &mdash; Trove 01 Opens</p>
+        <p class="trove-timing">Day 1, Monday</p>
+        <p class="trove-desc">Create your K-Pop trainee identity: AI avatar and debut poster. Submit before the end of Week 1 to earn the Early Submission Bonus Prize.</p>
+      </div>
+    </div>
+    <div class="trove-row" style="background:rgba(255,191,0,0.03); border-radius:4px; padding-left:8px;">
+      <div class="trove-num" style="background:rgba(255,191,0,0.1); border:1px solid rgba(255,191,0,0.4); color:#FFBF00;">&#9733;</div>
+      <div class="trove-content">
+        <p class="trove-title" style="color:#FFBF00;">Early Submission Bonus Prize</p>
+        <p class="trove-timing">Before Week 1 ends (before Day 8)</p>
+        <p class="trove-desc">Teams that submit Trove 01 before the end of Week 1 earn an early submission bonus prize. Check your email within 48 hours of submitting.</p>
+      </div>
+    </div>
+    <div class="trove-row">
+      <div class="trove-num trove-num-02">W2</div>
+      <div class="trove-content">
+        <p class="trove-title">Week 2 &mdash; Trove 02 Opens</p>
+        <p class="trove-timing">Day 8, Sunday 7 PM PT</p>
+        <p class="trove-desc">Produce the Evidence Song. Rewrite a cover song with multilingual vocabulary, generate an AI music track, and optionally create a karaoke video.</p>
+      </div>
+    </div>
+    <div class="trove-row">
+      <div class="trove-num trove-num-03">W3</div>
+      <div class="trove-content">
+        <p class="trove-title">Week 3 &mdash; Trove 03 Opens</p>
+        <p class="trove-timing">Day 15, Sunday 7 PM PT</p>
+        <p class="trove-desc">Build an AI-integrated lesson plan and optionally create a dance video. The highest-stakes Trove &mdash; worth up to 100 points plus a +10 automatic video bonus.</p>
+      </div>
+    </div>
+    <div class="trove-row">
+      <div class="trove-num trove-num-01">W4</div>
+      <div class="trove-content">
+        <p class="trove-title">Final Accusation Opens</p>
+        <p class="trove-timing">Day 22, Sunday 7 PM PT &mdash; closes Day 24, Tuesday 7 PM PT</p>
+        <p class="trove-desc">Name your suspect and submit your evidence. You have 48 hours. The window locks at Day 24 at 7 PM PT. Choose carefully &mdash; you cannot change your accusation after submitting.</p>
+        <div class="trove-links">
+          <a href="/pages/final-accusation" class="trove-link">Final Accusation Form &rarr;</a>
+        </div>
+      </div>
+    </div>
+    <div class="trove-row">
+      <div class="trove-num" style="background:rgba(255,191,0,0.1); border:1px solid rgba(255,191,0,0.4); color:#FFBF00; font-size:0.5rem;">END</div>
+      <div class="trove-content">
+        <p class="trove-title">The Final Reveal</p>
+        <p class="trove-timing">Day 25, Midnight PT</p>
+        <p class="trove-desc">The saboteur is unmasked. The leaderboard is finalized. The winner is announced.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE TROVES -->
+  <div class="guide-section" id="troves">
+    <p class="guide-section-title">The Three Treasure Troves</p>
+    <div class="trove-row">
+      <div class="trove-num trove-num-01">01</div>
+      <div class="trove-content">
+        <p class="trove-title">K-Pop Identity &mdash; Week 1</p>
+        <p class="trove-timing">Opens Day 1 &middot; Up to 100 pts</p>
+        <p class="trove-desc">Create your K-Pop trainee identity using AI. Generate an avatar using ChatGPT or Gemini, then design a debut promotional poster in Canva. Choose Option 1 (Avatar Only, up to 75 pts) or Option 2 (Avatar + Poster, up to 100 pts). Use the Practice Oracle to refine your work before submitting officially.</p>
+        <div class="trove-links">
+          <a href="/pages/trove-01" class="trove-link">Trove 01 Mission &rarr;</a>
+          <a href="/pages/submit-trove-01" class="trove-link">Submit Trove 01 &rarr;</a>
+        </div>
+      </div>
+    </div>
+    <div class="trove-row">
+      <div class="trove-num trove-num-02">02</div>
+      <div class="trove-content">
+        <p class="trove-title">Evidence Song &mdash; Week 2</p>
+        <p class="trove-timing">Opens Day 8 &middot; Up to 100 pts</p>
+        <p class="trove-desc">Produce the Evidence Song. Choose a cover song and rewrite its lyrics using multilingual vocabulary (Korean, Spanish, or English woven in meaningfully). Generate an AI music track using Suno. Optionally create a karaoke video using MyKaraoke.Video for the highest score. Your song is itself a piece of evidence in the investigation.</p>
+        <div class="trove-links">
+          <a href="/pages/trove-02" class="trove-link purple">Trove 02 Mission &rarr;</a>
+          <a href="/pages/submit-trove-02" class="trove-link purple">Submit Trove 02 &rarr;</a>
+        </div>
+      </div>
+    </div>
+    <div class="trove-row">
+      <div class="trove-num trove-num-03">03</div>
+      <div class="trove-content">
+        <p class="trove-title">AI Lesson Plan &mdash; Week 3</p>
+        <p class="trove-timing">Opens Day 15 &middot; Up to 100 pts + 10 video bonus</p>
+        <p class="trove-desc">Build an AI-integrated interdisciplinary lesson plan for your students. Complete the Standard Unpack and design a lesson that uses AI tools. Optionally create a dance video &mdash; submitting a video link automatically awards +10 bonus points. The lesson plan is scored by the Oracle of the Rubric; the dance video is judged by Joyce of BbCat.</p>
+        <div class="trove-links">
+          <a href="/pages/trove-03" class="trove-link amber">Trove 03 Mission &rarr;</a>
+          <a href="/pages/submit-trove-03" class="trove-link amber">Submit Trove 03 &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORING -->
+  <div class="guide-section" id="scoring">
+    <p class="guide-section-title">Scoring Breakdown</p>
+    <p style="font-size:0.9rem; line-height:1.7; color:rgba(224,224,224,0.7); margin-bottom:20px;">All artifacts are evaluated by the <strong style="color:#fff;">Oracle of the Rubric</strong> &mdash; a Custom GPT trained on the TopKpop.io scoring rubric. Use the Practice Oracle before submitting officially to get formative feedback and revise your work.</p>
+    <table class="score-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Points</th>
+          <th>How Scored</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Trove 01 &mdash; Avatar Only</td><td class="pts-cell">Up to 75</td><td>Oracle of the Rubric (auto on submit)</td></tr>
+        <tr><td>Trove 01 &mdash; Avatar + Poster</td><td class="pts-cell">Up to 100</td><td>Oracle of the Rubric (auto on submit)</td></tr>
+        <tr><td>Trove 02 &mdash; Evidence Song</td><td class="pts-cell">Up to 100</td><td>Oracle of the Rubric (auto on submit)</td></tr>
+        <tr><td>Trove 03 &mdash; AI Lesson Plan</td><td class="pts-cell">Up to 100</td><td>Oracle of the Rubric (auto on submit)</td></tr>
+        <tr><td>Trove 03 &mdash; Dance Video Submission</td><td class="pts-cell green">+10 Auto</td><td>Automatic when video link is submitted</td></tr>
+        <tr><td>Instagram Post (per Trove)</td><td class="pts-cell green">+25</td><td>Admin verified</td></tr>
+        <tr><td>Team Name Lore (Trove 01)</td><td class="pts-cell green">+25</td><td>Admin verified</td></tr>
+        <tr><td>Welcome Post at Registration</td><td class="pts-cell green">+25</td><td>Admin verified (one-time)</td></tr>
+        <tr><td style="color:#FFBF00; font-weight:600;">Early Submission Prize (Trove 01)</td><td class="pts-cell amber">Bonus Prize</td><td>Auto-detected &mdash; email sent within 48 hrs</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.82rem; color:rgba(224,224,224,0.45); font-style:italic;">Maximum possible score (excluding early submission prize): 400+ pts with all bonuses.</p>
+  </div>
+
+  <!-- INSTAGRAM OPTIONS -->
+  <div class="guide-section" id="instagram">
+    <p class="guide-section-title">Instagram Options &mdash; How It Works</p>
+    <p style="font-size:0.9rem; line-height:1.7; color:rgba(224,224,224,0.7); margin-bottom:20px;">Instagram posts are <strong style="color:#fff;">optional</strong> and earn +25 bonus points per Trove. All four options count equally. Choose the one that works best for you &mdash; and use the same option consistently across all three Troves, or switch between them.</p>
+    <div class="ig-option">
+      <div class="ig-badge">A</div>
+      <div class="ig-content">
+        <strong>K-Pop Persona Account (Recommended)</strong>
+        <span>Create a new Instagram account using your K-Pop idol stage name. Set it to <strong style="color:#fff;">Private</strong>. Follow <a href="https://www.instagram.com/topkpopio" target="_blank" style="color:#b06aff;">@topkpopio</a> &mdash; we will follow your persona account back, and you approve our follow request. Post your Trove work tagging <strong style="color:#fff;">@topkpopio</strong> with <strong style="color:#fff;">#TopKpopSleuth</strong>. Paste the post URL in your submission form.</span>
+      </div>
+    </div>
+    <div class="ig-option">
+      <div class="ig-badge">B</div>
+      <div class="ig-content">
+        <strong>Your Real Account</strong>
+        <span>Post on your existing personal Instagram account. Tag <strong style="color:#fff;">@topkpopio</strong> and use <strong style="color:#fff;">#TopKpopSleuth</strong>. Paste the post URL in your submission form.</span>
+      </div>
+    </div>
+    <div class="ig-option">
+      <div class="ig-badge">C</div>
+      <div class="ig-content">
+        <strong>DM Only (Private)</strong>
+        <span>No public post required. Follow <a href="https://www.instagram.com/topkpopio" target="_blank" style="color:#b06aff;">@topkpopio</a> and send a Direct Message with your Trove work. In your submission form, write <strong style="color:#fff;">"DM sent to @topkpopio"</strong> in the Instagram field.</span>
+      </div>
+    </div>
+    <div class="ig-option">
+      <div class="ig-badge">D</div>
+      <div class="ig-content">
+        <strong>Website Only (Skip Instagram)</strong>
+        <span>Submit through the portal only. No Instagram required. You will still earn full rubric points &mdash; you only miss the +25 Instagram bonus. Leave the Instagram field blank in your submission form.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIZES -->
+  <div class="guide-section" id="prizes">
+    <p class="guide-section-title">Prizes &amp; Recognition</p>
+    <div class="prize-row">
+      <div class="prize-icon">🏆</div>
+      <div class="prize-content">
+        <strong>Early Submission Award &mdash; Week 1 Bonus</strong>
+        <span>Teams that submit Trove 01 before the end of Week 1 earn an early submission bonus prize. Check your email within 48 hours of submitting.</span>
+      </div>
+    </div>
+    <div class="prize-row">
+      <div class="prize-icon">🎭</div>
+      <div class="prize-content">
+        <strong>Trove 01 Prize &mdash; K-Pop Identity Award</strong>
+        <span>Awarded to the team with the highest-scoring avatar and poster. Prize details announced at game launch.</span>
+      </div>
+    </div>
+    <div class="prize-row">
+      <div class="prize-icon">🎵</div>
+      <div class="prize-content">
+        <strong>Trove 02 Prize &mdash; Evidence Song Award</strong>
+        <span>Awarded to the top-scoring evidence song or karaoke video. School Bonus Prize for MyKaraoke.Video submissions.</span>
+      </div>
+    </div>
+    <div class="prize-row">
+      <div class="prize-icon">📚</div>
+      <div class="prize-content">
+        <strong>Trove 03 Prize &mdash; Lesson Plan Award</strong>
+        <span>Awarded to the highest-scoring AI-integrated lesson plan. Recognized in the TopKpop.io educator community.</span>
+      </div>
+    </div>
+    <div class="prize-row">
+      <div class="prize-icon">👑</div>
+      <div class="prize-content">
+        <strong>Grand Prize &mdash; AI Super Sleuth Champion (Day 25)</strong>
+        <span>Classroom prize + team recognition + AI Super Sleuth Champion certificate. See winning rule below.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW TO WIN -->
+  <div class="guide-section" id="winning">
+    <p class="guide-section-title">How to Win</p>
+    <div class="win-rule">
+      <p><strong>Scenario 1 — Someone guesses correctly:</strong> If any team correctly names the saboteur, the correct team with the highest score wins &mdash; even over a team with more total points who guessed wrong. A team can lead the leaderboard the entire game and still lose if they name the wrong suspect and someone else guesses correctly.</p>
+    </div>
+    <div class="win-rule" style="border-color:rgba(255,191,0,0.25); background:rgba(255,191,0,0.04);">
+      <p><strong>Scenario 2 — No one guesses correctly:</strong> If no team correctly names the saboteur, the team with the highest total score wins.</p>
+    </div>
+    <p style="font-size:0.88rem; line-height:1.7; color:rgba(224,224,224,0.6); margin-top:16px;">The truth matters more than the points. Study the clues. The Final Accusation is your most important move.</p>
+  </div>
+
+  <!-- FAQ -->
+  <div class="guide-section" id="faq">
+    <p class="guide-section-title">Frequently Asked Questions</p>
+
+    <div class="faq-item">
+      <p class="faq-q">Do I need prior AI experience to play?</p>
+      <p class="faq-a">No prior AI experience is required. The game is designed to teach AI tools through the process of completing the missions. Each Treasure Trove introduces new tools progressively &mdash; you learn by doing, not by studying.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">Do I need a social media account to participate?</p>
+      <p class="faq-a">All deliverables are submitted directly through the TopKpop.io portal. Following <a href="https://www.instagram.com/topkpopio" target="_blank">@topkpopio on Instagram</a> is encouraged to receive mission videos and clue drops &mdash; these are posted to Instagram when each Trove opens. Posting on Instagram earns bonus points but is never required. All four Instagram options (including website-only) count equally for rubric scoring.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">Do I need to sing or dance?</p>
+      <p class="faq-a">No. In Treasure Trove 03, teams use AI video tools to create a choreographed dance video, then design an interdisciplinary lesson plan for students. The dance video is optional &mdash; submitting one earns an automatic +10 bonus, but it is not required to earn full rubric points.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">How are teams formed?</p>
+      <p class="faq-a">Teams of 2&ndash;4 educators register together. You can form teams with colleagues from the same school or across different schools in the same district. Each team designates a team captain who manages submissions and the final accusation. Only the captain needs to register &mdash; additional members are added during registration.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">How does the Oracle of the Rubric work?</p>
+      <p class="faq-a">The Oracle of the Rubric is a Custom GPT trained on the TopKpop.io scoring rubric. When you submit an artifact through the portal, the Oracle evaluates it against explicit quality criteria and returns detailed formative feedback. Use the <strong>Practice Oracle</strong> (linked on each Trove page) to refine your work before locking in your official submission. Once officially submitted, the Trove is locked.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">How does the Instagram private account option work?</p>
+      <p class="faq-a">Create a new Instagram account using your K-Pop idol stage name. Set it to Private in Settings. Follow <a href="https://www.instagram.com/topkpopio" target="_blank">@topkpopio</a> &mdash; the game admin will follow your persona account back. You approve the follow request. Then post your Trove work tagging @topkpopio with #TopKpopSleuth. Paste the post URL in your submission form. This keeps your real account completely private while still participating in the community.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">What happens if two teams tie on points?</p>
+      <p class="faq-a">The tie-breaker is the Final Accusation. If two teams have equal points and both name the correct saboteur, the team that submitted their Treasure Trove 01 earliest wins. If neither team names the correct saboteur, the team with the highest score wins.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">Can I change my Final Accusation after submitting?</p>
+      <p class="faq-a">No. The Final Accusation is locked once submitted. Use the Practice Oracle, review all your clues, and discuss with your team before filing. You have 48 hours from Day 22 at 7 PM PT to Day 24 at 7 PM PT to submit.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">When does the game start?</p>
+      <p class="faq-a">The start date is set by your school or district administrator. Games can begin on any Monday with as little as two weeks of advance registration. There is no fixed annual calendar &mdash; each game is run on-demand for your district or cohort.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">Can the game be run for an entire school district?</p>
+      <p class="faq-a">Yes &mdash; the game is designed to scale to district-wide professional development. Teams from multiple schools compete on the same leaderboard. Contact us through the registration form to discuss district licensing and facilitation options.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">What is the Early Submission Bonus Prize?</p>
+      <p class="faq-a">Teams that submit Trove 01 before the end of Week 1 (before Day 8) earn an early submission bonus prize. The system detects this automatically and sends a congratulations email to the team captain within 48 hours. Prize details are included in that email.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">Do I need a paid ChatGPT account?</p>
+      <p class="faq-a">No. Free tier ChatGPT is sufficient for most missions. We recommend activating <strong>ChatGPT for Teachers</strong> (free) through <a href="https://chatgpt.com/edu" target="_blank">chatgpt.com/edu</a> using your school district email. Other AI platforms (Gemini, Copilot) are also permitted.</p>
+    </div>
+  </div>
+
+  <!-- URL REFERENCE -->
+  <div class="guide-section" id="urls">
+    <p class="guide-section-title">All Links &mdash; Quick Reference</p>
+
+    <p class="url-section-head">Main Pages</p>
+    <table class="url-table">
+      <thead><tr><th>Page</th><th>URL</th></tr></thead>
+      <tbody>
+        <tr><td>Home</td><td><a href="https://www.topkpop.io" target="_blank">topkpop.io</a></td></tr>
+        <tr><td>The Case</td><td><a href="/pages/the-case">topkpop.io/pages/the-case</a></td></tr>
+        <tr><td>Cast &amp; Suspects</td><td><a href="/pages/cast">topkpop.io/pages/cast</a></td></tr>
+        <tr><td>Missions Hub</td><td><a href="/pages/missions">topkpop.io/pages/missions</a></td></tr>
+        <tr><td>How It Works</td><td><a href="/pages/how-it-works">topkpop.io/pages/how-it-works</a></td></tr>
+        <tr><td>Leaderboard</td><td><a href="/pages/leaderboard">topkpop.io/pages/leaderboard</a></td></tr>
+        <tr><td>Resources &amp; Tools</td><td><a href="/pages/resources">topkpop.io/pages/resources</a></td></tr>
+        <tr><td>Register</td><td><a href="https://www.topkpop.io/#register" target="_blank">topkpop.io/#register</a></td></tr>
+      </tbody>
+    </table>
+
+    <p class="url-section-head">Trove &amp; Submission Pages</p>
+    <table class="url-table">
+      <thead><tr><th>Page</th><th>URL</th></tr></thead>
+      <tbody>
+        <tr><td>Trove 01 &mdash; K-Pop Identity</td><td><a href="/pages/trove-01">topkpop.io/pages/trove-01</a></td></tr>
+        <tr><td>Submit Trove 01</td><td><a href="/pages/submit-trove-01">topkpop.io/pages/submit-trove-01</a></td></tr>
+        <tr><td>Trove 02 &mdash; Evidence Song</td><td><a href="/pages/trove-02">topkpop.io/pages/trove-02</a></td></tr>
+        <tr><td>Submit Trove 02</td><td><a href="/pages/submit-trove-02">topkpop.io/pages/submit-trove-02</a></td></tr>
+        <tr><td>Trove 03 &mdash; AI Lesson Plan</td><td><a href="/pages/trove-03">topkpop.io/pages/trove-03</a></td></tr>
+        <tr><td>Submit Trove 03</td><td><a href="/pages/submit-trove-03">topkpop.io/pages/submit-trove-03</a></td></tr>
+        <tr><td>Final Accusation</td><td><a href="/pages/final-accusation">topkpop.io/pages/final-accusation</a></td></tr>
+      </tbody>
+    </table>
+
+    <p class="url-section-head">External Tools</p>
+    <table class="url-table">
+      <thead><tr><th>Tool</th><th>URL</th></tr></thead>
+      <tbody>
+        <tr><td>ChatGPT</td><td><a href="https://chatgpt.com" target="_blank">chatgpt.com</a></td></tr>
+        <tr><td>ChatGPT for Teachers (free)</td><td><a href="https://chatgpt.com/edu" target="_blank">chatgpt.com/edu</a></td></tr>
+        <tr><td>Canva</td><td><a href="https://www.canva.com" target="_blank">canva.com</a></td></tr>
+        <tr><td>Suno (AI music)</td><td><a href="https://suno.com" target="_blank">suno.com</a></td></tr>
+        <tr><td>MyKaraoke.Video</td><td><a href="https://mykaraoke.video" target="_blank">mykaraoke.video</a></td></tr>
+        <tr><td>Instagram Community</td><td><a href="https://www.instagram.com/topkpopio" target="_blank">@topkpopio</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <a href="/" class="footer-logo"><span>TOP</span>KPOP.IO</a>
+    <div class="footer-links">
+      <a href="/pages/the-case">The Case</a>
+      <a href="/pages/missions">Missions</a>
+      <a href="/pages/leaderboard">Leaderboard</a>
+      <a href="/pages/how-it-works">How It Works</a>
+      <a href="/pages/resources">Resources</a>
+      <a href="/pages/game-guide">Game Guide</a>
+    </div>
+  </div>
+  <p class="footer-copy">&copy; 2026 Top K-Pop Entertainment &middot; AI Super Sleuth</p>
+</footer>
+
+<script src="/js/nav.js"></script>
+<script>
+  // Accordion FAQ
+  document.querySelectorAll('.faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+      const a = q.nextElementSibling;
+      const isOpen = q.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.faq-q').forEach(el => {
+        el.classList.remove('open');
+        el.nextElementSibling.style.display = 'none';
+      });
+      // Open clicked if it was closed
+      if (!isOpen) {
+        q.classList.add('open');
+        a.style.display = 'block';
+      }
+    });
+  });
+</script>
+</body>
+</html>
