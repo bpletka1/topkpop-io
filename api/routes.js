@@ -533,6 +533,13 @@ router.post('/submit/:trove', upload.fields([
         final_score: oracleResult.score,
         scored_at: new Date().toISOString(),
       };
+      // Trove 3: auto-award +10 bonus when a dance video link is submitted
+      if (troveNumber === 3 && dance_video_link?.trim()) {
+        updatePayload.bonus_score = 10;
+        updatePayload.bonus_awarded_at = new Date().toISOString();
+        updatePayload.bonus_awarded_by = 'auto-dance-video';
+        console.log(`[BONUS] +10 dance video bonus auto-awarded to ${team_name.trim()} for Trove 3`);
+      }
       const { error: updateErr } = await supabase
         .from('submissions')
         .update(updatePayload)
@@ -542,6 +549,7 @@ router.post('/submit/:trove', upload.fields([
 
     const annaMessage = getAnnaMessage();
 
+    const danceVideoBonus = (troveNumber === 3 && dance_video_link?.trim()) ? 10 : 0;
     res.json({
       success: true,
       message: `Trove 0${troveNumber} submission received and scored!`,
@@ -550,6 +558,7 @@ router.post('/submit/:trove', upload.fields([
       feedback: oracleResult.success ? oracleResult.feedback : null,
       scoring_available: oracleResult.success,
       anna_message: annaMessage,
+      dance_video_bonus: danceVideoBonus,
     });
 
   } catch (err) {

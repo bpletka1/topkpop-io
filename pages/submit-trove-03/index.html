@@ -159,8 +159,8 @@
     <div class="form-section" style="border-color:rgba(255,191,0,0.25);">
       <p class="form-section-label" style="color:var(--amber);">Step 05 &nbsp;&middot;&nbsp; Required</p>
       <h2 class="form-section-title">Team Dance Performance Video</h2>
-      <div class="points-badge" style="background:rgba(255,191,0,0.1); border-color:rgba(255,191,0,0.3); color:var(--amber);">&#9733; Up to 100 Points &mdash; Judged by Joyce of BbCat</div>
-      <p class="form-section-desc">Paste the link to your team's performance video (YouTube, Google Drive, Vimeo, etc.). This is your Deliverable 3 — Joyce's custom choreography performed as a team.</p>
+      <div class="points-badge" style="background:rgba(255,191,0,0.1); border-color:rgba(255,191,0,0.3); color:var(--amber);">&#9733; Up to 100 Points &mdash; Judged by Joyce of BbCat &nbsp;+&nbsp; <span style="color:#00B464;">+10 Automatic Bonus</span></div>
+      <p class="form-section-desc">Paste the link to your team's performance video (YouTube, Google Drive, Vimeo, etc.). This is your Deliverable 3 — Joyce's custom choreography performed as a team. <strong style="color:#00B464;">Submitting a video link automatically earns your team +10 bonus points.</strong></p>
       <div class="field-group">
         <label class="field-label" for="danceVideoLink">Team Dance Video Link <span class="field-required">*</span></label>
         <input class="field-input" type="url" id="danceVideoLink" name="dance_video_link" placeholder="https://youtu.be/... or drive.google.com/..." required />
@@ -194,7 +194,7 @@
     <div id="scoreDisplay" style="display:none; margin: 28px 0; background: rgba(255,191,0,0.08); border: 1px solid rgba(255,191,0,0.35); border-radius: 8px; padding: 28px;">
       <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(224,224,224,0.5); margin-bottom:8px;">Your Oracle Score</p>
       <p id="scoreNumber" style="font-family:'Syncopate',sans-serif; font-size:2.4rem; font-weight:700; color:#ffbf00; margin:0 0 6px;"></p>
-      <p style="font-size:0.8rem; color:rgba(224,224,224,0.45);">This score is now live on the leaderboard.</p>
+      <p style="font-size:0.8rem; color:rgba(224,224,224,0.45);">Lesson plan score is now live on the leaderboard. Dance video bonus (+10) is included in your total.</p>
     </div>
     <div id="feedbackDisplay" style="display:none; margin: 20px 0; background: rgba(15,16,22,0.9); border: 1px solid rgba(230,0,92,0.2); border-radius: 8px; padding: 24px; text-align:left;">
       <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--crimson); margin-bottom:14px;">Oracle Feedback</p>
@@ -250,7 +250,11 @@
         document.getElementById('submitForm').style.display = 'none';
         document.getElementById('successMsg').style.display = 'block';
         if (data.score !== null && data.score !== undefined) {
-          document.getElementById('scoreNumber').textContent = data.score + ' / 100';
+          const bonusPts = data.dance_video_bonus || 0;
+          const totalDisplay = bonusPts > 0
+            ? `${data.score} / 100 <span style="font-size:1.2rem; color:#00B464;">+${bonusPts} Dance Video Bonus</span>`
+            : `${data.score} / 100`;
+          document.getElementById('scoreNumber').innerHTML = totalDisplay;
           document.getElementById('scoreDisplay').style.display = 'block';
         }
         if (data.feedback) {
