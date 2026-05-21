@@ -489,19 +489,17 @@ router.post('/submit/:trove', upload.fields([
       file3Data = await uploadToSupabase(req.files.file3[0], folder);
     }
 
-    // Build submission payload — include dance video link and instagram URL if provided
+    // Build submission payload — only include file columns when files are actually uploaded
+    // (Supabase rejects unknown columns, so we don't include file columns when null)
     const submissionPayload = {
       team_id: team.id,
       team_name: team_name.trim(),
       trove_number: troveNumber,
-      file1_path: file1Data?.url,  // DB column is file1_path (stores the public URL)
-      file1_name: file1Data?.name,
-      file2_path: file2Data?.url,  // DB column is file2_path
-      file2_name: file2Data?.name,
-      file3_path: file3Data?.url,  // DB column is file3_path
-      file3_name: file3Data?.name,
       notes: notes?.trim(),
     };
+    if (file1Data?.url) { submissionPayload.file1_url = file1Data.url; submissionPayload.file1_name = file1Data.name; }
+    if (file2Data?.url) { submissionPayload.file2_url = file2Data.url; submissionPayload.file2_name = file2Data.name; }
+    if (file3Data?.url) { submissionPayload.file3_url = file3Data.url; submissionPayload.file3_name = file3Data.name; }
     // Trove 3: save dance video link in notes if provided, and instagram URL for bonus
     if (dance_video_link?.trim()) {
       submissionPayload.notes = [notes?.trim(), `Dance Video: ${dance_video_link.trim()}`].filter(Boolean).join(' | ');
