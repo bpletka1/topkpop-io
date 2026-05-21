@@ -52,6 +52,7 @@ const gmailTransporter = nodemailer.createTransport({
 // subject: email subject line
 // replacements: object of { TOKEN: value } to replace in the HTML
 async function sendEmail(templateFile, to, subject, replacements = {}) {
+  const recipients = Array.isArray(to) ? to.join(',') : to;
   try {
     const templatePath = path.join(__dirname, '..', 'pages', 'emails', templateFile);
     let html = fs.readFileSync(templatePath, 'utf8');
@@ -59,7 +60,6 @@ async function sendEmail(templateFile, to, subject, replacements = {}) {
     for (const [token, value] of Object.entries(replacements)) {
       html = html.split(token).join(value || '');
     }
-    const recipients = Array.isArray(to) ? to.join(',') : to;
     await withTimeout(
       gmailTransporter.sendMail({
         from: '"Anna Im — TopKpop.io" <bpletka1@gmail.com>',
