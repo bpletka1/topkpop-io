@@ -31,7 +31,7 @@
       position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 40px; height: 70px;
-      background: rgba(11,12,16,0.92); backdrop-filter: blur(12px);
+      background: rgba(11,12,16,0.95); backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(230,0,92,0.25);
     }
     .nav-logo { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: 0.12em; color: #fff; text-decoration: none; }
@@ -39,9 +39,10 @@
     .nav-links { display: flex; gap: 28px; list-style: none; }
     .nav-links a { font-family: 'Syncopate', sans-serif; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--silver); text-decoration: none; transition: color 0.2s; }
     .nav-links a:hover { color: var(--crimson); }
-    .nav-cta { background: var(--crimson); color: #fff !important; padding: 8px 20px; border-radius: 3px; font-size: 0.58rem !important; letter-spacing: 0.2em !important; box-shadow: var(--glow-r); }
+    .nav-cta { background: var(--crimson); color: #fff !important; padding: 8px 20px; border-radius: 3px; font-family: 'Syncopate', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; transition: box-shadow 0.2s; }
+    .nav-cta:hover { box-shadow: var(--glow-r); }
     .nav-hamburger { display: none; flex-direction: column; gap: 6px; cursor: pointer; background: none; border: none; padding: 8px; z-index: 1001; }
-    .nav-hamburger span { display: block; width: 26px; height: 2px; background: #E0E0E0; border-radius: 2px; }
+    .nav-hamburger span { display: block; width: 26px; height: 2px; background: var(--silver); border-radius: 2px; }
 
     /* HERO */
     #hero {
