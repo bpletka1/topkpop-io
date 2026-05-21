@@ -2217,19 +2217,49 @@ router.post('/admin/run-migration', adminAuth, async (req, res) => {
   try {
     const { migration } = req.body;
     if (migration === 'add-captain-phone') {
-      const { error } = await supabase.rpc('exec_sql', {
-        sql: 'ALTER TABLE registrations ADD COLUMN IF NOT EXISTS captain_phone TEXT;'
-      }).catch(() => ({ error: null }));
-      // Supabase JS client doesn't support raw DDL via rpc easily,
-      // so try a direct insert approach: attempt to select the column
+      // First check if column already exists
       const { data: testData, error: testError } = await supabase
         .from('registrations')
         .select('captain_phone')
         .limit(1);
-      if (testError && testError.message.includes('captain_phone')) {
-        return res.json({ success: false, message: 'Column does not exist yet. Run the SQL manually in Supabase dashboard: ALTER TABLE registrations ADD COLUMN IF NOT EXISTS captain_phone TEXT;', sql: 'ALTER TABLE registrations ADD COLUMN IF NOT EXISTS captain_phone TEXT;' });
+      if (!testError) {
+        return res.json({ success: true, message: 'captain_phone column already exists.' });
       }
-      return res.json({ success: true, message: 'captain_phone column exists and is accessible.' });
+      // Column doesn't exist — run migration via Supabase REST SQL endpoint
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SECRET_KEY;
+      const sqlRes = await fetch(`${supabaseUrl}/rest/v1/rpc/exec_sql`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+        body: JSON.stringify({ sql: 'ALTER TABLE registrations ADD COLUMN IF NOT EXISTS captain_phone TEXT;' }),
+      });
+      // Supabase doesn't expose exec_sql by default — use pg_meta instead
+      const pgMetaRes = await fetch(`${supabaseUrl.replace('.supabase.co', '.supabase.co')}/pg/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+        body: JSON.stringify({ query: 'ALTER TABLE registrations ADD COLUMN IF NOT EXISTS captain_phone TEXT;' }),
+      });
+      // Verify column now exists
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('registrations')
+        .select('captain_phone')
+        .limit(1);
+      if (!verifyError) {
+        return res.json({ success: true, message: 'captain_phone column added successfully.' });
+      }
+      return res.json({ 
+        success: false, 
+        message: 'Could not add column automatically. Please run this SQL in Supabase SQL Editor:',
+        sql: 'ALTER TABLE registrations ADD COLUMN IF NOT EXISTS captain_phone TEXT;'
+      });
     }
     res.status(400).json({ error: 'Unknown migration.' });
   } catch (err) { res.status(500).json({ error: err.message }); }
