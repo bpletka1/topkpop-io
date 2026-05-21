@@ -226,79 +226,74 @@
     <!-- TEAM OVERVIEW -->
     <div class="admin-panel">
       <div class="panel-header">
-        <span class="panel-title">Team Overview</span>
-        <span class="panel-badge badge-active" id="teams-count-badge">3 Teams</span>
+        <span class="panel-title">Team Management</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="panel-badge badge-active" id="teams-count-badge">Loading...</span>
+          <button onclick="openAddTeamModal()" style="background:rgba(0,180,100,0.12);border:1px solid rgba(0,180,100,0.35);color:#00B464;font-family:'Syncopate',sans-serif;font-size:0.45rem;letter-spacing:0.15em;text-transform:uppercase;padding:6px 14px;border-radius:3px;cursor:pointer;">+ Add Team</button>
+        </div>
       </div>
       <div class="panel-body">
-        <div class="phase3-note" style="margin-bottom:24px;">
-          <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.2em; color:#E6005C; text-transform:uppercase; margin-bottom:6px;">Phase 3 — Live Data Coming</p>
-          <p style="font-size:0.85rem; color:rgba(224,224,224,0.5);">In Phase 3, this table will pull live data from the database — registered teams, submission status per Trove, and running scores. The rows below show the intended layout.</p>
-        </div>
-        <table class="team-table">
+        <div style="overflow-x:auto;">
+        <table class="team-table" id="teams-table">
           <thead>
             <tr>
               <th>Team Name</th>
-              <th>School / Org</th>
+              <th>School / District</th>
               <th>Trove 01</th>
-              <th>T01 Pts</th>
               <th>Trove 02</th>
-              <th>T02 Pts</th>
               <th>Trove 03</th>
-              <th>T03 Pts</th>
-              <th>Accusation</th>
               <th>Total</th>
-              <th>Next Step</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td><span class="team-name">Neon Detectives</span></td>
-              <td>Lincoln Elementary</td>
-              <td><span class="trove-dot done"></span> Scored</td>
-              <td style="color:#00B464;">285</td>
-              <td><span class="trove-dot pending"></span> Pending</td>
-              <td style="color:rgba(255,191,0,0.5);">—</td>
-              <td><span class="trove-dot none"></span> —</td>
-              <td style="color:rgba(224,224,224,0.3);">—</td>
-              <td style="color:rgba(224,224,224,0.35); font-style:italic; font-size:0.8rem;">Not submitted</td>
-              <td><span class="team-score">285</span></td>
-              <td style="font-size:0.8rem; color:var(--amber);">Await T02 Oracle score</td>
-              <td><button class="team-action">View</button></td>
-            </tr>
-            <tr>
-              <td><span class="team-name">K-Pop Sleuths</span></td>
-              <td>Jefferson Middle</td>
-              <td><span class="trove-dot done"></span> Scored</td>
-              <td style="color:#00B464;">190</td>
-              <td><span class="trove-dot done"></span> Scored</td>
-              <td style="color:#00B464;">200</td>
-              <td><span class="trove-dot none"></span> —</td>
-              <td style="color:rgba(224,224,224,0.3);">—</td>
-              <td style="color:rgba(224,224,224,0.35); font-style:italic; font-size:0.8rem;">Not submitted</td>
-              <td><span class="team-score">390</span></td>
-              <td style="font-size:0.8rem; color:#b06aff;">Trove 03 unlocks Week 3</td>
-              <td><button class="team-action">View</button></td>
-            </tr>
-            <tr>
-              <td><span class="team-name">Stage Shadows</span></td>
-              <td>Westview K-8</td>
-              <td><span class="trove-dot done"></span> Scored</td>
-              <td style="color:#00B464;">180</td>
-              <td><span class="trove-dot none"></span> —</td>
-              <td style="color:rgba(224,224,224,0.3);">—</td>
-              <td><span class="trove-dot none"></span> —</td>
-              <td style="color:rgba(224,224,224,0.3);">—</td>
-              <td style="color:rgba(224,224,224,0.35); font-style:italic; font-size:0.8rem;">Not submitted</td>
-              <td><span class="team-score">180</span></td>
-              <td style="font-size:0.8rem; color:var(--crimson);">Submit Trove 02 now</td>
-              <td><button class="team-action">View</button></td>
-            </tr>
-            <tr>
-              <td colspan="12" style="text-align:center; padding:20px; color:rgba(224,224,224,0.2); font-style:italic; font-size:0.82rem;">Sample data — live team records will appear here in Phase 3</td>
-            </tr>
+          <tbody id="teams-tbody">
+            <tr><td colspan="8" style="text-align:center;padding:24px;color:rgba(224,224,224,0.3);">Loading teams...</td></tr>
           </tbody>
         </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEAM EDIT/ADD MODAL -->
+    <div id="team-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:20px;">
+      <div style="background:#0f1016;border:1px solid rgba(230,0,92,0.35);border-radius:10px;padding:36px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;position:relative;">
+        <button onclick="closeTeamModal()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:rgba(224,224,224,0.5);font-size:1.4rem;cursor:pointer;">&times;</button>
+        <h3 id="tm-modal-title" style="font-family:'Syncopate',sans-serif;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#fff;margin-bottom:28px;">Edit Team</h3>
+        <div id="tm-error" style="display:none;background:rgba(230,0,92,0.1);border:1px solid rgba(230,0,92,0.4);border-radius:4px;padding:10px 14px;color:#f87171;font-size:0.85rem;margin-bottom:16px;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+          <div><label style="font-family:'Syncopate',sans-serif;font-size:0.45rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(224,224,224,0.5);display:block;margin-bottom:6px;">Team Name *</label><input id="tm-team-name" class="gate-input" style="margin:0;" placeholder="The K-Detectives" /></div>
+          <div><label style="font-family:'Syncopate',sans-serif;font-size:0.45rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(224,224,224,0.5);display:block;margin-bottom:6px;">Captain Name *</label><input id="tm-captain-name" class="gate-input" style="margin:0;" placeholder="Anna Im" /></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+          <div><label style="font-family:'Syncopate',sans-serif;font-size:0.45rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(224,224,224,0.5);display:block;margin-bottom:6px;">Captain Email *</label><input id="tm-captain-email" class="gate-input" style="margin:0;" type="email" placeholder="anna@school.edu" /></div>
+          <div><label style="font-family:'Syncopate',sans-serif;font-size:0.45rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(224,224,224,0.5);display:block;margin-bottom:6px;">Phone</label><input id="tm-captain-phone" class="gate-input" style="margin:0;" type="tel" placeholder="(555) 867-5309" /></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+          <div><label style="font-family:'Syncopate',sans-serif;font-size:0.45rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(224,224,224,0.5);display:block;margin-bottom:6px;">School Name</label><input id="tm-school" class="gate-input" style="margin:0;" placeholder="Lincoln Elementary" /></div>
+          <div><label style="font-family:'Syncopate',sans-serif;font-size:0.45rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(224,224,224,0.5);display:block;margin-bottom:6px;">District</label><input id="tm-district" class="gate-input" style="margin:0;" placeholder="Fullerton USD" /></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+          <div><label style="font-family:'Syncopate',sans-serif;font-size:0.45rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(224,224,224,0.5);display:block;margin-bottom:6px;">Role</label><input id="tm-role" class="gate-input" style="margin:0;" placeholder="Classroom Teacher" /></div>
+          <div><label style="font-family:'Syncopate',sans-serif;font-size:0.45rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(224,224,224,0.5);display:block;margin-bottom:6px;">Grade Level(s)</label><input id="tm-grade" class="gate-input" style="margin:0;" placeholder="3-5" /></div>
+        </div>
+        <p style="font-family:'Syncopate',sans-serif;font-size:0.48rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(224,224,224,0.35);margin-bottom:14px;">Team Members (optional)</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <input id="tm-m2-name" class="gate-input" style="margin:0;" placeholder="Member 2 Name" />
+          <input id="tm-m2-email" class="gate-input" style="margin:0;" type="email" placeholder="Member 2 Email" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <input id="tm-m3-name" class="gate-input" style="margin:0;" placeholder="Member 3 Name" />
+          <input id="tm-m3-email" class="gate-input" style="margin:0;" type="email" placeholder="Member 3 Email" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px;">
+          <input id="tm-m4-name" class="gate-input" style="margin:0;" placeholder="Member 4 Name" />
+          <input id="tm-m4-email" class="gate-input" style="margin:0;" type="email" placeholder="Member 4 Email" />
+        </div>
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+          <button onclick="closeTeamModal()" style="padding:12px 24px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:rgba(224,224,224,0.6);font-family:'Syncopate',sans-serif;font-size:0.5rem;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Cancel</button>
+          <button onclick="saveTeamModal()" style="padding:12px 28px;background:var(--crimson);border:none;border-radius:4px;color:#fff;font-family:'Syncopate',sans-serif;font-size:0.5rem;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Save Changes</button>
+        </div>
       </div>
     </div>
 
@@ -687,32 +682,99 @@ async function loadDashboard() {
 }
 
 function populateTeamTable(teams) {
-  const tbody = document.querySelector('.team-table tbody');
-  if (!tbody) return;
+  window._adminTeams = teams;
+  const tbody2 = document.getElementById('teams-tbody');
+  if (!tbody2) return;
   if (!teams.length) {
-    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; color:rgba(224,224,224,0.3); padding:24px;">No registered teams yet.</td></tr>';
+    tbody2.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:rgba(224,224,224,0.3);">No registered teams yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = teams.map(t => `
-    <tr>
-      <td><span class="team-name">${t.team_name}</span></td>
-      <td>${t.school_name || '&mdash;'}</td>
-      <td><span class="trove-dot ${t.trove1_score ? 'done' : 'none'}"></span> ${t.trove1_score ? 'Submitted' : '&mdash;'}</td>
-      <td style="color:${t.trove1_score ? 'var(--amber)' : 'rgba(224,224,224,0.3)'}">${t.trove1_score || '&mdash;'}</td>
-      <td><span class="trove-dot ${t.trove2_score ? 'done' : 'none'}"></span> ${t.trove2_score ? 'Submitted' : '&mdash;'}</td>
-      <td style="color:${t.trove2_score ? 'var(--amber)' : 'rgba(224,224,224,0.3)'}">${t.trove2_score || '&mdash;'}</td>
-      <td><span class="trove-dot ${t.trove3_score ? 'done' : 'none'}"></span> ${t.trove3_score ? 'Submitted' : '&mdash;'}</td>
-      <td style="color:${t.trove3_score ? 'var(--amber)' : 'rgba(224,224,224,0.3)'}">${t.trove3_score || '&mdash;'}</td>
-      <td style="color:rgba(224,224,224,0.35);font-style:italic;font-size:0.8rem">${t.status}</td>
-      <td><span class="team-score">${(t.trove1_score||0)+(t.trove2_score||0)+(t.trove3_score||0)}</span></td>
-      <td style="font-size:0.8rem;color:var(--amber)">${t.status}</td>
-      <td><button class="team-action" onclick="viewTeam('${t.id}')">View</button></td>
-    </tr>
-  `).join('');
+  tbody2.innerHTML = teams.map(t => {
+    const total = (t.trove1_score||0)+(t.trove2_score||0)+(t.trove3_score||0);
+    const statusColor = t.status === 'disqualified' ? '#f87171' : '#4ade80';
+    const safeName = (t.team_name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<tr style="${t.status==='disqualified'?'opacity:0.55;':''}">
+      <td><span class="team-name" style="cursor:pointer;text-decoration:underline;text-underline-offset:3px;" onclick="openTeamModal('${t.id}')">${t.team_name}</span><br><span style="font-size:0.72rem;color:rgba(224,224,224,0.4);font-family:'Inter',sans-serif;text-transform:none;letter-spacing:0;">${t.captain_email||''}</span></td>
+      <td style="font-size:0.82rem">${t.school_name||'&mdash;'}<br><span style="color:rgba(224,224,224,0.4);font-size:0.75rem">${t.district||''}</span></td>
+      <td><span class="trove-dot ${t.trove1_score?'done':'none'}"></span> ${t.trove1_score?t.trove1_score+' pts':'&mdash;'}</td>
+      <td><span class="trove-dot ${t.trove2_score?'done':'none'}"></span> ${t.trove2_score?t.trove2_score+' pts':'&mdash;'}</td>
+      <td><span class="trove-dot ${t.trove3_score?'done':'none'}"></span> ${t.trove3_score?t.trove3_score+' pts':'&mdash;'}</td>
+      <td><span class="team-score">${total}</span></td>
+      <td style="color:${statusColor};font-size:0.72rem;font-family:'Syncopate',sans-serif;letter-spacing:0.1em;text-transform:uppercase">${t.status||'active'}</td>
+      <td style="white-space:nowrap">
+        <button class="team-action" onclick="openTeamModal('${t.id}')">Edit</button>
+        <button class="team-action" style="background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.35);color:#f87171;margin-left:6px" onclick="confirmDeleteTeam('${t.id}','${safeName}')">&times; Del</button>
+      </td>
+    </tr>`;
+  }).join('');
 }
-
-function viewTeam(id) {
-  alert('Team ID: ' + id + '\n\nFull team detail view available once scoring begins.');
+function openTeamModal(id) {
+  const t = (window._adminTeams||[]).find(x => x.id === id);
+  if (!t) return;
+  window._editingTeamId = id;
+  document.getElementById('tm-team-name').value    = t.team_name || '';
+  document.getElementById('tm-captain-name').value = t.captain_name || '';
+  document.getElementById('tm-captain-email').value= t.captain_email || '';
+  document.getElementById('tm-captain-phone').value= t.captain_phone || '';
+  document.getElementById('tm-school').value       = t.school_name || '';
+  document.getElementById('tm-district').value     = t.district || '';
+  document.getElementById('tm-role').value         = t.role || '';
+  document.getElementById('tm-grade').value        = t.grade_levels || '';
+  document.getElementById('tm-m2-name').value      = t.member2_name || '';
+  document.getElementById('tm-m2-email').value     = t.member2_email || '';
+  document.getElementById('tm-m3-name').value      = t.member3_name || '';
+  document.getElementById('tm-m3-email').value     = t.member3_email || '';
+  document.getElementById('tm-m4-name').value      = t.member4_name || '';
+  document.getElementById('tm-m4-email').value     = t.member4_email || '';
+  document.getElementById('tm-modal-title').textContent = 'Edit: ' + t.team_name;
+  document.getElementById('tm-error').style.display = 'none';
+  document.getElementById('team-modal').style.display = 'flex';
+}
+function openAddTeamModal() {
+  window._editingTeamId = null;
+  ['tm-team-name','tm-captain-name','tm-captain-email','tm-captain-phone','tm-school','tm-district','tm-role','tm-grade','tm-m2-name','tm-m2-email','tm-m3-name','tm-m3-email','tm-m4-name','tm-m4-email'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('tm-modal-title').textContent = 'Add Team Manually';
+  document.getElementById('tm-error').style.display = 'none';
+  document.getElementById('team-modal').style.display = 'flex';
+}
+function closeTeamModal() { document.getElementById('team-modal').style.display = 'none'; }
+async function saveTeamModal() {
+  var errEl = document.getElementById('tm-error');
+  errEl.style.display = 'none';
+  var payload = {
+    team_name:     document.getElementById('tm-team-name').value.trim(),
+    captain_name:  document.getElementById('tm-captain-name').value.trim(),
+    captain_email: document.getElementById('tm-captain-email').value.trim(),
+    captain_phone: document.getElementById('tm-captain-phone').value.trim(),
+    school_name:   document.getElementById('tm-school').value.trim(),
+    district:      document.getElementById('tm-district').value.trim(),
+    role:          document.getElementById('tm-role').value.trim(),
+    grade_levels:  document.getElementById('tm-grade').value.trim(),
+    member2_name:  document.getElementById('tm-m2-name').value.trim(),
+    member2_email: document.getElementById('tm-m2-email').value.trim(),
+    member3_name:  document.getElementById('tm-m3-name').value.trim(),
+    member3_email: document.getElementById('tm-m3-email').value.trim(),
+    member4_name:  document.getElementById('tm-m4-name').value.trim(),
+    member4_email: document.getElementById('tm-m4-email').value.trim(),
+  };
+  var isEdit = !!window._editingTeamId;
+  if (isEdit) payload.team_id = window._editingTeamId;
+  var endpoint = isEdit ? '/api/admin/edit-team' : '/api/admin/add-team';
+  try {
+    var res = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json', password: ADMIN_PASS}, body: JSON.stringify(payload) });
+    var result = await res.json();
+    if (result.success) { closeTeamModal(); loadDashboard(); }
+    else { errEl.textContent = result.error || 'Save failed.'; errEl.style.display = 'block'; }
+  } catch(e) { errEl.textContent = 'Network error.'; errEl.style.display = 'block'; }
+}
+async function confirmDeleteTeam(id, name) {
+  if (!confirm('Permanently delete team "' + name + '" and all their submissions? This cannot be undone.')) return;
+  try {
+    var res = await fetch('/api/admin/delete-team', { method:'POST', headers:{'Content-Type':'application/json', password: ADMIN_PASS}, body: JSON.stringify({ team_id: id, confirm: 'DELETE' }) });
+    var result = await res.json();
+    if (result.success) loadDashboard();
+    else alert('Delete failed: ' + (result.error || 'Unknown error'));
+  } catch(e) { alert('Network error.'); }
 }
 
 async function loadSubmissions() {

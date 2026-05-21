@@ -120,6 +120,12 @@
       </div>
 
       <div class="field-group">
+        <label class="field-label" for="captainPhone">Phone Number <span class="optional-tag">(Optional)</span></label>
+        <input class="field-input" type="tel" id="captainPhone" name="captainPhone" placeholder="(555) 867-5309" />
+        <p class="field-hint">Best number to reach you. Not shared publicly.</p>
+      </div>
+
+      <div class="field-group">
         <label class="field-label" for="captainRole">Your Role <span class="field-required">*</span></label>
         <select class="field-input" id="captainRole" name="captainRole" required>
           <option value="" disabled selected>Select your role</option>
@@ -346,6 +352,7 @@
       team_name:      raw.teamName,
       captain_name:   (raw.captainFirst + ' ' + raw.captainLast).trim(),
       captain_email:  raw.captainEmail,
+      captain_phone:  raw.captainPhone || '',
       school_name:    raw.schoolName,
       district:       raw.district,
       role:           raw.captainRole,

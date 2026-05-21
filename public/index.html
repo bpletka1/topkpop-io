@@ -470,43 +470,67 @@
       </div>
     </div>
 
-    <!-- Interest form (native, submits silently to Google Form) -->
+    <!-- Inquiry form → emails bpletka1@gmail.com via /api/inquiry -->
     <div style="background:rgba(15,16,22,0.9); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:40px 36px;">
       <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.25em; color:rgba(224,224,224,0.5); text-transform:uppercase; margin-bottom:20px;">Express Interest &nbsp;&middot;&nbsp; No Commitment</p>
-      <form id="register-form" onsubmit="submitRegisterForm(event)">
+      <form id="register-form" onsubmit="submitInquiryForm(event)">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
           <input id="rf-name" type="text" placeholder="Your Name *" required style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
-          <input id="rf-email" type="email" placeholder="School Email Address *" required style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
+          <input id="rf-email" type="email" placeholder="Email Address *" required style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
-          <input id="rf-school" type="text" placeholder="School Name &amp; District *" required style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
-          <input id="rf-city" type="text" placeholder="School City *" required style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
+          <input id="rf-phone" type="tel" placeholder="Phone Number" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
+          <input id="rf-school" type="text" placeholder="School Name &amp; District" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
         </div>
-        <input id="rf-grade" type="text" placeholder="Grade Level(s) &amp; Subject(s) You Teach *" required style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; margin-bottom:20px;" />
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+          <input id="rf-city" type="text" placeholder="School City" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
+          <input id="rf-grade" type="text" placeholder="Grade Level(s) &amp; Subject(s)" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
+        </div>
+        <textarea id="rf-message" placeholder="Questions or comments (optional)" rows="3" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; margin-bottom:20px; resize:vertical;"></textarea>
         <div style="text-align:center;">
           <button type="submit" id="rf-btn" style="background:var(--crimson); color:#fff; font-family:'Syncopate',sans-serif; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; padding:16px 40px; border-radius:3px; border:none; cursor:pointer; box-shadow:0 0 24px rgba(230,0,92,0.4);">Send Message &rarr;</button>
         </div>
-        <div id="rf-success" style="display:none; text-align:center; margin-top:20px; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:#4ade80; text-transform:uppercase;">&#10003; Message sent. We&rsquo;ll be in touch.</div>
-        <p style="font-size:0.75rem; color:rgba(224,224,224,0.35); text-align:center; margin-top:16px;">More details on exact start date coming soon. You will be contacted when enrollment opens for your district.</p>
+        <div id="rf-error" style="display:none; text-align:center; margin-top:14px; font-size:0.82rem; color:#f87171;"></div>
+        <div id="rf-success" style="display:none; text-align:center; margin-top:20px; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:#4ade80; text-transform:uppercase;">&#10003; Message sent. We&rsquo;ll be in touch soon.</div>
+        <p style="font-size:0.75rem; color:rgba(224,224,224,0.35); text-align:center; margin-top:16px;">No commitment required. We&rsquo;ll reach out with enrollment details when they&rsquo;re ready for your district.</p>
       </form>
     </div>
     <script>
-    function submitRegisterForm(e) {
+    function submitInquiryForm(e) {
       e.preventDefault();
       var btn = document.getElementById('rf-btn');
+      var errEl = document.getElementById('rf-error');
       btn.disabled = true; btn.textContent = 'Sending...';
-      var formData = new FormData();
-      formData.append('entry.96079335', document.getElementById('rf-name').value);
-      formData.append('entry.693111527', document.getElementById('rf-email').value);
-      formData.append('entry.722028234', document.getElementById('rf-school').value);
-      formData.append('entry.1877004764', document.getElementById('rf-city').value);
-      formData.append('entry.1700607102', document.getElementById('rf-grade').value);
-      fetch('https://docs.google.com/forms/d/e/1FAIpQLSd9SdBUho6oBVo59VjxGUA4KQ-9TkD6VTSnlzyM8WYrgrjdcw/formResponse', {method:'POST', mode:'no-cors', body:formData})
-        .then(function() {
-          document.getElementById('register-form').style.display = 'none';
-          document.getElementById('rf-success').style.display = 'block';
-        }).catch(function() {
-          document.getElementById('rf-success').style.display = 'block';
+      errEl.style.display = 'none';
+      var payload = {
+        name:    document.getElementById('rf-name').value.trim(),
+        email:   document.getElementById('rf-email').value.trim(),
+        phone:   document.getElementById('rf-phone').value.trim(),
+        school:  document.getElementById('rf-school').value.trim(),
+        city:    document.getElementById('rf-city').value.trim(),
+        grade:   document.getElementById('rf-grade').value.trim(),
+        message: document.getElementById('rf-message').value.trim(),
+      };
+      fetch('/api/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.success) {
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('rf-success').style.display = 'block';
+          } else {
+            errEl.textContent = data.error || 'Something went wrong. Please try again.';
+            errEl.style.display = 'block';
+            btn.disabled = false; btn.textContent = 'Send Message →';
+          }
+        })
+        .catch(function() {
+          errEl.textContent = 'Network error. Please try again.';
+          errEl.style.display = 'block';
+          btn.disabled = false; btn.textContent = 'Send Message →';
         });
     }
     </script>

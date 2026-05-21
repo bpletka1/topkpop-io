@@ -240,7 +240,7 @@ router.get('/health', (req, res) => {
 router.post('/register', async (req, res) => {
   try {
     const {
-      team_name, captain_name, captain_email, school_name, district, role,
+      team_name, captain_name, captain_email, captain_phone, school_name, district, role,
       grade_levels, member2_name, member2_email, member3_name, member3_email,
       member4_name, member4_email, agree_terms, agree_iste, welcome_post_url
     } = req.body;
@@ -271,6 +271,7 @@ router.post('/register', async (req, res) => {
         team_name: team_name.trim(),
         captain_name: captain_name.trim(),
         captain_email: captain_email.toLowerCase().trim(),
+        captain_phone: captain_phone?.trim() || null,
         school_name: school_name.trim(),
         district: district?.trim(),
         role: role?.trim(),
@@ -2052,6 +2053,45 @@ router.post('/admin/new-game-instance', adminAuth, async (req, res) => {
 });
 
 
+// ════════════════════════════════════════════════════════════════════════════
+// INQUIRY FORM (homepage interest form → emails Bob)
+// ════════════════════════════════════════════════════════════════════════════
+router.post('/inquiry', async (req, res) => {
+  try {
+    const { name, email, phone, school, city, grade, message } = req.body;
+    if (!name || !email) {
+      return res.status(400).json({ error: 'Name and email are required.' });
+    }
+    const adminEmail = process.env.ADMIN_EMAIL || 'bpletka1@gmail.com';
+    const submittedAt = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', dateStyle: 'full', timeStyle: 'short' });
+    await resend.emails.send({
+      from: 'TopKpop.io Inquiry <anna@topkpop.io>',
+      to: adminEmail,
+      reply_to: email,
+      subject: `📬 New Inquiry: ${name}`,
+      html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0f1016;color:#e0e0e0;padding:32px;border-radius:8px;">
+  <h2 style="color:#FFBF00;font-size:1.1rem;margin-bottom:8px;">&#128236; New Game Inquiry</h2>
+  <p style="font-size:0.85rem;color:rgba(224,224,224,0.6);margin-bottom:24px;">${submittedAt}</p>
+  <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+    <tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);width:120px;">Name</td><td style="padding:8px 0;color:#fff;font-weight:bold;">${name}</td></tr>
+    <tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Email</td><td style="padding:8px 0;color:#fff;"><a href="mailto:${email}" style="color:#b06aff;">${email}</a></td></tr>
+    <tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Phone</td><td style="padding:8px 0;color:#fff;">${phone || '—'}</td></tr>
+    <tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">School</td><td style="padding:8px 0;color:#fff;">${school || '—'}</td></tr>
+    <tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">City</td><td style="padding:8px 0;color:#fff;">${city || '—'}</td></tr>
+    <tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Grade/Subject</td><td style="padding:8px 0;color:#fff;">${grade || '—'}</td></tr>
+    ${message ? `<tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);vertical-align:top;">Message</td><td style="padding:8px 0;color:#fff;">${message}</td></tr>` : ''}
+  </table>
+  <p style="margin-top:24px;font-size:0.8rem;color:rgba(224,224,224,0.4);">Reply directly to this email to respond to ${name}.</p>
+</div>`,
+    });
+    console.log(`[INQUIRY] New inquiry from ${name} (${email})`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Inquiry error:', err.message);
+    res.status(500).json({ error: 'Failed to send inquiry. Please try again.' });
+  }
+});
+
 // ── Disqualify / Reinstate Team ─────────────────────────────────────────────
 router.post('/admin/disqualify', adminAuth, async (req, res) => {
   try {
@@ -2097,4 +2137,79 @@ router.post('/admin/delete-team', adminAuth, async (req, res) => {
     res.json({ success: true, deleted_team_id: team_id });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
+// ── Edit Team (update registration fields) ───────────────────────────────────
+router.post('/admin/edit-team', adminAuth, async (req, res) => {
+  try {
+    const { team_id, team_name, captain_name, captain_email, captain_phone,
+            school_name, district, role, grade_levels,
+            member2_name, member2_email, member3_name, member3_email,
+            member4_name, member4_email } = req.body;
+    if (!team_id) return res.status(400).json({ error: 'team_id required.' });
+    const updates = {};
+    if (team_name    !== undefined) updates.team_name    = team_name.trim();
+    if (captain_name !== undefined) updates.captain_name = captain_name.trim();
+    if (captain_email!== undefined) updates.captain_email= captain_email.toLowerCase().trim();
+    if (captain_phone!== undefined) updates.captain_phone= captain_phone?.trim() || null;
+    if (school_name  !== undefined) updates.school_name  = school_name.trim();
+    if (district     !== undefined) updates.district     = district?.trim();
+    if (role         !== undefined) updates.role         = role?.trim();
+    if (grade_levels !== undefined) updates.grade_levels = grade_levels?.trim();
+    if (member2_name !== undefined) updates.member2_name = member2_name?.trim() || null;
+    if (member2_email!== undefined) updates.member2_email= member2_email?.toLowerCase().trim() || null;
+    if (member3_name !== undefined) updates.member3_name = member3_name?.trim() || null;
+    if (member3_email!== undefined) updates.member3_email= member3_email?.toLowerCase().trim() || null;
+    if (member4_name !== undefined) updates.member4_name = member4_name?.trim() || null;
+    if (member4_email!== undefined) updates.member4_email= member4_email?.toLowerCase().trim() || null;
+    const { data, error } = await supabase
+      .from('registrations')
+      .update(updates)
+      .eq('id', team_id)
+      .select('*')
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    console.log(`[ADMIN] Team ${data.team_name} (${team_id}) updated.`);
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Add Team Manually ─────────────────────────────────────────────────────────
+router.post('/admin/add-team', adminAuth, async (req, res) => {
+  try {
+    const { team_name, captain_name, captain_email, captain_phone,
+            school_name, district, role, grade_levels,
+            member2_name, member2_email, member3_name, member3_email,
+            member4_name, member4_email } = req.body;
+    if (!team_name || !captain_name || !captain_email) {
+      return res.status(400).json({ error: 'team_name, captain_name, and captain_email are required.' });
+    }
+    const { data: existing } = await supabase
+      .from('registrations').select('id').eq('captain_email', captain_email.toLowerCase()).single();
+    if (existing) return res.status(409).json({ error: 'A team with this email already exists.' });
+    const { data, error } = await supabase
+      .from('registrations')
+      .insert({
+        team_name: team_name.trim(),
+        captain_name: captain_name.trim(),
+        captain_email: captain_email.toLowerCase().trim(),
+        captain_phone: captain_phone?.trim() || null,
+        school_name: school_name?.trim() || null,
+        district: district?.trim() || null,
+        role: role?.trim() || null,
+        grade_levels: grade_levels?.trim() || null,
+        member2_name: member2_name?.trim() || null,
+        member2_email: member2_email?.toLowerCase().trim() || null,
+        member3_name: member3_name?.trim() || null,
+        member3_email: member3_email?.toLowerCase().trim() || null,
+        member4_name: member4_name?.trim() || null,
+        member4_email: member4_email?.toLowerCase().trim() || null,
+        status: 'active',
+      })
+      .select('*')
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    console.log(`[ADMIN] Team ${data.team_name} manually added by admin.`);
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = { router, startScheduler };
