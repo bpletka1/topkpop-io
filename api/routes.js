@@ -639,19 +639,29 @@ router.post('/submit/:trove', upload.fields([
 
 // ── DEBUG: Test submit endpoint (returns actual error) ──────────────────────
 router.post('/debug-submit', async (req, res) => {
+  const steps = [];
   try {
     const { captain_email, team_name } = req.body;
     if (!captain_email || !team_name) return res.status(400).json({ error: 'Need captain_email and team_name' });
+    steps.push('1. Got params');
     const { data: team, error: teamError } = await supabase
       .from('registrations').select('id, status').eq('captain_email', captain_email.toLowerCase()).single();
     if (teamError || !team) return res.status(404).json({ error: 'Team not found', detail: teamError?.message });
-    const payload = { team_id: team.id, team_name: team_name.trim(), trove_number: 1, notes: 'debug test' };
+    steps.push(`2. Found team: ${team.id}`);
+    const payload = { team_id: team.id, team_name: team_name.trim(), trove_number: 1, file1_path: null, file1_name: null, file2_path: null, file2_name: null, file3_path: null, file3_name: null, notes: 'debug test' };
     const { data: sub, error: subError } = await supabase
       .from('submissions').upsert(payload, { onConflict: 'team_id,trove_number' }).select().single();
-    if (subError) return res.status(500).json({ error: 'Upsert failed', detail: subError.message, code: subError.code });
-    res.json({ success: true, submission_id: sub.id, team_id: team.id });
+    if (subError) return res.status(500).json({ error: 'Upsert failed', detail: subError.message, code: subError.code, steps });
+    steps.push(`3. Upsert OK: ${sub.id}`);
+    // Test email send
+    const emailResult = await sendEmail('email2_trove01.html', captain_email.toLowerCase(), '\ud83d\udd0d Trove 01 Confirmed [DEBUG]', { '*SCORE*': 'Pending', '[TEAM_NAME]': team_name.trim() });
+    steps.push(`4. Email sent: ${emailResult}`);
+    // Test oracle scoring
+    const oracleResult = await scoreWithOracle(1, { team_name: team_name.trim(), notes: 'debug test' });
+    steps.push(`5. Oracle: success=${oracleResult.success}, score=${oracleResult.score}, err=${oracleResult.error || 'none'}`);
+    res.json({ success: true, submission_id: sub.id, team_id: team.id, steps });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, steps });
   }
 });
 
