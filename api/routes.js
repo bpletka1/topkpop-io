@@ -517,6 +517,22 @@ router.post('/submit/:trove', upload.fields([
 
     if (subError) throw subError;
 
+    // ── Oracle AI Scoring ────────────────────────────────────────────────────────────────────────────────────────────────
+    const scoringData = {
+      team_name: team_name.trim(),
+      notes: notes?.trim(),
+      text_content: req.body.text_content?.trim() || req.body.lyrics?.trim() || req.body.lesson_plan?.trim() || null,
+      file1_name: file1Data?.name,
+      file2_name: file2Data?.name,
+      file3_name: file3Data?.name,
+      // Trove 1: uploaded image URLs for GPT-4o vision scoring
+      file1_url: file1Data?.url || null,
+      file2_url: file2Data?.url || null,
+      // Trove 1: team-written descriptions (used as context alongside images)
+      avatar_description: req.body.avatar_description?.trim() || null,
+      poster_description: req.body.poster_description?.trim() || null,
+    };
+    const oracleResult = await scoreWithOracle(troveNumber, scoringData);
     // Send submission confirmation email directly via Gmail
     const troveEmailMap = { 1: 'email2_trove01.html', 2: 'email3_trove02.html', 3: 'email4_trove03.html' };
     const troveSubjectMap = {
@@ -536,22 +552,6 @@ router.post('/submit/:trove', upload.fields([
     // Also keep Mailchimp tag for list segmentation
     await tagSubscriber(captain_email.toLowerCase(), `trove-${troveNumber}-submitted`);
 
-    // ── Oracle AI Scoring ────────────────────────────────────────────────────────────────────────────────────────────────
-    const scoringData = {
-      team_name: team_name.trim(),
-      notes: notes?.trim(),
-      text_content: req.body.text_content?.trim() || req.body.lyrics?.trim() || req.body.lesson_plan?.trim() || null,
-      file1_name: file1Data?.name,
-      file2_name: file2Data?.name,
-      file3_name: file3Data?.name,
-      // Trove 1: uploaded image URLs for GPT-4o vision scoring
-      file1_url: file1Data?.url || null,
-      file2_url: file2Data?.url || null,
-      // Trove 1: team-written descriptions (used as context alongside images)
-      avatar_description: req.body.avatar_description?.trim() || null,
-      poster_description: req.body.poster_description?.trim() || null,
-    };
-    const oracleResult = await scoreWithOracle(troveNumber, scoringData);
 
     if (oracleResult.success && oracleResult.score !== null) {
       // Save oracle score to Supabase (oracle_feedback stored separately if column exists)
