@@ -434,6 +434,13 @@ router.post('/submit/final-accusation', upload.none(), async (req, res) => {
   if (accError) return res.status(500).json({ error: 'Failed to submit accusation.' });
 
   await tagSubscriber(captain_email.toLowerCase(), 'accusation-submitted');
+  // Send accusation confirmation email
+  await sendEmail(
+    'email10_accusation_open.html',
+    captain_email.toLowerCase(),
+    '🕵️ Final Accusation Filed — The Truth Will Be Revealed',
+    { '[CAPTAIN_NAME]': (team_name || captain_email).split(' ')[0] || 'Detective' }
+  );
   await checkAndAnnounceWinner();
 
   res.json({
@@ -614,6 +621,15 @@ router.post('/submit/:trove', upload.fields([
     const annaMessage = getAnnaMessage();
 
     const danceVideoBonus = (troveNumber === 3 && dance_video_link?.trim()) ? 10 : 0;
+    // Save dance video bonus to DB if applicable
+    if (danceVideoBonus > 0) {
+      const { error: bonusErr } = await supabase
+        .from('submissions')
+        .update({ bonus_score: danceVideoBonus, bonus_awarded_at: new Date().toISOString(), bonus_awarded_by: 'auto-dance-video' })
+        .eq('id', sub.id);
+      if (bonusErr) console.error('Dance video bonus save error:', bonusErr.message);
+      else console.log(`[DANCE VIDEO BONUS] +${danceVideoBonus} pts saved for ${team_name.trim()} Trove ${troveNumber}`);
+    }
     res.json({
       success: true,
       message: `Trove 0${troveNumber} submission received and scored!`,
@@ -627,41 +643,13 @@ router.post('/submit/:trove', upload.fields([
 
   } catch (err) {
     console.error('Submission error:', err);
-    res.status(500).json({ error: 'Submission failed. Please try again.', _debug: err.message, _code: err.code });
+    res.status(500).json({ error: 'Submission failed. Please try again.' });
   }
 });
 
 // ════════════════════════════════════════════════════════════════════════════
 // LEADERBOARD
 // ════════════════════════════════════════════════════════════════════════════
-
-// ── DEBUG: Test submit endpoint (returns actual error) ──────────────────────
-router.post('/debug-submit', async (req, res) => {
-  const steps = [];
-  try {
-    const { captain_email, team_name } = req.body;
-    if (!captain_email || !team_name) return res.status(400).json({ error: 'Need captain_email and team_name' });
-    steps.push('1. Got params');
-    const { data: team, error: teamError } = await supabase
-      .from('registrations').select('id, status').eq('captain_email', captain_email.toLowerCase()).single();
-    if (teamError || !team) return res.status(404).json({ error: 'Team not found', detail: teamError?.message });
-    steps.push(`2. Found team: ${team.id}`);
-    const payload = { team_id: team.id, team_name: team_name.trim(), trove_number: 1, notes: 'debug test' };
-    const { data: sub, error: subError } = await supabase
-      .from('submissions').upsert(payload, { onConflict: 'team_id,trove_number' }).select().single();
-    if (subError) return res.status(500).json({ error: 'Upsert failed', detail: subError.message, code: subError.code, steps });
-    steps.push(`3. Upsert OK: ${sub.id}`);
-    // Test email send
-    const emailResult = await sendEmail('email2_trove01.html', captain_email.toLowerCase(), '\ud83d\udd0d Trove 01 Confirmed [DEBUG]', { '*SCORE*': 'Pending', '[TEAM_NAME]': team_name.trim() });
-    steps.push(`4. Email sent: ${emailResult}`);
-    // Test oracle scoring
-    const oracleResult = await scoreWithOracle(1, { team_name: team_name.trim(), notes: 'debug test' });
-    steps.push(`5. Oracle: success=${oracleResult.success}, score=${oracleResult.score}, err=${oracleResult.error || 'none'}`);
-    res.json({ success: true, submission_id: sub.id, team_id: team.id, steps });
-  } catch (err) {
-    res.status(500).json({ error: err.message, steps });
-  }
-});
 
 router.get('/leaderboard', async (req, res) => {
   try {
@@ -787,6 +775,14 @@ router.post('/accuse', async (req, res) => {
 
     // Tag in Mailchimp
     await tagSubscriber(captain_email.toLowerCase(), 'accusation-submitted');
+
+    // Send accusation confirmation email
+    await sendEmail(
+      'email10_accusation_open.html',
+      captain_email.toLowerCase(),
+      '🕵️ Final Accusation Filed — The Truth Will Be Revealed',
+      { '[CAPTAIN_NAME]': (captain_name || captain_email).split(' ')[0] || 'Detective' }
+    );
 
     // Trigger winner check
     await checkAndAnnounceWinner();
@@ -1063,18 +1059,27 @@ router.get('/admin/accusations', adminAuth, async (req, res) => {
 
 // Update score for a submission
 router.post('/admin/score', adminAuth, async (req, res) => {
-  const { submission_id, score } = req.body;
-  if (!submission_id || score === undefined) {
-    return res.status(400).json({ error: 'submission_id and score required.' });
+  try {
+    const { submission_id, score } = req.body;
+    if (!submission_id || score === undefined) {
+      return res.status(400).json({ error: 'submission_id and score required.' });
+    }
+    const parsedScore = parseInt(score);
+    if (isNaN(parsedScore) || parsedScore < 0 || parsedScore > 100) {
+      return res.status(400).json({ error: 'score must be a number between 0 and 100.' });
+    }
+    const { data, error } = await supabase
+      .from('submissions')
+      .update({ admin_score: parsedScore, final_score: parsedScore, scored_at: new Date().toISOString() })
+      .eq('id', submission_id)
+      .select()
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('Admin score error:', err);
+    res.status(500).json({ error: err.message });
   }
-  const { data, error } = await supabase
-    .from('submissions')
-    .update({ admin_score: parseInt(score), final_score: parseInt(score), scored_at: new Date().toISOString() })
-    .eq('id', submission_id)
-    .select()
-    .single();
-  if (error) return res.status(500).json({ error: error.message });
-  res.json({ success: true, data });
 });
 
 // ── Award Instagram Bonus Points ────────────────────────────────────────────
@@ -1210,6 +1215,9 @@ router.post('/admin/rescore', adminAuth, async (req, res) => {
     file1_name: sub.file1_name,
     file2_name: sub.file2_name,
     file3_name: sub.file3_name,
+    // Include file URLs so Trove 1 re-scores can use GPT-4o vision
+    file1_url: sub.file1_url || null,
+    file2_url: sub.file2_url || null,
   };
 
   const oracleResult = await scoreWithOracle(sub.trove_number, scoringData);
