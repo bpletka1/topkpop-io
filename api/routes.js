@@ -151,25 +151,43 @@ function getAnnaMessage() {
   return ANNA_MESSAGES[Math.floor(Math.random() * ANNA_MESSAGES.length)];
 }
 
+// ── Helper: Timeout wrapper for external calls ──────────────────────────────
+function withTimeout(promise, ms = 5000, label = 'operation') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 // ── Helper: Add subscriber to Mailchimp ──────────────────────────────────────
 async function addToMailchimp(email, firstName, lastName, tags = []) {
+  if (!process.env.MAILCHIMP_API_KEY || !AUDIENCE_ID) {
+    console.warn('Mailchimp not configured — skipping addToMailchimp.');
+    return false;
+  }
   try {
-    await mailchimp.lists.addListMember(AUDIENCE_ID, {
+    await withTimeout(mailchimp.lists.addListMember(AUDIENCE_ID, {
       email_address: email,
       status: 'subscribed',
       merge_fields: { FNAME: firstName, LNAME: lastName },
       tags: tags,
-    });
+    }), 5000, 'Mailchimp addListMember');
     return true;
   } catch (err) {
+    if (err.message && err.message.includes('timed out')) {
+      console.warn('Mailchimp timed out — registration continues without Mailchimp.');
+      return false;
+    }
     // If already subscribed, update tags
     if (err.status === 400) {
       try {
         const hash = require('crypto').createHash('md5').update(email.toLowerCase()).digest('hex');
-        await mailchimp.lists.updateListMember(AUDIENCE_ID, hash, {
+        await withTimeout(mailchimp.lists.updateListMember(AUDIENCE_ID, hash, {
           merge_fields: { FNAME: firstName, LNAME: lastName },
           tags: tags.map(t => ({ name: t, status: 'active' })),
-        });
+        }), 5000, 'Mailchimp updateListMember');
         return true;
       } catch (e) {
         console.error('Mailchimp update error:', e.message);
@@ -183,11 +201,15 @@ async function addToMailchimp(email, firstName, lastName, tags = []) {
 
 // ── Helper: Trigger Mailchimp campaign tag ────────────────────────────────────
 async function tagSubscriber(email, tag) {
+  if (!process.env.MAILCHIMP_API_KEY || !AUDIENCE_ID) {
+    console.warn('Mailchimp not configured — skipping tagSubscriber.');
+    return false;
+  }
   try {
     const hash = require('crypto').createHash('md5').update(email.toLowerCase()).digest('hex');
-    await mailchimp.lists.updateListMemberTags(AUDIENCE_ID, hash, {
+    await withTimeout(mailchimp.lists.updateListMemberTags(AUDIENCE_ID, hash, {
       tags: [{ name: tag, status: 'active' }],
-    });
+    }), 5000, 'Mailchimp tagSubscriber');
     return true;
   } catch (err) {
     console.error('Mailchimp tag error:', err.message);
@@ -1984,6 +2006,57 @@ router.post('/admin/new-game-instance', adminAuth, async (req, res) => {
 
   } catch (err) {
     console.error('[NEW GAME INSTANCE] Error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONE-TIME: Enable RLS on all tables (run once, then this endpoint is harmless)
+// ════════════════════════════════════════════════════════════════════════════
+router.post('/admin/enable-rls', adminAuth, async (req, res) => {
+  // Use Supabase Management API to run DDL SQL directly
+  const projectRef = process.env.SUPABASE_URL
+    ? process.env.SUPABASE_URL.replace('https://', '').replace('.supabase.co', '')
+    : null;
+  if (!projectRef) return res.status(500).json({ error: 'SUPABASE_URL not configured' });
+
+  const sql = `
+    -- Enable RLS on all tables
+    ALTER TABLE public.registrations ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE public.accusations ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE public.game_settings ENABLE ROW LEVEL SECURITY;
+    -- Drop existing policies to avoid conflicts
+    DROP POLICY IF EXISTS "public_read_game_settings" ON public.game_settings;
+    DROP POLICY IF EXISTS "deny_all_registrations" ON public.registrations;
+    DROP POLICY IF EXISTS "deny_all_submissions" ON public.submissions;
+    DROP POLICY IF EXISTS "deny_all_accusations" ON public.accusations;
+    -- game_settings: allow public read (unlock dates for missions page)
+    CREATE POLICY "public_read_game_settings" ON public.game_settings FOR SELECT TO anon USING (true);
+    -- All other tables: deny all anon access (server uses service key which bypasses RLS)
+    CREATE POLICY "deny_all_registrations" ON public.registrations FOR ALL TO anon USING (false);
+    CREATE POLICY "deny_all_submissions" ON public.submissions FOR ALL TO anon USING (false);
+    CREATE POLICY "deny_all_accusations" ON public.accusations FOR ALL TO anon USING (false);
+  `;
+
+  try {
+    const response = await fetch(
+      `https://api.supabase.com/v1/projects/${projectRef}/database/query`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.SUPABASE_SECRET_KEY}`,
+        },
+        body: JSON.stringify({ query: sql }),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(500).json({ error: data });
+    }
+    res.json({ success: true, message: 'RLS enabled on all tables. Policies applied.', data });
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
