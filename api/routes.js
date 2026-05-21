@@ -648,7 +648,7 @@ router.post('/debug-submit', async (req, res) => {
       .from('registrations').select('id, status').eq('captain_email', captain_email.toLowerCase()).single();
     if (teamError || !team) return res.status(404).json({ error: 'Team not found', detail: teamError?.message });
     steps.push(`2. Found team: ${team.id}`);
-    const payload = { team_id: team.id, team_name: team_name.trim(), trove_number: 1, file1_path: null, file1_name: null, file2_path: null, file2_name: null, file3_path: null, file3_name: null, notes: 'debug test' };
+    const payload = { team_id: team.id, team_name: team_name.trim(), trove_number: 1, notes: 'debug test' };
     const { data: sub, error: subError } = await supabase
       .from('submissions').upsert(payload, { onConflict: 'team_id,trove_number' }).select().single();
     if (subError) return res.status(500).json({ error: 'Upsert failed', detail: subError.message, code: subError.code, steps });
