@@ -2010,55 +2010,5 @@ router.post('/admin/new-game-instance', adminAuth, async (req, res) => {
   }
 });
 
-// ════════════════════════════════════════════════════════════════════════════
-// ONE-TIME: Enable RLS on all tables (run once, then this endpoint is harmless)
-// ════════════════════════════════════════════════════════════════════════════
-router.post('/admin/enable-rls', adminAuth, async (req, res) => {
-  // Use Supabase Management API to run DDL SQL directly
-  const projectRef = process.env.SUPABASE_URL
-    ? process.env.SUPABASE_URL.replace('https://', '').replace('.supabase.co', '')
-    : null;
-  if (!projectRef) return res.status(500).json({ error: 'SUPABASE_URL not configured' });
-
-  const sql = `
-    -- Enable RLS on all tables
-    ALTER TABLE public.registrations ENABLE ROW LEVEL SECURITY;
-    ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
-    ALTER TABLE public.accusations ENABLE ROW LEVEL SECURITY;
-    ALTER TABLE public.game_settings ENABLE ROW LEVEL SECURITY;
-    -- Drop existing policies to avoid conflicts
-    DROP POLICY IF EXISTS "public_read_game_settings" ON public.game_settings;
-    DROP POLICY IF EXISTS "deny_all_registrations" ON public.registrations;
-    DROP POLICY IF EXISTS "deny_all_submissions" ON public.submissions;
-    DROP POLICY IF EXISTS "deny_all_accusations" ON public.accusations;
-    -- game_settings: allow public read (unlock dates for missions page)
-    CREATE POLICY "public_read_game_settings" ON public.game_settings FOR SELECT TO anon USING (true);
-    -- All other tables: deny all anon access (server uses service key which bypasses RLS)
-    CREATE POLICY "deny_all_registrations" ON public.registrations FOR ALL TO anon USING (false);
-    CREATE POLICY "deny_all_submissions" ON public.submissions FOR ALL TO anon USING (false);
-    CREATE POLICY "deny_all_accusations" ON public.accusations FOR ALL TO anon USING (false);
-  `;
-
-  try {
-    const response = await fetch(
-      `https://api.supabase.com/v1/projects/${projectRef}/database/query`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.SUPABASE_SECRET_KEY}`,
-        },
-        body: JSON.stringify({ query: sql }),
-      }
-    );
-    const data = await response.json();
-    if (!response.ok) {
-      return res.status(500).json({ error: data });
-    }
-    res.json({ success: true, message: 'RLS enabled on all tables. Policies applied.', data });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 module.exports = { router, startScheduler };
