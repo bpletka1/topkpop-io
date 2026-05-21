@@ -7,6 +7,7 @@ const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
 const { router: apiRouter, startScheduler } = require('./api/routes');
+const jeannieRouter = require('./api/jeannie');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // ── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api', apiRouter);
+app.use('/api/jeannie', jeannieRouter);
 
 // ── Static assets ────────────────────────────────────────────────────────────
 app.use('/css',    express.static(path.join(__dirname, 'public/css')));
