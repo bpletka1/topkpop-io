@@ -2212,4 +2212,27 @@ router.post('/admin/add-team', adminAuth, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── One-time migration: add captain_phone column ──────────────────────────────
+router.post('/admin/run-migration', adminAuth, async (req, res) => {
+  try {
+    const { migration } = req.body;
+    if (migration === 'add-captain-phone') {
+      const { error } = await supabase.rpc('exec_sql', {
+        sql: 'ALTER TABLE registrations ADD COLUMN IF NOT EXISTS captain_phone TEXT;'
+      }).catch(() => ({ error: null }));
+      // Supabase JS client doesn't support raw DDL via rpc easily,
+      // so try a direct insert approach: attempt to select the column
+      const { data: testData, error: testError } = await supabase
+        .from('registrations')
+        .select('captain_phone')
+        .limit(1);
+      if (testError && testError.message.includes('captain_phone')) {
+        return res.json({ success: false, message: 'Column does not exist yet. Run the SQL manually in Supabase dashboard: ALTER TABLE registrations ADD COLUMN IF NOT EXISTS captain_phone TEXT;', sql: 'ALTER TABLE registrations ADD COLUMN IF NOT EXISTS captain_phone TEXT;' });
+      }
+      return res.json({ success: true, message: 'captain_phone column exists and is accessible.' });
+    }
+    res.status(400).json({ error: 'Unknown migration.' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = { router, startScheduler };
