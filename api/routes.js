@@ -494,11 +494,11 @@ router.post('/submit/:trove', upload.fields([
       team_id: team.id,
       team_name: team_name.trim(),
       trove_number: troveNumber,
-      file1_url: file1Data?.url,
+      file1_path: file1Data?.url,  // DB column is file1_path (stores the public URL)
       file1_name: file1Data?.name,
-      file2_url: file2Data?.url,
+      file2_path: file2Data?.url,  // DB column is file2_path
       file2_name: file2Data?.name,
-      file3_url: file3Data?.url,
+      file3_path: file3Data?.url,  // DB column is file3_path
       file3_name: file3Data?.name,
       notes: notes?.trim(),
     };
