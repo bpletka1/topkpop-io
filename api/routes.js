@@ -9,7 +9,7 @@ const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
 const WebSocket = require('ws');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const fs = require('fs');
 const cron = require('node-cron');
 const path = require('path');
@@ -37,22 +37,16 @@ mailchimp.setConfig({
 
 const AUDIENCE_ID = process.env.MAILCHIMP_AUDIENCE_ID;
 
-// ── Gmail Transporter (direct send — no Mailchimp automations needed) ─────────
-const gmailTransporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER || 'bpletka1@gmail.com',
-    pass: process.env.GMAIL_APP_PASS || 'ggtjoawkyeserqel',
-  },
-});
+// ── Resend Client (HTTPS-based email — works on Railway) ─────────────────────
+const resend = new Resend(process.env.RESEND_API_KEY || 're_dkfAT7vZ_JL1D96S6UDSFG5AqzXmoRZRh');
 
-// ── Helper: Send HTML email directly via Gmail ────────────────────────────────
+// ── Helper: Send HTML email via Resend ───────────────────────────────────────
 // templateFile: filename in pages/emails/ (e.g. 'email1_welcome.html')
 // to: email address or array of addresses
 // subject: email subject line
 // replacements: object of { TOKEN: value } to replace in the HTML
 async function sendEmail(templateFile, to, subject, replacements = {}) {
-  const recipients = Array.isArray(to) ? to.join(',') : to;
+  const recipients = Array.isArray(to) ? to : [to];
   try {
     const templatePath = path.join(__dirname, '..', 'pages', 'emails', templateFile);
     let html = fs.readFileSync(templatePath, 'utf8');
@@ -60,21 +54,25 @@ async function sendEmail(templateFile, to, subject, replacements = {}) {
     for (const [token, value] of Object.entries(replacements)) {
       html = html.split(token).join(value || '');
     }
-    await withTimeout(
-      gmailTransporter.sendMail({
-        from: '"Anna Im — TopKpop.io" <bpletka1@gmail.com>',
+    const { data, error } = await withTimeout(
+      resend.emails.send({
+        from: 'Detective Anna Im - TopKpop.io <onboarding@resend.dev>',
         to: recipients,
         subject,
         html,
       }),
-      10000,
-      'Gmail sendMail'
+      15000,
+      'Resend sendEmail'
     );
-    console.log(`Email sent: "${subject}" → ${recipients}`);
+    if (error) {
+      console.error(`Resend error (${templateFile}):`, error);
+      return false;
+    }
+    console.log(`Email sent via Resend: "${subject}" → ${recipients.join(',')} (id: ${data?.id})`);
     return true;
   } catch (err) {
     if (err.message && err.message.includes('timed out')) {
-      console.warn(`Gmail SMTP timed out sending "${subject}" → ${recipients} — registration continues without email.`);
+      console.warn(`Resend timed out sending "${subject}" → ${recipients.join(',')} — registration continues without email.`);
       return false;
     }
     console.error(`Email send error (${templateFile}):`, err.message);
@@ -313,6 +311,17 @@ router.post('/register', async (req, res) => {
       await addToMailchimp(member.email.toLowerCase(), parts[0], parts.slice(1).join(' ') || '', ['registered', 'team-member']);
       console.log(`Mailchimp: team member ${member.email} added with 'registered' tag.`);
     }
+
+    // Send welcome email via Resend to captain
+    sendEmail(
+      'email1_welcome.html',
+      captain_email.toLowerCase(),
+      '🎤 CLASSIFIED: Your TopKpop.io Mission Briefing Has Arrived',
+      {
+        '{{TEAM_NAME}}': team_name.trim(),
+        '{{CAPTAIN_NAME}}': captain_name.trim(),
+      }
+    ).catch(err => console.error('Welcome email error:', err.message));
 
     // Auto-award +25 welcome bonus if Instagram post URL was provided
     let welcomeBonusAwarded = false;
