@@ -60,15 +60,23 @@ async function sendEmail(templateFile, to, subject, replacements = {}) {
       html = html.split(token).join(value || '');
     }
     const recipients = Array.isArray(to) ? to.join(',') : to;
-    await gmailTransporter.sendMail({
-      from: '"Anna Im — TopKpop.io" <bpletka1@gmail.com>',
-      to: recipients,
-      subject,
-      html,
-    });
+    await withTimeout(
+      gmailTransporter.sendMail({
+        from: '"Anna Im — TopKpop.io" <bpletka1@gmail.com>',
+        to: recipients,
+        subject,
+        html,
+      }),
+      10000,
+      'Gmail sendMail'
+    );
     console.log(`Email sent: "${subject}" → ${recipients}`);
     return true;
   } catch (err) {
+    if (err.message && err.message.includes('timed out')) {
+      console.warn(`Gmail SMTP timed out sending "${subject}" → ${recipients} — registration continues without email.`);
+      return false;
+    }
     console.error(`Email send error (${templateFile}):`, err.message);
     return false;
   }
