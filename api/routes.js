@@ -289,24 +289,19 @@ router.post('/register', async (req, res) => {
 
     if (regError) throw regError;
 
-    // Add to Mailchimp (for list management only)
+    // Add captain to Mailchimp — the 'registered' tag triggers the Welcome Automation
     const nameParts = captain_name.trim().split(' ');
     const firstName = nameParts[0];
     const lastName = nameParts.slice(1).join(' ') || '';
     const mcAdded = await addToMailchimp(captain_email.toLowerCase(), firstName, lastName, ['registered', 'trove-01-pending']);
-
-    // Send welcome email directly via Gmail
-    const welcomeSent = await sendEmail(
-      'email1_welcome.html',
-      captain_email.toLowerCase(),
-      '🎤 CLASSIFIED: Your TopKpop.io Mission Briefing Has Arrived',
-      { '[CAPTAIN_NAME]': firstName, '[TEAM_NAME]': team_name.trim() }
-    );
-    if (welcomeSent) {
+    if (mcAdded) {
       await supabase.from('registrations').update({ welcome_sent: true }).eq('id', reg.id);
+      console.log(`Mailchimp: captain ${captain_email} added with 'registered' tag — welcome automation will fire.`);
+    } else {
+      console.warn(`Mailchimp: failed to add captain ${captain_email} — welcome email may not send.`);
     }
 
-    // Also add team members to Mailchimp and send them the welcome email
+    // Also add team members to Mailchimp — 'registered' tag triggers their welcome email too
     const members = [
       { name: member2_name, email: member2_email },
       { name: member3_name, email: member3_email },
@@ -316,12 +311,7 @@ router.post('/register', async (req, res) => {
     for (const member of members) {
       const parts = member.name.trim().split(' ');
       await addToMailchimp(member.email.toLowerCase(), parts[0], parts.slice(1).join(' ') || '', ['registered', 'team-member']);
-      await sendEmail(
-        'email1_welcome.html',
-        member.email.toLowerCase(),
-        '🎤 CLASSIFIED: Your TopKpop.io Mission Briefing Has Arrived',
-        { '[CAPTAIN_NAME]': parts[0], '[TEAM_NAME]': team_name.trim() }
-      );
+      console.log(`Mailchimp: team member ${member.email} added with 'registered' tag.`);
     }
 
     // Auto-award +25 welcome bonus if Instagram post URL was provided
@@ -358,7 +348,7 @@ router.post('/register', async (req, res) => {
 
   } catch (err) {
     console.error('Registration error:', err);
-    res.status(500).json({ error: 'Registration failed. Please try again.', debug: err.message || String(err) });
+    res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
 });
 
