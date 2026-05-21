@@ -56,7 +56,7 @@ async function sendEmail(templateFile, to, subject, replacements = {}) {
     }
     const { data, error } = await withTimeout(
       resend.emails.send({
-        from: 'Detective Anna Im - TopKpop.io <onboarding@resend.dev>',
+        from: 'Detective Anna Im - TopKpop.io <anna@topkpop.io>',
         to: recipients,
         subject,
         html,
