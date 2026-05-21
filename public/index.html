@@ -496,11 +496,11 @@
       var btn = document.getElementById('rf-btn');
       btn.disabled = true; btn.textContent = 'Sending...';
       var formData = new FormData();
-      formData.append('entry.05ba0de7', document.getElementById('rf-name').value);
-      formData.append('entry.29500ae7', document.getElementById('rf-email').value);
-      formData.append('entry.2b0946ca', document.getElementById('rf-school').value);
-      formData.append('entry.6fe0d1dc', document.getElementById('rf-city').value);
-      formData.append('entry.655d347e', document.getElementById('rf-grade').value);
+      formData.append('entry.96079335', document.getElementById('rf-name').value);
+      formData.append('entry.693111527', document.getElementById('rf-email').value);
+      formData.append('entry.722028234', document.getElementById('rf-school').value);
+      formData.append('entry.1877004764', document.getElementById('rf-city').value);
+      formData.append('entry.1700607102', document.getElementById('rf-grade').value);
       fetch('https://docs.google.com/forms/d/e/1FAIpQLSd9SdBUho6oBVo59VjxGUA4KQ-9TkD6VTSnlzyM8WYrgrjdcw/formResponse', {method:'POST', mode:'no-cors', body:formData})
         .then(function() {
           document.getElementById('register-form').style.display = 'none';

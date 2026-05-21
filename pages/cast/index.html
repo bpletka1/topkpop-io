@@ -724,10 +724,10 @@
           var btn = document.getElementById('cf-btn');
           btn.disabled = true; btn.textContent = 'Sending...';
           var formData = new FormData();
-          formData.append('entry.497e31fb', document.getElementById('cf-name').value);
-          formData.append('entry.31ce2e4b', document.getElementById('cf-email').value);
-          formData.append('entry.5569b1d3', document.getElementById('cf-org').value);
-          formData.append('entry.57b1a2ad', document.getElementById('cf-msg').value);
+          formData.append('entry.1233007099', document.getElementById('cf-name').value);
+          formData.append('entry.835595851', document.getElementById('cf-email').value);
+          formData.append('entry.1432990163', document.getElementById('cf-org').value);
+          formData.append('entry.1471259309', document.getElementById('cf-msg').value);
           fetch('https://docs.google.com/forms/d/e/1FAIpQLSdkhTwzq5tTDXh_S7ODlsEjtJieUjKLwm40AWCdBHnV0bW41Q/formResponse', {method:'POST', mode:'no-cors', body:formData})
             .then(function() {
               document.getElementById('contact-form').style.display = 'none';
