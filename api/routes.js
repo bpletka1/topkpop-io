@@ -586,10 +586,10 @@ router.post('/submit/:trove', upload.fields([
             // Notify admin by email
             const adminEmail = process.env.ADMIN_EMAIL || 'bpletka1@gmail.com';
             const deadlineStr = trove2Deadline.toLocaleString('en-US', { timeZone: 'America/Los_Angeles', dateStyle: 'full', timeStyle: 'short' });
-            await gmailTransporter.sendMail({
-              from: '"Anna Im \u2014 TopKpop.io" <bpletka1@gmail.com>',
+            await resend.emails.send({
+              from: 'Anna Im — TopKpop.io <anna@topkpop.io>',
               to: adminEmail,
-              subject: '\ud83c\udfc6 Early Submission Prize \u2014 Trove 01 Submitted Before Week 1 Deadline',
+              subject: '🏆 Early Submission Prize — Trove 01 Submitted Before Week 1 Deadline',
               html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0f1016;color:#e0e0e0;padding:32px;border-radius:8px;"><h2 style="color:#FFBF00;font-size:1.1rem;margin-bottom:8px;">&#127942; Early Submission Prize Earned</h2><p style="font-size:0.95rem;color:rgba(224,224,224,0.8);margin-bottom:20px;">A team submitted Trove 01 <strong style="color:#fff;">before the end of Week 1</strong> and qualifies for the early submission bonus prize.</p><table style="width:100%;border-collapse:collapse;font-size:0.9rem;"><tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);width:140px;">Team Name</td><td style="padding:8px 0;color:#fff;font-weight:bold;">${team_name.trim()}</td></tr><tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Captain Email</td><td style="padding:8px 0;color:#fff;">${captain_email.toLowerCase()}</td></tr><tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Submitted At</td><td style="padding:8px 0;color:#fff;">${submittedAt.toLocaleString('en-US',{timeZone:'America/Los_Angeles',dateStyle:'full',timeStyle:'short'})}</td></tr><tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Week 1 Deadline</td><td style="padding:8px 0;color:#fff;">${deadlineStr}</td></tr><tr><td style="padding:8px 0;color:rgba(224,224,224,0.5);">Oracle Score</td><td style="padding:8px 0;color:#FFBF00;font-weight:bold;">${oracleResult.score}/100</td></tr></table><p style="margin-top:24px;font-size:0.85rem;color:rgba(224,224,224,0.5);">Log in to the <a href="https://www.topkpop.io/pages/admin" style="color:#b06aff;">Admin Dashboard</a> to view this submission. The early_submission flag is saved on the submission record.</p></div>`,
             });
             console.log(`[EARLY SUBMISSION] Admin notified at ${adminEmail}`);
@@ -1343,8 +1343,8 @@ async function sendWeeklyScoreSummary() {
 </div></body></html>`;
 
       try {
-        await gmailTransporter.sendMail({
-          from: '"Anna Im — TopKpop.io" <bpletka1@gmail.com>',
+        await resend.emails.send({
+          from: 'Anna Im — TopKpop.io <anna@topkpop.io>',
           to: team.captain_email,
           subject: `📊 Weekly Case File Update — ${team.team_name} is Ranked #${team.rank}`,
           html: weeklyHtml,
@@ -1501,8 +1501,8 @@ async function sendAdminReminderEmail(adminEmail) {
       </div>
     </div></body></html>`;
 
-    await gmailTransporter.sendMail({
-      from: '"TopKpop.io System" <bpletka1@gmail.com>',
+    await resend.emails.send({
+      from: 'TopKpop.io System <anna@topkpop.io>',
       to: adminEmail,
       subject: `🏆 ACTION REQUIRED: Winner Ready for Approval — ${teamName}`,
       html,
