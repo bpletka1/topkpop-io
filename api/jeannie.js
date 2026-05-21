@@ -61,16 +61,18 @@ IMPORTANT — NO WEEKLY HARD DEADLINES: There are NO weekly hard deadlines for T
 SECTION 5: THE THREE TREASURE TROVES
 
 TREASURE TROVE 01 — K-POP IDENTITY (Week 1, Day 1):
-Mission: Create your AI-generated K-Pop idol avatar and promotional poster. Establish your trainee identity with a name, idol skills, and a group tagline in Korean and Spanish. Your first clues are hidden in the mission details.
+Mission: Create your AI-generated K-Pop idol avatar and promotional poster. Establish your trainee identity with a name, idol skills, and a group tagline in Spanish OR Korean (player's choice — one language, not both). Your first clues are hidden in the mission details.
 
 DEADLINE CLARIFICATION: Trove 01 is NOT due at the end of Week 1. Teams have the entire 32-day game to submit. However, teams that submit before the end of Week 1 (before Day 8) earn a special Early Submission Bonus Prize.
 
-What you create: An AI-generated K-Pop idol avatar (using ChatGPT or Gemini), a K-Pop promotional poster featuring your avatar (using Canva), and a trainee identity: idol name, skills, group tagline in Korean and Spanish.
+What you create: An AI-generated K-Pop idol avatar (using ChatGPT or Gemini), a K-Pop promotional poster featuring your avatar (using Canva), and a trainee identity: idol name, skills, group tagline in Spanish OR Korean (your choice).
 
 How to make your avatar: Go to ChatGPT or Gemini. Decide on your idol style — cute, fierce, elegant, noir, cyberpunk, demon-hunter, glam, or realistic. You can upload a photo of yourself to transform into an idol, or describe your appearance and vibe. Tell the AI: "Create my trainee avatar. I want a [style] idol with [hair], [clothing], [vibe]." Before submitting officially, use the Practice Oracle to refine your work. Once officially submitted, Trove 01 is locked.
 
 Scoring: Avatar only: up to 75 points. Avatar + Poster (recommended): up to 100 points (maximum score). Instagram Avatar Post bonus: +25 points (post tagging @topkpopio by end of Week 1). Instagram Poster Post bonus: +25 points (post tagging @topkpopio by end of Week 1). Team Name Lore bonus: +25 points (write a 2-4 sentence origin story for your team name). Early Submission Prize: Teams that submit Trove 01 before the end of Week 1 earn an early submission bonus prize — this is a BONUS for submitting early, NOT a deadline. The team captain receives a congratulations email within 48 hours with prize details.
 Submission: topkpop.io/pages/submit-trove-01
+Practice Oracle for Trove 01 (use BEFORE official submission): https://chatgpt.com/g/g-6924d3bc86388191a51b043fc7adeb42-oracle-of-the-rubric-for-k-pop-poster-avatar
+Full Directions (Google Doc): https://docs.google.com/document/d/1xuXlX3oZFekotOCsg5UMBYBLE7DjQpqEj3eM9Nwm4dM/edit
 
 TREASURE TROVE 02 — EVIDENCE SONG (Week 2, unlocks Day 8 Sunday 7 PM PT):
 Mission: Produce the Evidence Song. Choose a cover song and rewrite its lyrics using multilingual vocabulary — Korean, Spanish, or English woven in meaningfully. Generate an AI music track and create a music video. The song itself is a piece of evidence.
@@ -81,6 +83,12 @@ How to rewrite your song: Use the Multilingual Karaoke Song Rewriter GPT (linked
 
 Scoring: Rewrite lyrics only: up to 90 points. Suno AI song (recommended): up to 100 points (maximum score). Karaoke video: up to 100 points + qualifies school for a bonus prize. Instagram Post bonus: +25 points (post tagging @topkpopio by end of Week 2). Avatar Performance bonus: +25 points (have your Trove 1 avatar perform your karaoke song — Option 3 only).
 Submission: topkpop.io/pages/submit-trove-02
+Multilingual Karaoke Song Rewriter GPT: https://chatgpt.com/g/g-6935c65742f48191914cf8084e6c6900-multilingual-karaoke-song-rewriter
+Practice Oracle / Evidence Song Rubric Evaluator: https://chatgpt.com/g/g-69382a5d36208191b5903ea55b5c0c70-lyric-multilingual-remix-rubric-evaluator
+Full Directions (Google Doc): https://docs.google.com/document/d/1YceRYiY8vWWP73xtutCsdMJnNMsaHeasZstNNxDLiig/edit
+Suno AI (make your song): https://suno.com
+MyKaraoke.Video (make your music video): https://www.mykaraoke.video
+AZLyrics (find original song lyrics): https://www.azlyrics.com
 
 TREASURE TROVE 03 — AI LESSON PLAN + DANCE (Week 3, unlocks Day 15 Sunday 7 PM PT):
 Mission: Teach the Case. Design an AI-integrated lesson plan using AI, then create a team dance performance using AI video tools. The final clues are embedded here.
@@ -89,6 +97,9 @@ What you create: A standards-based lesson plan (ELA, Social Studies, or World La
 
 Scoring: Lesson Plan (any option): up to 100 points, scored automatically by the Oracle of the Rubric on submission. Dance Video Bonus: +10 points, awarded automatically the moment a video link is submitted (no admin review needed). Instagram Bonus: +25 points (post publicly or send a private DM to @topkpopio — both count). Cultural Connection bonus: +25 points (connect your lesson to a real cultural event or holiday). Live Team Performance: qualifies school for a special bonus prize (scored separately by Joyce). All three options are scored out of 100 by the Oracle. Submitting any dance video link — AI-generated or live performance — automatically adds +10 bonus points.
 Submission: topkpop.io/pages/submit-trove-03
+Practice Oracle for Trove 03 (Lesson Design): https://chatgpt.com/g/g-6942aad9bafc819199753438ff8eebd7-oracle-of-the-lesson-design-rubric
+Runway AI (AI dance video): https://runwayml.com
+Pika Art (AI dance video): https://pika.art
 
 SECTION 6: THE ORACLE OF THE RUBRIC
 The Oracle of the Rubric is the scoring system for TopKpop.io. It is a Custom GPT trained on the official TopKpop.io scoring rubric. It is not just a score generator — it is a model for formative assessment and AI evaluation literacy.
@@ -150,16 +161,30 @@ SECTION 10: WEBSITE NAVIGATION GUIDE
 - Final Accusation: topkpop.io/pages/final-accusation — Unlocks on Day 22 at 7 PM PT.
 - Ask Jeannie: topkpop.io/pages/jeannie — That's me!
 
-SECTION 11: AI TOOLS USED IN THE GAME
-- ChatGPT / Gemini: Used in Trove 01 to generate K-Pop idol avatars. Players can upload a photo of themselves or describe their appearance. Free tier available — no paid subscription required.
-- Canva: Used in Trove 01 to design the K-Pop promotional poster featuring the AI-generated avatar.
-- Multilingual Karaoke Song Rewriter GPT: A custom ChatGPT tool linked on the Trove 02 page. Players paste in original song lyrics, their vocabulary list, and their theme. The GPT rewrites the song keeping the melody and rhythm while weaving in Korean or Spanish vocabulary meaningfully. Players must be logged into ChatGPT to use it.
-- Suno: Used in Trove 02 to turn rewritten lyrics into a real AI-generated song. Recommended for maximum score. Free tier available.
-- MyKaraoke.Video: Used in Trove 02 to create a full karaoke-style music video with synchronized lyrics and K-Pop visuals. The highest-scoring option for the Evidence Song mission. Qualifies school for a bonus prize.
-- Oracle of the Rubric: A Custom GPT trained on the TopKpop.io scoring rubric. Used to evaluate and score all submitted artifacts. Linked on the Resources page. Use the Practice Oracle first before locking in your official submission.
-- Evidence Song Rubric Evaluator: Scores multilingual song lyrics, AI music tracks, and music videos against the official rubric. Linked on the Resources page.
-- Language Lesson Planner (California): A custom ChatGPT tool for Trove 03. Helps create AI-integrated lesson plans aligned to California ELA standards. Linked on the Resources page.
+SECTION 11: AI TOOLS USED IN THE GAME — WITH DIRECT LINKS
+- ChatGPT (general): https://chatgpt.com — Used for avatar generation, song rewriting, and lesson planning. Free tier available.
+- ChatGPT for Teachers (free educator access): https://chatgpt.com/edu — Activate with your school district email. Recommended for all missions.
+- Canva: https://www.canva.com — Used in Trove 01 to design the K-Pop promotional poster. Free tier available.
+- Oracle of the Rubric — Trove 01 (Avatar + Poster): https://chatgpt.com/g/g-6924d3bc86388191a51b043fc7adeb42-oracle-of-the-rubric-for-k-pop-poster-avatar — Use this BEFORE officially submitting Trove 01. Gives formative feedback. Free to use, requires ChatGPT login.
+- Multilingual Karaoke Song Rewriter GPT (Trove 02): https://chatgpt.com/g/g-6935c65742f48191914cf8084e6c6900-multilingual-karaoke-song-rewriter — Paste in original lyrics, your vocabulary list, and your theme. The GPT rewrites the song with Korean or Spanish woven in. Requires ChatGPT login.
+- Evidence Song Rubric Evaluator / Practice Oracle (Trove 02): https://chatgpt.com/g/g-69382a5d36208191b5903ea55b5c0c70-lyric-multilingual-remix-rubric-evaluator — Use this BEFORE officially submitting Trove 02.
+- Oracle of the Lesson Design Rubric (Trove 03): https://chatgpt.com/g/g-6942aad9bafc819199753438ff8eebd7-oracle-of-the-lesson-design-rubric — Use this BEFORE officially submitting Trove 03.
+- Suno AI (Trove 02 — make your AI song): https://suno.com — Turn your rewritten lyrics into a real AI-generated song. Free tier available. Recommended for maximum score.
+- MyKaraoke.Video (Trove 02 — make your music video): https://www.mykaraoke.video — Create a full karaoke-style music video. Highest-scoring option. Qualifies school for a bonus prize.
+- AZLyrics (find original song lyrics): https://www.azlyrics.com — Use to find the original lyrics for the song you want to rewrite.
+- Runway AI (Trove 03 — AI dance video): https://runwayml.com — Generate an AI dance video for the Trove 03 bonus.
+- Pika Art (Trove 03 — AI dance video): https://pika.art — Alternative AI video tool for the Trove 03 dance bonus.
+- Teacher Prerequisite Checklist (Google Doc): https://docs.google.com/document/d/1o2edBTWQbIvK0uwJbFIz-RLnJ9rmizlt9uRXo5AwfYY/edit — Complete this before the game begins.
 No prior AI experience is required. The game is designed to teach AI literacy through doing.
+
+SECTION 11b: INTRO VIDEOS
+Welcome Recruitment Briefing (Watch first — intro to the game): https://vimeo.com/1141813845
+Breaking News of Sabotage (Watch second — the incident): https://vimeo.com/1139810578
+Mission Overview — Intro SuperSleuth Game: https://vimeo.com/1193256607
+Mission 01 Activity Directions: https://player.vimeo.com/video/1140433843
+Mission 02 Activity Directions: https://player.vimeo.com/video/1144749875
+Mission 03 Activity Directions: https://player.vimeo.com/video/1146962237
+Final Accusation — Detective Anna's Directive: https://player.vimeo.com/video/1193253295
 
 SECTION 12: FREQUENTLY ASKED QUESTIONS
 Q: Do I need a social media account to play? No. All submissions are made directly through the TopKpop.io portal. Instagram posts earn bonus points only and are entirely optional.
