@@ -705,8 +705,38 @@
       <p style="font-family:'Syncopate',sans-serif; font-size:0.52rem; letter-spacing:0.3em; color:var(--crimson); text-transform:uppercase; margin-bottom:12px;">Get In Touch</p>
       <h3 style="font-family:'Syncopate',sans-serif; font-size:1.3rem; font-weight:700; color:#fff; margin-bottom:12px;">Bring TopKpop.io to Your School</h3>
       <p style="font-size:0.9rem; color:rgba(224,224,224,0.65); max-width:540px; margin:0 auto 40px; line-height:1.7;">Interested in bringing TopKpop.io to your school or district? Have a question for the team? Fill out the form below and we&rsquo;ll be in touch.</p>
-      <div style="max-width:680px; margin:0 auto;">
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdkhTwzq5tTDXh_S7ODlsEjtJieUjKLwm40AWCdBHnV0bW41Q/viewform" target="_blank" rel="noopener" style="display:inline-block; background:var(--crimson); color:#fff; font-family:'Syncopate',sans-serif; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; padding:16px 40px; border-radius:3px; text-decoration:none; box-shadow:0 0 24px rgba(230,0,92,0.4); transition:box-shadow 0.3s;">Contact the Team &rarr;</a>
+      <div style="max-width:680px; margin:0 auto; text-align:left;">
+        <form id="contact-form" onsubmit="submitContactForm(event)">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+            <input id="cf-name" type="text" placeholder="Your Name *" required style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
+            <input id="cf-email" type="email" placeholder="Email Address *" required style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; width:100%; box-sizing:border-box;" />
+          </div>
+          <input id="cf-org" type="text" placeholder="School or Organization" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; margin-bottom:14px;" />
+          <textarea id="cf-msg" placeholder="Your Question or Message *" required rows="5" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:14px 16px; color:#fff; font-size:0.9rem; font-family:'Inter',sans-serif; outline:none; resize:vertical; margin-bottom:20px;"></textarea>
+          <div style="text-align:center;">
+            <button type="submit" id="cf-btn" style="background:var(--crimson); color:#fff; font-family:'Syncopate',sans-serif; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; padding:16px 40px; border-radius:3px; border:none; cursor:pointer; box-shadow:0 0 24px rgba(230,0,92,0.4);">Send Message &rarr;</button>
+          </div>
+          <div id="cf-success" style="display:none; text-align:center; margin-top:20px; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:#4ade80; text-transform:uppercase;">&#10003; Message sent. We&rsquo;ll be in touch.</div>
+        </form>
+        <script>
+        function submitContactForm(e) {
+          e.preventDefault();
+          var btn = document.getElementById('cf-btn');
+          btn.disabled = true; btn.textContent = 'Sending...';
+          var formData = new FormData();
+          formData.append('entry.497e31fb', document.getElementById('cf-name').value);
+          formData.append('entry.31ce2e4b', document.getElementById('cf-email').value);
+          formData.append('entry.5569b1d3', document.getElementById('cf-org').value);
+          formData.append('entry.57b1a2ad', document.getElementById('cf-msg').value);
+          fetch('https://docs.google.com/forms/d/e/1FAIpQLSdkhTwzq5tTDXh_S7ODlsEjtJieUjKLwm40AWCdBHnV0bW41Q/formResponse', {method:'POST', mode:'no-cors', body:formData})
+            .then(function() {
+              document.getElementById('contact-form').style.display = 'none';
+              document.getElementById('cf-success').style.display = 'block';
+            }).catch(function() {
+              document.getElementById('cf-success').style.display = 'block';
+            });
+        }
+        <\/script>
       </div>
     </div>
   </div>
