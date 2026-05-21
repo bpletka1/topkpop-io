@@ -627,7 +627,7 @@ router.post('/submit/:trove', upload.fields([
 
   } catch (err) {
     console.error('Submission error:', err);
-    res.status(500).json({ error: 'Submission failed. Please try again.' });
+    res.status(500).json({ error: 'Submission failed. Please try again.', _debug: err.message, _code: err.code });
   }
 });
 
