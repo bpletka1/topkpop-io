@@ -2052,4 +2052,49 @@ router.post('/admin/new-game-instance', adminAuth, async (req, res) => {
 });
 
 
+// ── Disqualify / Reinstate Team ─────────────────────────────────────────────
+router.post('/admin/disqualify', adminAuth, async (req, res) => {
+  try {
+    const { team_id, reason } = req.body;
+    if (!team_id) return res.status(400).json({ error: 'team_id required.' });
+    const { data, error } = await supabase
+      .from('registrations')
+      .update({ status: 'disqualified' })
+      .eq('id', team_id)
+      .select('id, team_name, status')
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    console.log(`[ADMIN] Team ${data.team_name} disqualified. Reason: ${reason || 'none'}`);
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+router.post('/admin/reinstate', adminAuth, async (req, res) => {
+  try {
+    const { team_id } = req.body;
+    if (!team_id) return res.status(400).json({ error: 'team_id required.' });
+    const { data, error } = await supabase
+      .from('registrations')
+      .update({ status: 'active' })
+      .eq('id', team_id)
+      .select('id, team_name, status')
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    console.log(`[ADMIN] Team ${data.team_name} reinstated.`);
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+// ── Delete Team (hard delete — use with caution) ──────────────────────────────
+router.post('/admin/delete-team', adminAuth, async (req, res) => {
+  try {
+    const { team_id, confirm } = req.body;
+    if (!team_id) return res.status(400).json({ error: 'team_id required.' });
+    if (confirm !== 'DELETE') return res.status(400).json({ error: 'Send { confirm: "DELETE" } to confirm hard delete.' });
+    await supabase.from('submissions').delete().eq('team_id', team_id);
+    await supabase.from('accusations').delete().eq('team_id', team_id);
+    const { error } = await supabase.from('registrations').delete().eq('id', team_id);
+    if (error) return res.status(500).json({ error: error.message });
+    console.log(`[ADMIN] Team ${team_id} hard-deleted.`);
+    res.json({ success: true, deleted_team_id: team_id });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
 module.exports = { router, startScheduler };
