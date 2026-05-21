@@ -32,19 +32,21 @@ Step 5: On Day 25, the saboteur is unmasked. WINNING RULE: If any team correctly
 
 GAME TIMELINE:
 - Before Day 1: Registration opens
-- Day 1 (Monday): Treasure Trove 01 unlocks
-- Day 8 (Sunday 7 PM PT): Treasure Trove 02 unlocks
+- Day 1 (Monday): Treasure Trove 01 UNLOCKS (teams can start working — no deadline to submit yet)
+- Day 8 (Sunday 7 PM PT): Treasure Trove 02 unlocks. EARLY SUBMISSION BONUS: teams who submitted Trove 01 before this date earn a bonus prize.
 - Day 15 (Sunday 7 PM PT): Treasure Trove 03 unlocks
 - Day 22 (Sunday 7 PM PT): Final Accusation form unlocks
 - Day 24 (Tuesday 7 PM PT): Final Accusation window closes
-- Day 32: The Final Reveal — saboteur unmasked
+- Day 32: The Final Reveal — saboteur unmasked. ALL Trove submissions must be in by Day 32.
+IMPORTANT: There are NO weekly hard deadlines for Trove submissions. All three Troves can be submitted any time before Day 32. The only time-sensitive element is the Early Submission Bonus (submit Trove 01 before Day 8 for a bonus prize) and the Final Accusation window (Day 22-24).
 
 TREASURE TROVE 01 — K-POP IDENTITY (Week 1, Day 1):
 Mission: Create your AI-generated K-Pop idol avatar and promotional poster. Establish your trainee identity with a name, idol skills, and a group tagline in Korean and Spanish.
+DEADLINE: Trove 01 is NOT due at the end of Week 1. Teams have the ENTIRE 32-day game to submit Trove 01. There is NO weekly deadline for submission. However, teams that submit Trove 01 before the end of Week 1 (before Day 8) earn a special Early Submission Bonus Prize. Submitting early is optional — teams can submit any time before the game ends on Day 32.
 What you create: An AI-generated K-Pop idol avatar (using ChatGPT or Gemini), a K-Pop promotional poster featuring your avatar (using Canva), and a trainee identity: idol name, skills, group tagline in Korean and Spanish.
 How to make your avatar: Go to ChatGPT or Gemini. Decide on your idol style — cute, fierce, elegant, noir, cyberpunk, demon-hunter, glam, or realistic. You can upload a photo of yourself to transform into an idol, or describe your appearance and vibe. Tell the AI: "Create my trainee avatar. I want a [style] idol with [hair], [clothing], [vibe]."
 Before submitting officially, use the Practice Oracle to refine your work. Once officially submitted, Trove 01 is locked.
-Scoring: Avatar only: up to 75 points. Avatar + Poster (recommended): up to 100 points (maximum). Instagram Avatar Post bonus: +25 pts (post tagging @topkpopio by end of Week 1). Instagram Poster Post bonus: +25 pts. Team Name Lore bonus: +25 pts (write a 2-4 sentence origin story for your team name). Early Submission Prize: Teams that submit Trove 01 before the end of Week 1 earn an early submission bonus prize — team captain receives a congratulations email within 48 hours.
+Scoring: Avatar only: up to 75 points. Avatar + Poster (recommended): up to 100 points (maximum). Instagram Avatar Post bonus: +25 pts (post tagging @topkpopio by end of Week 1). Instagram Poster Post bonus: +25 pts. Team Name Lore bonus: +25 pts (write a 2-4 sentence origin story for your team name). Early Submission Prize: Teams that submit Trove 01 BEFORE the end of Week 1 (before Day 8) earn an early submission bonus prize — team captain receives a congratulations email within 48 hours. This is a BONUS for submitting early, not a deadline.
 Submission: topkpop.io/pages/submit-trove-01
 
 TREASURE TROVE 02 — EVIDENCE SONG (Week 2, unlocks Sunday 7 PM PT):
