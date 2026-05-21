@@ -637,6 +637,24 @@ router.post('/submit/:trove', upload.fields([
 // LEADERBOARD
 // ════════════════════════════════════════════════════════════════════════════
 
+// ── DEBUG: Test submit endpoint (returns actual error) ──────────────────────
+router.post('/debug-submit', async (req, res) => {
+  try {
+    const { captain_email, team_name } = req.body;
+    if (!captain_email || !team_name) return res.status(400).json({ error: 'Need captain_email and team_name' });
+    const { data: team, error: teamError } = await supabase
+      .from('registrations').select('id, status').eq('captain_email', captain_email.toLowerCase()).single();
+    if (teamError || !team) return res.status(404).json({ error: 'Team not found', detail: teamError?.message });
+    const payload = { team_id: team.id, team_name: team_name.trim(), trove_number: 1, notes: 'debug test' };
+    const { data: sub, error: subError } = await supabase
+      .from('submissions').upsert(payload, { onConflict: 'team_id,trove_number' }).select().single();
+    if (subError) return res.status(500).json({ error: 'Upsert failed', detail: subError.message, code: subError.code });
+    res.json({ success: true, submission_id: sub.id, team_id: team.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/leaderboard', async (req, res) => {
   try {
     // Fetch registrations and submissions separately (avoids FK join issues)
