@@ -127,7 +127,7 @@ Every Detective Recruit begins with the same seven suspects. Each has a motive. 
 
 5. HANBIT PHIL (HAN) — Company Chef, CEO Minseo's son. Accused of nepotism by the entire production staff. He swears he did not poison the catering — that someone tampered with it specifically to get him fired. His motive: desperate to prove himself, or desperate to burn it all down.
 
-6. NARI WESLEY — Vice President, Top K-Pop Entertainment. Women's University Media Communications graduate. She clawed her way to Vice President, reporting directly to Dr. Kim. She is owed money, owed credit, and owed a seat at the table. Her motive: she is done waiting — and she has the access, the intelligence, and the fury to do something about it.
+6. NARI WESLEY — Executive Assistant to Sunny, Top K-Pop Entertainment. Women's University Media Communications graduate. She left hip-hop behind because K-Pop is her true passion. Sharp, driven, and relentlessly capable — she has always been the most qualified person in the room, yet she remains in an assistant role. She holds an IOU for $30,000 from someone connected to the showcase. Her motive: she is owed money, owed credit, and owed a seat at the table — and she is done waiting.
 
 7. JAX J — Reigning Champion, Lead Touring Dancer, Head Choreographer. Korean American. Last year he won the Top K-Pop crown and was signed as the company's lead touring dancer. He knows something. He has known for a while. And he has said nothing. The investigation is closing in — and the silence that once felt like protection now feels like a trap he built for himself.
 
