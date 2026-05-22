@@ -178,6 +178,17 @@ footer {
   font-size: 0.75rem; color: var(--muted);
   border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px;
 }
+.footer-admin-row {
+  max-width: 1200px; margin: 16px auto 0;
+  display: flex; justify-content: flex-end;
+}
+.footer-admin {
+  font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.25); text-decoration: none; text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.1); padding: 5px 14px; border-radius: 2px;
+  transition: color 0.3s, border-color 0.3s;
+}
+.footer-admin:hover { color: rgba(255,255,255,0.65); border-color: rgba(255,255,255,0.35); }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
