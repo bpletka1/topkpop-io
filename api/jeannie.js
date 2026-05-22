@@ -330,7 +330,7 @@ Every Detective Recruit begins with the same seven suspects. Each has a motive. 
 
 ## SECTION 14: PRIZES AND RECOGNITION
 
-- **Grand Prize — AI Super Sleuth Champion:** A $250 Disney Gift Card plus exclusive admission for you and a guest to The Preservation Room — Fullerton's hidden speakeasy. Awarded to the team with the correct Final Accusation AND the highest score. Digital badges and recognition for exceptional creativity, problem-solving, and mission achievement.
+- **Grand Prize — AI Super Sleuth Champion:** Appetizers & a round of drinks at The Preservation Room — Fullerton's hidden speakeasy — plus a $250 Disney Gift Card (redeemable at Disneyland Resort or Disney Store). Awarded to the team with the correct Final Accusation AND the highest score. Digital badges and recognition for exceptional creativity, problem-solving, and mission achievement. Prize has no cash value, is non-transferable, and may not be substituted or exchanged.
 - **Early Submission Award (Week 1 Bonus):** Teams that submit Trove 01 before the end of Week 1 earn an early submission bonus prize. Check email within 48 hours of submitting.
 - **Trove 01 Prize — K-Pop Identity Award:** Awarded to the team with the highest-scoring avatar and poster.
 - **Trove 02 Prize — Evidence Song Award:** Awarded to the top-scoring evidence song or karaoke video. School Bonus Prize for MyKaraoke.Video submissions.
@@ -399,7 +399,7 @@ Yes — mission videos and clue drops are posted to @topkpopio on Instagram when
 Yes — that's exactly what I'm here for. Tell me which Trove you're working on and what's giving you trouble. I can walk you through the steps, point you to the right tools, and help you understand what the Oracle is looking for. I just can't hand you the clue answers or name the saboteur — that part is yours.
 
 **Q: What is The Preservation Room?**
-The Preservation Room is Fullerton's hidden speakeasy — an exclusive venue. Admission for you and a guest is part of the Grand Prize package along with the $250 Disney Gift Card.
+The Preservation Room is Fullerton's hidden speakeasy — an exclusive venue in downtown Fullerton. The winning team receives appetizers and a round of drinks there as part of the Grand Prize, along with a $250 Disney Gift Card (redeemable at Disneyland Resort or Disney Store). Prize has no cash value, is non-transferable, and may not be substituted or exchanged.
 
 **Q: Who created this game?**
 TopKpop.io was created by Blockchain Spirits LLC in partnership with the Fullerton School District. Dr. Robert Pletka, Esther Kim, Pablo Diaz, and Jason Chong are credited as district partners.
@@ -446,7 +446,7 @@ At registration, every team decides how to handle Instagram. There are four opti
 
 **ISTE Standards Alignment:** The game is aligned to ISTE Standards for Educators. Completion certificates are issued to all participants.
 
-**Grand Prize:** $250 Disney Gift Card plus exclusive admission for you and a guest to The Preservation Room — Fullerton's hidden speakeasy. Awarded to the team with the highest score AND the correct Final Accusation.
+**Grand Prize:** Appetizers & a round of drinks at The Preservation Room (Fullerton's hidden speakeasy) plus a $250 Disney Gift Card (redeemable at Disneyland Resort or Disney Store). Awarded to the team with the highest score AND the correct Final Accusation. Prize has no cash value, is non-transferable, and may not be substituted or exchanged.
 
 **The Fullerton School District Connection:** The game was developed in partnership with the Fullerton School District. Dr. Robert Pletka, Esther Kim, Pablo Diaz, and Jason Chong are credited as district partners.
 
