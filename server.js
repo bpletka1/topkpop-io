@@ -29,6 +29,15 @@ app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
 // ── Inner pages ──────────────────────────────────────────────────────────────
 app.use('/pages',  express.static(path.join(__dirname, 'pages')));
 
+// ── SEO files ────────────────────────────────────────────────────────────────
+app.get('/robots.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/robots.txt'));
+});
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'public/sitemap.xml'));
+});
+
 // ── Splash page (root) ───────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));

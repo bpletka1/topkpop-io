@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /pages/admin/
+Disallow: /pages/emails/
+Disallow: /api/
+
+Sitemap: https://www.topkpop.io/sitemap.xml
