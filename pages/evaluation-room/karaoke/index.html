@@ -31,7 +31,8 @@
       <p class="er-kline" id="kLine">Press Play to start</p>
       <p class="er-knext" id="kNext"></p>
     </div>
-    <audio id="audio" preload="auto"></audio>
+    <div class="er-warn" id="timingWarn" hidden role="note"></div>
+    <audio id="audio" preload="none"></audio>
     <input type="range" id="seek" class="er-seek" min="0" max="100" value="0" step="0.1" aria-label="Position in the song" />
     <div class="er-row" style="justify-content:space-between">
       <div class="er-row">
@@ -45,12 +46,13 @@
     <div class="er-next">
       <p class="er-label">Lyrics out of step?</p>
       <p class="er-muted" id="fixIntro" style="margin-bottom:12px">If a line lights up too early or too late, fix it by tapping along once. Tap the big button each time a new line should start.</p>
-      <button class="er-btn ghost small" id="fixStart" type="button">Fix the timing</button>
+      <div class="er-row"><button class="er-btn ghost small" id="fixStart" type="button">Fix the timing</button><button class="er-btn ghost small" id="fixReset" type="button" hidden>Go back to automatic timing</button></div>
       <div id="fixPanel" hidden>
         <p class="er-kline" id="fixLine" style="margin:14px 0"></p>
         <button class="er-btn amber er-tap" id="tap" type="button">Tap when this line starts</button>
         <div class="er-row" style="margin-top:12px">
           <span class="er-small" id="fixCount"></span>
+          <button class="er-btn ghost small" id="fixUndo" type="button">Undo last tap</button>
           <button class="er-btn ghost small" id="fixCancel" type="button">Cancel</button>
         </div>
       </div>
@@ -67,7 +69,7 @@
       <li class="er-step" data-s="timing"><span class="dot">3</span><div class="txt">Timing the lyrics</div></li>
       <li class="er-step" data-s="ready"><span class="dot">4</span><div class="txt">Ready to sing</div></li>
     </ol>
-    <p class="er-muted" style="margin-top:12px">This usually takes two to four minutes. You can leave this page open; it updates by itself.</p>
+    <p class="er-muted" style="margin-top:12px">This usually takes two to four minutes. Keep this page open; it updates by itself. If something goes wrong you will be told here within a few minutes.</p>
   </section>
 
   <!-- Make a song -->
@@ -97,6 +99,7 @@
     </div>
 
     <label class="er-check"><input type="checkbox" id="rights" /><span>Our team bought this song or has the right to use it for this activity.</span></label>
+    <p class="er-small" style="margin:-4px 0 14px">Your upload is used to make the track and is not kept. The music-only track is private to your team, and you can delete it at any time.</p>
     <div class="er-row"><button class="er-btn" id="make" type="button">Make my song</button><span class="er-small" id="leftToday"></span></div>
     <p class="er-msg" id="makeMsg"></p>
   </section>
