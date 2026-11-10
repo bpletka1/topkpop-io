@@ -104,6 +104,27 @@
     <p class="er-msg" id="makeMsg"></p>
   </section>
 
+  <!-- Hear it sung -->
+  <section class="er-card" id="sung" aria-labelledby="sungTitle">
+    <p class="er-label">Trying it out</p>
+    <h2 class="er-h2" id="sungTitle">Hear it sung</h2>
+    <p class="er-muted" style="margin:8px 0 16px">Want to hear your new lyrics before you sing them? A computer voice sings them to the tune of your song. It uses the song file from box 1 and the lyrics from box 3 above. The voices are styles, not copies of any real singer.</p>
+    <div class="er-field">
+      <label for="sungStyle">Choose a voice style</label>
+      <select class="er-input" id="sungStyle"></select>
+      <p class="hint" id="sungHint"></p>
+    </div>
+    <div class="er-row"><button class="er-btn" id="sungMake" type="button">Sing my lyrics</button><span class="er-small" id="sungLeft"></span></div>
+    <p class="er-muted" id="sungWait" hidden role="status" style="margin-top:12px"></p>
+    <p class="er-msg" id="sungMsg"></p>
+    <div id="sungPlayer" hidden style="margin-top:16px">
+      <p class="er-label" id="sungName"></p>
+      <audio id="sungAudio" controls preload="none" style="width:100%"></audio>
+      <div class="er-row" style="margin-top:12px"><a class="er-btn ghost small" id="sungSave" href="#" download>Download the recording</a></div>
+    </div>
+    <ul class="er-hist" id="sungList" style="margin-top:14px"></ul>
+  </section>
+
   <!-- Earlier songs -->
   <section class="er-card" id="mine" hidden>
     <p class="er-label">Your team's songs</p>
@@ -113,5 +134,6 @@
 
 <script src="/js/evalroom.js"></script>
 <script src="/js/evalroom-karaoke.js"></script>
+<script src="/js/evalroom-sung.js"></script>
 </body>
 </html>

@@ -347,6 +347,45 @@ async function runCase(row, port) {
     return { passed: steps.filter((x) => x.startsWith('PASS')).length, total: steps.length, steps, secondsToReady: secs, lines: st && st.d.lines && st.d.lines.map((l) => l.start + '-' + l.end + ' ' + l.text), quality: st && st.d.song && st.d.song.quality };
   }
 
+  if (row.kind === 'cover-schema') {
+    // What the singing model accepts, read from the service itself.
+    const C = require('./evalroom-cover')._internal;
+    const f = await C.inputFields();
+    return { model: C.MODEL, fields: Object.fromEntries(Object.entries(f).map(([k, v]) => [k, { type: v.type || (v.allOf ? 'enum' : ''), d: String(v.description || '').slice(0, 260), def: v.default, max: v.maxLength, min: v.minLength, format: v.format }])) };
+  }
+
+  if (row.kind === 'cover') {
+    // Makes a short test song, asks the singer to re-sing it with new words, then listens to what came back.
+    const C = require('./evalroom-cover')._internal; const K = require('./evalroom-karaoke')._internal;
+    const out = { steps: [] };
+    const original = p.original || 'Morning light is on the stage\nEvery voice begins to sing\nHand in hand we turn the page\nHear the music that we bring';
+    const rewrite = p.rewrite || 'Luz del día on the stage\nMis amigos start to sing\nJuntos now we turn the page\nHear the música we bring';
+    const r = await fetch(K.API + '/v1/music', { method: 'POST', headers: { 'xi-api-key': K.elevenKey(), 'content-type': 'application/json' }, signal: AbortSignal.timeout(240000),
+      body: JSON.stringify({ prompt: 'A simple upbeat pop song with a clear solo female lead vocal and light band backing. The singer sings exactly these lyrics, clearly, once through:\n' + original, music_length_ms: p.lengthMs || 30000 }) });
+    const src = Buffer.from(await r.arrayBuffer()); const kind = r.ok && K.sniffAudio(src);
+    out.steps.push('test song: ' + r.status + ' ' + src.length + ' bytes');
+    if (!kind) return { ...out, error: 'no test song' };
+    const spath = 'selftest/sung/' + row.id + '/source.' + kind.ext;
+    const up = await R.supabase.storage.from('evalroom-private').upload(spath, src, { contentType: kind.mime, upsert: true });
+    if (up.error) return { ...out, error: 'storage ' + up.error.message };
+    try {
+      const { data: signed } = await R.supabase.storage.from('evalroom-private').createSignedUrl(spath, 3600);
+      const style = C.STYLES[p.style || 'kpop_boy'];
+      const res = await C.sing(signed.signedUrl, style.prompt, rewrite);
+      out.steps.push('sing: ok in ' + res.seconds + 's, lyrics sent=' + res.usedLyrics + ', fields=' + res.fields.join(','));
+      const got = await fetch(res.url, { signal: AbortSignal.timeout(120000) });
+      const audio = Buffer.from(await got.arrayBuffer()); const ak = K.sniffAudio(audio);
+      out.steps.push('result: ' + got.status + ' ' + (got.headers.get('content-type') || '') + ' ' + audio.length + ' bytes, kind=' + (ak && ak.mime));
+      out.outputHost = new URL(res.url).host;
+      if (ak) {
+        try { const heard = await K.transcribe(audio, ak); out.heard = (heard.text || (heard.words || []).map((w) => w.text).join(' ')).slice(0, 600); out.lastWordEnd = heard.words && heard.words.length ? heard.words[heard.words.length - 1].end : null; } catch (e) { out.steps.push('listen failed: ' + String(e.message).slice(0, 300)); }
+        if (p.keep) { const kp = 'selftest/sung/' + row.id + '/result.' + ak.ext; await R.supabase.storage.from('evalroom-private').upload(kp, audio, { contentType: ak.mime, upsert: true }); out.kept = kp; }
+      }
+    } catch (e) { out.steps.push('sing failed: ' + String(e.message).slice(0, 900)); }
+    finally { if (!p.keep) await R.supabase.storage.from('evalroom-private').remove([spath]).catch(() => {}); }
+    return out;
+  }
+
   if (row.kind === 'refit') {
     // Re-run the syllable comparison on an answer that is already stored (no AI call).
     const { data, error } = await R.supabase.from('evalroom_selftest').select('payload, result').eq('id', p.id).single();
