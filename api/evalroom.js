@@ -582,6 +582,9 @@ router.post('/studio/chat', requireTeam, async (req, res) => {
   }
 });
 
+// ── Take the Stage (official locks) ─────────────────────────────────────────
+require('./evalroom-stage')(router, { supabase, JUDGES, PREVIEW_MODE, requireTeam, uploadTwo, limited, clientIp, sniffImage });
+
 // Anything else under /api/evalroom
 router.use((req, res) => res.status(404).json({ error: 'Not found.' }));
 

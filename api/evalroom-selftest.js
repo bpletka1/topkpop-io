@@ -140,6 +140,8 @@ async function runCase(row, port) {
       const page = n.ok ? await song.fetchSuno(n.canonical) : { status: 0 };
       const html = page.html || '';
       const at = (needle) => { const i = html.indexOf(needle); return i === -1 ? null : html.slice(Math.max(0, i - 60), i + 420); };
+      const all = (needle) => { const hits = []; let i = -1; while (hits.length < 3 && (i = html.indexOf(needle, i + 1)) !== -1) hits.push(html.slice(Math.max(0, i - 80), i + 500)); return hits; };
+      out.found = {}; for (const nd of p.needles || []) out.found[nd] = all(nd);
       out.probe = { status: page.status, finalUrl: page.finalUrl, type: page.type, bytes: html.length, head: html.slice(0, 300), prompt: at('prompt'), lyrics: at('yrics'), ogDesc: at('og:description'), challenge: /cf-challenge|Just a moment|captcha/i.test(html) };
     }
     return out;
