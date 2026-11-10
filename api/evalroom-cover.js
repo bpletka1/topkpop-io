@@ -17,7 +17,7 @@ const MAX_MB = Number(process.env.EVALROOM_SONG_MAX_MB || 25);
 const MAX_PER_DAY = Number(process.env.EVALROOM_COVERS_PER_DAY || 3);
 const MAX_TRIES_PER_DAY = Number(process.env.EVALROOM_COVER_TRIES_PER_DAY || 6);
 const MAX_ALL_TEAMS_PER_DAY = Number(process.env.EVALROOM_COVERS_ALL_TEAMS_PER_DAY || 40);
-const LYRICS_MAX = 1000; // the singing service's own limit
+const LYRICS_MAX = 2800; // the singing service takes up to 3,000 characters
 const safePart = (x) => String(x).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
 
 // Voices are described by style. No real singer is named or imitated.
@@ -134,7 +134,8 @@ module.exports = function attachCover(router, deps) {
       if (String(b.rights) !== 'true') return res.status(400).json({ error: 'Tick the box to confirm your team bought this song or has the right to use it.' });
       if (!Object.prototype.hasOwnProperty.call(STYLES, String(b.style))) return res.status(400).json({ error: 'Choose a voice style.' });
       const f = req.file; const kind = f && K.sniffAudio(f.buffer);
-      if (!kind) return res.status(400).json({ error: 'Please choose a song file saved as MP3, M4A or WAV.' });
+      if (!kind) return res.status(400).json({ error: 'Please choose a song file saved as MP3 or WAV.' });
+      if (!/mpeg|mp3|wav/i.test(kind.mime)) return res.status(400).json({ error: 'The singer can only learn from MP3 or WAV files. Please save the song as MP3 or WAV and try again.' });
       const raw = String(b.lyrics || '');
       if (raw.length > CFG.maxTextChars) return res.status(400).json({ error: 'Those lyrics are too long. Please trim them.' });
       const fit = fitLyrics(raw);
