@@ -156,6 +156,62 @@ async function runCase(row, port) {
     return out;
   }
 
+  if (row.kind === 'stageflow') {
+    // Walks Take the Stage end to end through the web routes, as two practice teams.
+    const base = `http://127.0.0.1:${port}/api/evalroom`;
+    const tok = (k) => R.signToken({ t: 'preview:' + k, n: 'Preview: ' + k, p: 1 });
+    const run = 's' + Date.now().toString(36);
+    const A = tok(run + '-a'); const B = tok(run + '-b');
+    const call = async (method, pth, token, json, form, extra) => {
+      const headers = { ...(extra || {}) }; if (token) headers['x-evalroom-token'] = token;
+      let body; if (form) body = form; else if (json) { headers['content-type'] = 'application/json'; body = JSON.stringify(json); }
+      const r = await fetch(base + pth, { method, headers, body }); let d = {}; try { d = await r.json(); } catch (_) {}
+      return { status: r.status, d };
+    };
+    const steps = []; const step = (name, got, want, note) => steps.push({ name, pass: got === want, got, want, note });
+    const lyr = SUITES.lyric[0].payload.text;
+    const pics = (a, p) => { const f = new FormData(); for (const [k, n] of [['avatar', a], ['poster', p]]) f.append(k, new Blob([fs.readFileSync(path.join(FIXTURES, n))], { type: 'image/png' }), n); return f; };
+
+    // Lyrics (Trove 02)
+    const r1 = await call('POST', '/rehearse/lyric', A, { text: lyr }); step('rehearse lyrics', r1.status === 200 && r1.d.ok, true, 'score ' + r1.d.score);
+    const rid = r1.d.id;
+    step('lock without ticking the box is refused', (await call('POST', '/stage/lyric', A, { rehearsal_id: rid })).status, 400);
+    step('another team cannot lock this rehearsal', (await call('POST', '/stage/lyric', B, { rehearsal_id: rid, confirm: 'true' })).status, 404);
+    const bad = await call('POST', '/stage/lyric', A, { rehearsal_id: rid, confirm: 'true', song_url: 'https://example.com/my-song' }); step('lock with a made-up song link is refused', bad.status, 400, bad.d.song);
+    const wrong = await call('POST', '/stage/lyric', A, { rehearsal_id: rid, confirm: 'true', song_url: p.realSong }); step('lock with a real Suno song that has different lyrics is refused', wrong.status + ':' + wrong.d.song, '400:mismatch');
+    step('nothing was locked by the refused tries', Object.keys((await call('GET', '/stage', A)).d.locks || {}).length, 0);
+    const chk = await call('POST', '/stage/check-song', A, { rehearsal_id: rid, song_url: 'https://suno.com/song/00000000-0000-4000-8000-000000000000' }); step('check-song on a missing Suno page says not found', chk.d.verdict, 'not-found');
+    const lock = await call('POST', '/stage/lyric', A, { rehearsal_id: rid, confirm: 'true' }); step('lock lyrics', lock.status === 200 && lock.d.lock.score === r1.d.score && lock.d.practice === true, true, 'locked ' + (lock.d.lock && lock.d.lock.total));
+    step('score kept equals score seen', lock.d.lock && lock.d.lock.score, r1.d.score);
+    step('second lock is refused', (await call('POST', '/stage/lyric', A, { rehearsal_id: rid, confirm: 'true' })).status, 409);
+    step('song added later with a bad link is refused', (await call('POST', '/stage/lyric/song', A, { song_url: 'https://suno.com/@somebody' })).status, 400);
+    const late = await call('POST', '/stage/lyric/song', A, { song_url: p.realSong }); step('song added later with different lyrics is refused', late.status + ':' + late.d.song, '400:mismatch');
+    step('other team sees none of this', Object.keys((await call('GET', '/stage', B)).d.locks || {}).length, 0);
+
+    // Lesson (Trove 03) with a dance video link
+    const r3 = await call('POST', '/rehearse/lesson', A, { text: SUITES.lesson[2].payload.text });
+    const l3 = await call('POST', '/stage/lesson', A, { rehearsal_id: r3.d.id, confirm: 'true', dance_video_url: 'https://youtu.be/example123' }); step('lock lesson with dance video adds 10', l3.d.lock && l3.d.lock.total - l3.d.lock.score, 10);
+    step('lesson lock with a broken link is refused', (await call('POST', '/stage/lesson', B, { rehearsal_id: r3.d.id, confirm: 'true', dance_video_url: 'not a link' })).status, 404);
+
+    // Pictures (Trove 01)
+    const r2 = await call('POST', '/rehearse/visual', A, null, pics('avatar_good.png', 'poster_good.png')); step('rehearse pictures', r2.status === 200 && r2.d.ok, true, 'score ' + r2.d.score);
+    step('lock with different pictures is refused', (await call('POST', '/stage/visual', A, null, (() => { const f = pics('avatar_good.png', 'poster_weak.png'); f.append('rehearsal_id', r2.d.id); f.append('confirm', 'true'); return f; })())).status, 400);
+    const l1 = await call('POST', '/stage/visual', A, null, (() => { const f = pics('avatar_good.png', 'poster_good.png'); f.append('rehearsal_id', r2.d.id); f.append('confirm', 'true'); return f; })()); step('lock with the same pictures', l1.status === 200 && l1.d.lock.score === r2.d.score, true);
+
+    // Organizer
+    step('organizer list with a wrong password is refused', (await call('GET', '/organizer/locks', null, null, null, { 'x-organizer-password': 'guess' })).status, 401);
+    step('organizer list with no password is refused', (await call('GET', '/organizer/locks')).status, 401);
+    const org = { 'x-organizer-password': process.env.ADMIN_PASSWORD || '' };
+    const list = await call('GET', '/organizer/locks', null, null, null, org); step('organizer sees the locks', list.status === 200 && list.d.locks.some((l) => l.id === lock.d.lock.id), true);
+    step('organizer reset', (await call('POST', '/organizer/reset', null, { lock_id: lock.d.lock.id, note: 'selftest' }, null, org)).status, 200);
+    const again = await call('POST', '/stage/lyric', A, { rehearsal_id: rid, confirm: 'true' }); step('after a reset the team can lock again', again.status, 200);
+    // Tidy up: reset every lock this run made.
+    for (const l of [again.d.lock, l3.d.lock, l1.d.lock]) if (l) await call('POST', '/organizer/reset', null, { lock_id: l.id, note: 'selftest cleanup' }, null, org);
+    // The official tables must be untouched by all of the above.
+    const { count } = await R.supabase.from('submissions').select('id', { count: 'exact', head: true });
+    return { passed: steps.filter((x) => x.pass).length, total: steps.length, failed: steps.filter((x) => !x.pass), steps: steps.map((x) => (x.pass ? 'PASS ' : 'FAIL ') + x.name + (x.note ? ' (' + x.note + ')' : '')), submissionsRows: count };
+  }
+
   if (row.kind === 'refit') {
     // Re-run the syllable comparison on an answer that is already stored (no AI call).
     const { data, error } = await R.supabase.from('evalroom_selftest').select('payload, result').eq('id', p.id).single();
