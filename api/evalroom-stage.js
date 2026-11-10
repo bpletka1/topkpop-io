@@ -138,7 +138,7 @@ module.exports = function attachStage(router, deps) {
     if (!j) return res.status(404).json({ error: 'No such judge.' });
     const trove = TROVE_OF[j.key];
     try {
-      if (limited('stage:' + req.team.key, 6, 60000)) return res.status(429).json({ error: 'Too many tries in one minute. Please wait a moment.' });
+      if (limited('stage:' + req.team.key, 15, 60000)) return res.status(429).json({ error: 'Too many tries in one minute. Please wait a moment.' });
       const b = req.body || {};
       if (String(b.confirm) !== 'true') return res.status(400).json({ error: 'Tick the box to confirm your team is ready. A lock is final.' });
       const rid = String(b.rehearsal_id || '');
