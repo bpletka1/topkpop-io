@@ -305,9 +305,27 @@ async function runCase(row, port) {
       step('another team does not see it in their list', ((await get('/karaoke', B)).d.songs || []).length, 0);
       step('bad tap timing is refused', (await post('/karaoke/' + id + '/timings', A, { starts: [1, 2] }, true)).status, 400);
       const fix = await post('/karaoke/' + id + '/timings', A, { starts: [10, 14, 18, 22] }, true); step('tap timing is saved', fix.status === 200 && fix.d.lines[1].start === 14, true);
+      step('out-of-order taps are refused', (await post('/karaoke/' + id + '/timings', A, { starts: [5, 9, 4, 8] }, true)).status, 400);
+      step('taps all at one moment are refused', (await post('/karaoke/' + id + '/timings', A, { starts: [5, 5, 5, 5] }, true)).status, 400);
+      const back = await post('/karaoke/' + id + '/timings/reset', A, {}, true); step('go back to automatic timing', back.status === 200 && back.d.lines[0].start === st.d.lines[0].start, true);
+      step('automatic timing was judged trustworthy', st.d.song.quality && st.d.song.quality.level, 'good', JSON.stringify(st.d.song.quality && st.d.song.quality.reasons));
+      step('another team cannot delete this song', (await post('/karaoke/' + id + '/delete', B, {}, true)).status, 404);
       step('another team cannot change the timing', (await post('/karaoke/' + id + '/timings', B, { starts: [1, 2, 3, 4] }, true)).status, 404);
       const pathPublic = await fetch(`${process.env.SUPABASE_URL}/storage/v1/object/public/evalroom-private/preview_${run}-a/karaoke/${id}/music.mp3`);
       step('the audio is not reachable without the private link', pathPublic.status >= 400, true, 'status ' + pathPublic.status);
+    }
+    if (id) {
+      // Wrong lyrics for this recording must be flagged, not presented as fine.
+      const wrongLyrics = 'Purple elephants are dancing on the ceiling of the kitchen\nSeventeen umbrellas float across a field of frozen butter\nMy accountant plays the tuba every Wednesday after breakfast\nNobody remembers where the yellow submarine was parked\nQuantum sandwiches are better when the weather turns to gravel\nGrandma built a rocket from a toaster and a trombone';
+      const bad = await post('/karaoke', A, form({ ...good, title: 'Wrong lyrics', original_lyrics: wrongLyrics, new_lyrics: wrongLyrics }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }));
+      let bs = null; const b0 = Date.now();
+      while (bad.d.song && Date.now() - b0 < 240000) { bs = await get('/karaoke/' + bad.d.song.id, A); if (['ready', 'failed'].includes(bs.d.song && bs.d.song.status)) break; await new Promise((r) => setTimeout(r, 3000)); }
+      const lvl = bs && bs.d.song && bs.d.song.quality && bs.d.song.quality.level;
+      step('lyrics that do not match the recording are flagged', lvl === 'poor' || (bs && bs.d.song && bs.d.song.status === 'failed'), true, 'level ' + lvl + ' loss ' + (bs && bs.d.song && bs.d.song.quality && bs.d.song.quality.loss) + ' reasons ' + JSON.stringify(bs && bs.d.song && bs.d.song.quality && bs.d.song.quality.reasons) + ' ' + ((bad.d && bad.d.error) || ''));
+      const del = await post('/karaoke/' + id + '/delete', A, {}, true); step('team can delete its song', del.status, 200);
+      step('deleted song is gone', (await get('/karaoke/' + id, A)).status, 404);
+      if (st && st.d.audio_url) { const gone = await fetch(st.d.audio_url); step('deleted audio no longer plays', gone.status >= 400, true, 'status ' + gone.status); }
+      if (bad.d.song) await post('/karaoke/' + bad.d.song.id + '/delete', A, {}, true);
     }
     return { passed: steps.filter((x) => x.startsWith('PASS')).length, total: steps.length, steps, secondsToReady: secs, lines: st && st.d.lines && st.d.lines.map((l) => l.start + '-' + l.end + ' ' + l.text), quality: st && st.d.song && st.d.song.quality };
   }
