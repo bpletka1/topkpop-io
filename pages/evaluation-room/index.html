@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Evaluation Room | TopKpop.io</title>
+  <meta name="description" content="Rehearse with the TopKpop.io judges before you take the stage. Practice scores and feedback for all three Treasure Troves." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="/css/evalroom.css" />
+</head>
+<body class="er">
+
+<header class="er-hero">
+  <p class="er-eyebrow">Top K-Pop Entertainment &middot; Trainee Floor</p>
+  <h1 class="er-title">The Evaluation <em>Room</em></h1>
+  <p class="er-sub">Every idol rehearses before the cameras roll. Step in, face the judges, and polish your work before you take the stage.</p>
+  <p class="er-teamline" id="teamLine" hidden></p>
+</header>
+
+<main class="er-wrap">
+
+  <!-- Sign in -->
+  <section class="er-card glow" id="signIn" hidden aria-labelledby="signInTitle">
+    <p class="er-label">Trainee check-in</p>
+    <h2 class="er-h2" id="signInTitle">Sign in with your team</h2>
+    <p class="er-muted" style="margin:8px 0 18px">Use the team name and the captain's email exactly as you registered them. Anyone on your team can sign in with these.</p>
+    <div class="er-tabs" id="tabs" hidden>
+      <button type="button" class="er-tab on" data-tab="team">Registered team</button>
+      <button type="button" class="er-tab" data-tab="preview">Preview code</button>
+    </div>
+    <form id="teamForm" novalidate>
+      <div class="er-field"><label for="teamName">Team name</label><input class="er-input" id="teamName" autocomplete="organization" maxlength="120" required /></div>
+      <div class="er-field"><label for="captainEmail">Team captain's email</label><input class="er-input" id="captainEmail" type="email" inputmode="email" autocomplete="email" maxlength="200" required /></div>
+      <button class="er-btn" type="submit" id="teamBtn">Enter the room</button>
+    </form>
+    <form id="previewForm" novalidate hidden>
+      <div class="er-field"><label for="pvName">Your name</label><input class="er-input" id="pvName" maxlength="40" placeholder="For example: Bob" /></div>
+      <div class="er-field"><label for="pvCode">Preview code</label><input class="er-input" id="pvCode" autocomplete="off" autocapitalize="off" required /></div>
+      <button class="er-btn" type="submit" id="pvBtn">Enter the room</button>
+    </form>
+    <p class="er-msg" id="signMsg"></p>
+    <p class="er-small" style="margin-top:16px">Not registered yet? <a href="/pages/register">Register your team</a>. Lost your details? <a href="/pages/jeannie?q=I+cannot+sign+in+to+the+Evaluation+Room">Ask Jeannie</a>.</p>
+  </section>
+
+  <!-- The room -->
+  <div id="room" hidden>
+    <section id="dir"></section>
+
+    <p class="er-label" style="margin-top:30px">Choose a door</p>
+    <div class="er-doors">
+      <a class="er-door" style="--accent:#E6005C" href="/pages/evaluation-room/judge/?j=visual">
+        <span class="trove">Trove 01 &middot; Avatar + Poster</span>
+        <h3>Visual Judge</h3>
+        <p>Upload your avatar and your poster. Get a practice score out of 100 with feedback you can act on.</p>
+        <div class="stat" data-judge="visual"><span>Rehearsals left <b class="left">&ndash;</b></span><span>Best <b class="best">&ndash;</b></span></div>
+        <span class="go">Rehearse &rarr;</span>
+      </a>
+      <a class="er-door" style="--accent:#b06aff" href="/pages/evaluation-room/studio/">
+        <span class="trove">Trove 02 &middot; Write the song</span>
+        <h3>Songwriting Studio</h3>
+        <p>Turn any song into your evidence song. Bring the original lyrics and your Korean or Spanish vocabulary.</p>
+        <div class="stat"><span>Open studio session</span><span></span></div>
+        <span class="go">Start writing &rarr;</span>
+      </a>
+      <a class="er-door" style="--accent:#FFBF00" href="/pages/evaluation-room/judge/?j=lyric">
+        <span class="trove">Trove 02 &middot; Lyrics</span>
+        <h3>Lyric Judge</h3>
+        <p>Paste your finished lyrics. Get a practice score out of 90 with feedback on language, flow and story.</p>
+        <div class="stat" data-judge="lyric"><span>Rehearsals left <b class="left">&ndash;</b></span><span>Best <b class="best">&ndash;</b></span></div>
+        <span class="go">Rehearse &rarr;</span>
+      </a>
+      <a class="er-door" style="--accent:#19c37d" href="/pages/evaluation-room/judge/?j=lesson">
+        <span class="trove">Trove 03 &middot; Lesson plan</span>
+        <h3>Lesson Judge</h3>
+        <p>Paste your full lesson plan. Get a practice score out of 100 with coaching on the lesson design.</p>
+        <div class="stat" data-judge="lesson"><span>Rehearsals left <b class="left">&ndash;</b></span><span>Best <b class="best">&ndash;</b></span></div>
+        <span class="go">Rehearse &rarr;</span>
+      </a>
+    </div>
+
+    <section class="er-card">
+      <p class="er-label">Next: Take the Stage</p>
+      <h2 class="er-h2">Ready to make it official?</h2>
+      <p class="er-muted" style="margin:8px 0 16px">Rehearsals are practice and never change the leaderboard. When your team is happy with a rehearsal, submit your work on the Trove page to lock in your official score.</p>
+      <div class="er-row">
+        <a class="er-btn ghost small" href="/pages/submit-trove-01">Submit Trove 01</a>
+        <a class="er-btn ghost small" href="/pages/submit-trove-02">Submit Trove 02</a>
+        <a class="er-btn ghost small" href="/pages/submit-trove-03">Submit Trove 03</a>
+      </div>
+    </section>
+    <p class="er-msg" id="roomMsg"></p>
+  </div>
+</main>
+
+<script src="/js/evalroom.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = ER.$;
+  ER.chrome();
+  var next = new URLSearchParams(location.search).get('next');
+  if (next && (next.indexOf('/pages/evaluation-room/') !== 0 || next.indexOf('//') === 0)) next = null; // only ever return inside the room
+
+  function showRoom() {
+    var t = ER.team() || {};
+    $('#signIn').hidden = true;
+    $('#room').hidden = false;
+    var line = $('#teamLine');
+    line.hidden = false;
+    line.innerHTML = 'Signed in as <b>' + ER.esc(t.name || 'your team') + '</b> <button class="er-linkbtn" id="signOut">Sign out</button>';
+    $('#signOut').addEventListener('click', ER.signOut);
+    var dir;
+    var state = { judges: {} };
+    function used() { var n = 0; for (var k in state.judges) n += state.judges[k].used; return n; }
+    dir = ER.directions($('#dir'), {
+      id: 'room', title: 'How the room works',
+      intro: 'Three steps. Repeat the first two as often as you like.',
+      steps: [
+        { html: '<b>Rehearse.</b> Pick a door below and show the judge your work. Your team gets a set number of rehearsals with each judge.', done: function () { return used() > 0; } },
+        { html: '<b>Revise.</b> Read the feedback, improve your work, and rehearse again to see what changed.', done: function () { return used() > 1; } },
+        { html: '<b>Take the stage.</b> When you are happy, submit officially on the Trove page: <a href="/pages/submit-trove-01">Trove 01</a>, <a href="/pages/submit-trove-02">Trove 02</a> or <a href="/pages/submit-trove-03">Trove 03</a>.' }
+      ],
+      help: 'Need the mission directions? Open the <a href="/pages/missions">Missions Hub</a>. Stuck? <a href="/pages/jeannie">Ask Jeannie</a>.'
+    });
+    ER.api('/me').then(function (me) {
+      state.judges = me.judges;
+      document.querySelectorAll('.stat[data-judge]').forEach(function (s) {
+        var j = me.judges[s.getAttribute('data-judge')];
+        if (!j) return;
+        s.querySelector('.left').textContent = j.remaining;
+        s.querySelector('.best').textContent = j.best === null ? '–' : j.best + '/' + j.max;
+      });
+      dir.update();
+    }).catch(function (e) {
+      if (e.status === 401) { showSignIn(); return; }
+      ER.showMsg($('#roomMsg'), e.message);
+    });
+  }
+
+  function showSignIn() {
+    $('#room').hidden = true;
+    $('#teamLine').hidden = true;
+    $('#signIn').hidden = false;
+    ER.config().then(function (c) {
+      if (!c.previewSignIn) return;
+      $('#tabs').hidden = false;
+      document.querySelectorAll('.er-tab').forEach(function (b) {
+        b.addEventListener('click', function () {
+          document.querySelectorAll('.er-tab').forEach(function (x) { x.classList.toggle('on', x === b); });
+          var pv = b.getAttribute('data-tab') === 'preview';
+          $('#teamForm').hidden = pv; $('#previewForm').hidden = !pv;
+          ER.hideMsg($('#signMsg'));
+        });
+      });
+    }).catch(function () {});
+  }
+
+  function entered(data) {
+    ER.store.set('token', data.token);
+    ER.store.set('team', data.team);
+    if (next) location.href = next; else { history.replaceState(null, '', ER.ROOM); showRoom(); window.scrollTo(0, 0); }
+  }
+
+  function wire(formId, btnId, build, path) {
+    $(formId).addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var body = build();
+      if (!body) return;
+      var btn = $(btnId);
+      btn.disabled = true; btn.textContent = 'Checking…';
+      ER.hideMsg($('#signMsg'));
+      ER.api(path, { json: body }).then(entered).catch(function (e) { ER.showMsg($('#signMsg'), e.message); })
+        .then(function () { btn.disabled = false; btn.textContent = 'Enter the room'; });
+    });
+  }
+  wire('#teamForm', '#teamBtn', function () {
+    var n = $('#teamName').value.trim(), e = $('#captainEmail').value.trim();
+    if (!n || !e) { ER.showMsg($('#signMsg'), 'Enter your team name and the captain’s email.'); return null; }
+    return { team_name: n, captain_email: e };
+  }, '/signin');
+  wire('#previewForm', '#pvBtn', function () {
+    var c = $('#pvCode').value.trim();
+    if (!c) { ER.showMsg($('#signMsg'), 'Enter the preview code.'); return null; }
+    return { code: c, name: $('#pvName').value.trim() };
+  }, '/signin-preview');
+
+  ER.config().catch(function () {});
+  if (ER.token()) { if (next) location.replace(next); else showRoom(); } else showSignIn();
+})();
+</script>
+</body>
+</html>

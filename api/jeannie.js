@@ -461,18 +461,33 @@ router.post('/chat', async (req, res) => {
       return res.status(400).json({ error: 'messages array required' });
     }
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: JEANNIE_SYSTEM_PROMPT },
-        ...messages.slice(-20), // keep last 20 messages for context
-      ],
-      max_tokens: 400,
-      temperature: 0.7,
-    });
-
-    const content = response.choices[0]?.message?.content
-      || "Something went wrong on my end. Try again in a moment, Detective.";
+    const chatMessages = [
+      { role: 'system', content: JEANNIE_SYSTEM_PROMPT },
+      ...messages.slice(-20), // keep last 20 messages for context
+    ];
+    let content;
+    if (process.env.JEANNIE_MODEL) {
+      // Newer model chosen with a Railway variable (thinking off for speed).
+      // Falls back to the original model if the new one is unavailable.
+      const { complete } = require('./ai-complete');
+      const ai = await complete(
+        openai,
+        [process.env.JEANNIE_MODEL, 'gpt-4o-mini'],
+        chatMessages,
+        { maxTokens: 400, temperature: 0.7, effort: process.env.JEANNIE_EFFORT || 'none', timeoutMs: 30000 }
+      );
+      res.set('X-Jeannie-Model', ai.model);
+      content = ai.text;
+    } else {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: chatMessages,
+        max_tokens: 400,
+        temperature: 0.7,
+      });
+      content = response.choices[0]?.message?.content;
+    }
+    content = content || "Something went wrong on my end. Try again in a moment, Detective.";
 
     res.json({ content });
   } catch (err) {

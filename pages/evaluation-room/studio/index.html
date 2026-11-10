@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Songwriting Studio | The Evaluation Room | TopKpop.io</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="/css/evalroom.css" />
+</head>
+<body class="er">
+
+<header class="er-hero">
+  <p class="er-eyebrow">The Evaluation Room &middot; Trove 02</p>
+  <h1 class="er-title">Songwriting <em>Studio</em></h1>
+  <p class="er-sub">Bring a song you love and your vocabulary. Leave with new lyrics that still fit the melody.</p>
+</header>
+
+<main class="er-wrap">
+  <a class="er-back" href="/pages/evaluation-room/">&larr; Back to the room</a>
+
+  <section id="dir"></section>
+
+  <!-- Start a song -->
+  <section class="er-card" id="starter" aria-labelledby="starterTitle">
+    <p class="er-label">Start your song</p>
+    <h2 class="er-h2" id="starterTitle">Tell the studio what you are working with</h2>
+    <p class="er-muted" style="margin:8px 0 18px">Fill in the three boxes and press Write my song. You can also skip this and type to the studio directly below.</p>
+
+    <div class="er-field">
+      <label for="orig">1. Original lyrics</label>
+      <textarea class="er-textarea" id="orig" style="min-height:170px" placeholder="Paste the full lyrics of the song you are rewriting&hellip;" spellcheck="false"></textarea>
+      <p class="hint">Find them with a search for &ldquo;Song Title lyrics&rdquo; or on <a href="https://www.azlyrics.com" target="_blank" rel="noopener">AZLyrics</a>.</p>
+      <details class="er-more">
+        <summary>No song yet? Use a free starter song</summary>
+        <p class="er-small">These songs are old enough to be free for anyone to use. Tap one to fill the box.</p>
+        <div class="er-songs" id="songs"></div>
+      </details>
+    </div>
+
+    <div class="er-field">
+      <label for="vocab">2. Your vocabulary list</label>
+      <textarea class="er-textarea" id="vocab" style="min-height:120px" placeholder="For example:&#10;valiente — brave&#10;corazón — heart&#10;amigos — friends" spellcheck="false"></textarea>
+      <p class="hint">Korean or Spanish words with their meanings, one per line. The Lyric Judge looks for at least 10.</p>
+    </div>
+
+    <div class="er-field">
+      <label for="theme">3. Your theme <span class="er-small">(optional)</span></label>
+      <input class="er-input" id="theme" maxlength="200" placeholder="For example: courage, belonging, a detective on the case" />
+    </div>
+
+    <div class="er-field">
+      <label for="mode">How should the new lyrics be written?</label>
+      <select class="er-select" id="mode">
+        <option>Mainly English with vocabulary words</option>
+        <option>English + Spanish mix</option>
+        <option>English + Korean mix</option>
+        <option>Entirely Spanish</option>
+        <option>Entirely Korean</option>
+        <option>Entirely English</option>
+        <option>Custom mix</option>
+      </select>
+    </div>
+
+    <div class="er-row">
+      <button class="er-btn" id="write" type="button">Write my song</button>
+      <span class="er-small" id="draftNote"></span>
+    </div>
+    <p class="er-msg" id="startMsg"></p>
+  </section>
+
+  <!-- Conversation -->
+  <section class="er-card" id="session" aria-labelledby="sessionTitle">
+    <div class="er-row" style="justify-content:space-between;margin-bottom:14px">
+      <div><p class="er-label">Studio session</p><h2 class="er-h2" id="sessionTitle">Work with the studio</h2></div>
+      <button class="er-btn ghost small" id="reset" type="button" hidden>Start a new song</button>
+    </div>
+    <p class="er-muted" id="empty">Your conversation with the studio will appear here. Ask it to change any line, try a different style, or explain a word.</p>
+    <div class="er-chat" id="chat" aria-live="polite"></div>
+    <div class="er-wait" id="wait" role="status"><span class="er-spin"></span><span>The studio is writing. A full song can take a minute or two.</span></div>
+    <p class="er-msg" id="msg"></p>
+    <div class="er-compose" style="margin-top:16px">
+      <div><label class="sr" for="say">Message to the studio</label><textarea class="er-textarea" id="say" placeholder="Type to the studio&hellip; for example: make the chorus more upbeat" rows="2"></textarea></div>
+      <button class="er-btn" id="send" type="button">Send</button>
+    </div>
+    <p class="er-small" id="leftToday" style="margin-top:10px"></p>
+  </section>
+</main>
+
+<script src="/js/evalroom.js"></script>
+<script src="/js/evalroom-songs.js"></script>
+<script src="/js/evalroom-studio.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rehearsal | The Evaluation Room | TopKpop.io</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="/css/evalroom.css" />
+</head>
+<body class="er">
+
+<header class="er-hero">
+  <p class="er-eyebrow" id="eyebrow">The Evaluation Room</p>
+  <h1 class="er-title" id="title">Rehearsal</h1>
+  <p class="er-sub" id="sub"></p>
+</header>
+
+<main class="er-wrap">
+  <a class="er-back" href="/pages/evaluation-room/">&larr; Back to the room</a>
+
+  <section id="dir"></section>
+
+  <!-- Entry -->
+  <section class="er-card" id="entry" aria-labelledby="entryTitle">
+    <p class="er-label">Your rehearsal</p>
+    <h2 class="er-h2" id="entryTitle"></h2>
+    <p class="er-muted" id="leftLine" style="margin:8px 0 18px"></p>
+
+    <div id="textEntry" hidden>
+      <div class="er-field">
+        <label for="work" id="workLabel"></label>
+        <textarea class="er-textarea" id="work" spellcheck="false"></textarea>
+        <div class="er-count"><span id="saved"></span> <span id="count"></span></div>
+      </div>
+    </div>
+
+    <div id="imageEntry" hidden>
+      <div class="er-drop">
+        <label class="er-file" id="avatarBox">
+          <img alt="Your avatar preview" />
+          <span class="big">1. Avatar</span>
+          <span class="sub pick">Tap to choose your avatar picture</span>
+          <span class="sub name"></span>
+          <input type="file" id="avatar" accept="image/png,image/jpeg,image/webp" aria-label="Avatar picture" />
+        </label>
+        <label class="er-file" id="posterBox">
+          <img alt="Your poster preview" />
+          <span class="big">2. Poster</span>
+          <span class="sub pick">Tap to choose your poster picture</span>
+          <span class="sub name"></span>
+          <input type="file" id="poster" accept="image/png,image/jpeg,image/webp" aria-label="Poster picture" />
+        </label>
+      </div>
+      <p class="er-small" style="margin-top:10px">PNG or JPG. Your pictures are used for this rehearsal only and are not saved.</p>
+    </div>
+
+    <div class="er-row" style="margin-top:18px">
+      <button class="er-btn" id="go" type="button">Rehearse</button>
+      <button class="er-btn ghost small" id="clear" type="button">Clear</button>
+    </div>
+    <div class="er-wait" id="wait" role="status"><span class="er-spin"></span><span id="waitText">The judge is reviewing your work. This usually takes under a minute.</span></div>
+    <p class="er-msg" id="msg"></p>
+  </section>
+
+  <!-- Result -->
+  <section class="er-card glow" id="result" hidden aria-live="polite">
+    <p class="er-label" id="resultLabel">Rehearsal score</p>
+    <div class="er-score">
+      <div class="er-big"><span id="score">0</span><small> / <span id="max">100</span></small></div>
+      <span class="er-delta same" id="delta" hidden></span>
+    </div>
+    <div class="er-cats" id="cats"></div>
+    <div class="er-fb" id="summary"></div>
+    <div class="er-two">
+      <div><p class="er-label" style="color:#6ff0b6">Strengths</p><ul class="er-list" id="strengths"></ul></div>
+      <div><p class="er-label" id="improveLabel">Improvement Suggestions</p><ul class="er-list" id="improvements"></ul></div>
+    </div>
+    <div class="er-next">
+      <p class="er-label">What next</p>
+      <p class="er-muted" id="nextText" style="margin-bottom:14px"></p>
+      <div class="er-row" id="nextBtns"></div>
+    </div>
+  </section>
+
+  <!-- History -->
+  <section class="er-card" id="history" hidden>
+    <p class="er-label">Your team's rehearsals</p>
+    <ul class="er-hist" id="histList"></ul>
+  </section>
+</main>
+
+<script src="/js/evalroom.js"></script>
+<script src="/js/evalroom-judge.js"></script>
+</body>
+</html>
