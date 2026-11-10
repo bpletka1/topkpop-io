@@ -265,6 +265,46 @@ async function runCase(row, port) {
     return out;
   }
 
+  if (row.kind === 'karaoke-e2e') {
+    // The whole Song Maker through the web routes: upload, wait, play link, fix timing, privacy.
+    const K = require('./evalroom-karaoke')._internal;
+    const base = `http://127.0.0.1:${port}/api/evalroom`;
+    const run = 'k' + Date.now().toString(36);
+    const A = R.signToken({ t: 'preview:' + run + '-a', n: 'Preview: ' + run, p: 1 }); const B = R.signToken({ t: 'preview:' + run + '-b', n: 'Preview: other', p: 1 });
+    const steps = []; const step = (name, got, want, note) => steps.push((got === want ? 'PASS ' : 'FAIL ') + name + (got === want ? '' : ' (got ' + JSON.stringify(got) + ')') + (note ? ' [' + note + ']' : ''));
+    const original = 'Morning light is on the stage\nEvery voice begins to sing\nHand in hand we turn the page\nHear the music that we bring';
+    const rewrite = 'Luz del día on the stage\nMis amigos start to sing\nJuntos now we turn the page\nHear the música we bring';
+    const mr = await fetch(K.API + '/v1/music', { method: 'POST', headers: { 'xi-api-key': K.elevenKey(), 'content-type': 'application/json' }, signal: AbortSignal.timeout(240000),
+      body: JSON.stringify({ prompt: 'A simple upbeat pop song with a clear solo female lead vocal and light band backing. The singer sings exactly these lyrics, clearly, once through:\n' + original, music_length_ms: 30000 }) });
+    const song = Buffer.from(await mr.arrayBuffer()); step('test song made', mr.status, 200);
+    const form = (fields, file) => { const f = new FormData(); for (const [k, v] of Object.entries(fields)) f.append(k, v); if (file) f.append('song', new Blob([file.buf], { type: file.type }), file.name); return f; };
+    const post = async (pth, token, body, json) => { const r = await fetch(base + pth, { method: 'POST', headers: { 'x-evalroom-token': token, ...(json ? { 'content-type': 'application/json' } : {}) }, body: json ? JSON.stringify(body) : body }); let d = {}; try { d = await r.json(); } catch (_) {} return { status: r.status, d }; };
+    const get = async (pth, token) => { const r = await fetch(base + pth, { headers: token ? { 'x-evalroom-token': token } : {} }); let d = {}; try { d = await r.json(); } catch (_) {} return { status: r.status, d }; };
+    const good = { title: 'Selftest song', original_lyrics: original, new_lyrics: rewrite, rights: 'true' };
+    step('upload without the rights box is refused', (await post('/karaoke', A, form({ ...good, rights: 'false' }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }))).status, 400);
+    step('a file that is not audio is refused', (await post('/karaoke', A, form(good, { buf: Buffer.from('<html>not a song</html>'), type: 'audio/mpeg', name: 's.mp3' }))).status, 400);
+    step('upload with no lyrics is refused', (await post('/karaoke', A, form({ ...good, original_lyrics: '' }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }))).status, 400);
+    step('signed-out upload is refused', (await post('/karaoke', '', form(good, { buf: song, type: 'audio/mpeg', name: 's.mp3' }))).status, 401);
+    const made = await post('/karaoke', A, form(good, { buf: song, type: 'audio/mpeg', name: 's.mp3' })); step('upload accepted', made.status, 200, made.d.error);
+    const id = made.d.song && made.d.song.id; let st = null; const t0 = Date.now(); const seen = new Set();
+    while (id && Date.now() - t0 < 240000) { st = await get('/karaoke/' + id, A); seen.add(st.d.song && st.d.song.status); if (['ready', 'failed'].includes(st.d.song && st.d.song.status)) break; await new Promise((r) => setTimeout(r, 3000)); }
+    step('song became ready', st && st.d.song && st.d.song.status, 'ready', (st && st.d.song && (st.d.song.error || st.d.song.note)) || [...seen].join('>'));
+    const secs = Math.round((Date.now() - t0) / 1000);
+    if (st && st.d.audio_url) {
+      const ar = await fetch(st.d.audio_url); const ab = Buffer.from(await ar.arrayBuffer());
+      step('music-only track plays from its private link', ar.status === 200 && !!K.sniffAudio(ab), true, ab.length + ' bytes ' + ar.headers.get('content-type'));
+      step('every new line has a time and words', st.d.lines.length === 4 && st.d.lines.every((l, i) => l.words.length > 0 && (i === 0 || l.start > st.d.lines[i - 1].start)), true);
+      step('another team cannot open this song', (await get('/karaoke/' + id, B)).status, 404);
+      step('another team does not see it in their list', ((await get('/karaoke', B)).d.songs || []).length, 0);
+      step('bad tap timing is refused', (await post('/karaoke/' + id + '/timings', A, { starts: [1, 2] }, true)).status, 400);
+      const fix = await post('/karaoke/' + id + '/timings', A, { starts: [10, 14, 18, 22] }, true); step('tap timing is saved', fix.status === 200 && fix.d.lines[1].start === 14, true);
+      step('another team cannot change the timing', (await post('/karaoke/' + id + '/timings', B, { starts: [1, 2, 3, 4] }, true)).status, 404);
+      const pathPublic = await fetch(`${process.env.SUPABASE_URL}/storage/v1/object/public/evalroom-private/preview_${run}-a/karaoke/${id}/music.mp3`);
+      step('the audio is not reachable without the private link', pathPublic.status >= 400, true, 'status ' + pathPublic.status);
+    }
+    return { passed: steps.filter((x) => x.startsWith('PASS')).length, total: steps.length, steps, secondsToReady: secs, lines: st && st.d.lines && st.d.lines.map((l) => l.start + '-' + l.end + ' ' + l.text), quality: st && st.d.song && st.d.song.quality };
+  }
+
   if (row.kind === 'refit') {
     // Re-run the syllable comparison on an answer that is already stored (no AI call).
     const { data, error } = await R.supabase.from('evalroom_selftest').select('payload, result').eq('id', p.id).single();
