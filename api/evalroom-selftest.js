@@ -386,6 +386,28 @@ async function runCase(row, port) {
     return out;
   }
 
+  if (row.kind === 'cover-listen') {
+    // Listens to a finished recording and reports which of the lyric lines can be heard in it.
+    const K = require('./evalroom-karaoke')._internal;
+    const { data: c, error } = await R.supabase.from('evalroom_covers').select('lyrics, audio_path').eq('id', p.id).single();
+    if (error || !c || !c.audio_path) throw new Error('no recording');
+    const dl = await R.supabase.storage.from('evalroom-private').download(c.audio_path);
+    if (dl.error) throw new Error(dl.error.message);
+    const audio = Buffer.from(await dl.data.arrayBuffer()); const ak = K.sniffAudio(audio);
+    const heard = await K.transcribe(audio, ak);
+    const words = (heard.words || []).filter((w) => !w.type || w.type === 'word');
+    const norm = (t) => String(t).toLowerCase().normalize('NFD').replace(/[^a-z0-9\s]/g, '').trim();
+    const hw = words.map((w) => norm(w.text)).filter(Boolean);
+    let at = 0; const lines = [];
+    for (const line of K.lyricLines(c.lyrics)) {
+      const lw = norm(line).split(/\s+/).filter(Boolean); let hit = 0; let pos = at; let first = null;
+      for (const w of lw) { const i = hw.indexOf(w, pos); if (i !== -1 && i - pos < 12) { hit++; if (first === null) first = i; pos = i + 1; } }
+      if (hit) at = pos;
+      lines.push({ line, heardPct: Math.round(100 * hit / (lw.length || 1)), at: first !== null && words[first] ? words[first].start : null });
+    }
+    return { bytes: audio.length, heardText: (heard.text || '').slice(0, 2500), lastWordEnd: words.length ? words[words.length - 1].end : null, lines };
+  }
+
   if (row.kind === 'refit') {
     // Re-run the syllable comparison on an answer that is already stored (no AI call).
     const { data, error } = await R.supabase.from('evalroom_selftest').select('payload, result').eq('id', p.id).single();
