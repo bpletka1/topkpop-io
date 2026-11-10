@@ -11,8 +11,15 @@ const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 
 /** Is this shaped like a Suno song link? Returns the tidy form of it. */
 function normalizeSongUrl(input) {
+  // Phones often paste "Listen to ... on Suno: https://suno.com/s/..." or leave off the https://.
+  const raw = String(input || '').trim().slice(0, 2000);
+  const found = raw.match(/(?:^|[\s"'(<])((?:https?:\/\/)?(?:www\.)?(?:suno\.com|app\.suno\.ai)\/[^\s"'<>)]+)/i);
+  let text = found ? found[1] : raw;
+  if (!/^https?:\/\//i.test(text)) text = 'https://' + text;
+  text = text.replace(/^http:\/\//i, 'https://').replace(/[.,;!]+$/, '');
   let u;
-  try { u = new URL(String(input || '').trim()); } catch (_) { return { ok: false, reason: 'not-a-link' }; }
+  try { u = new URL(text); } catch (_) { return { ok: false, reason: 'not-a-link' }; }
+  if (u.username || u.password || (u.port && u.port !== '443')) return { ok: false, reason: 'not-suno' };
   if (u.protocol !== 'https:' || !SUNO_HOSTS.has(u.hostname.toLowerCase())) return { ok: false, reason: 'not-suno' };
   const path = u.pathname.replace(/\/+$/, '');
   let m = path.match(/^\/(?:song|embed)\/([0-9a-f-]{36})$/i);
@@ -77,13 +84,22 @@ const lyricLines = (t) => String(t || '').split('\n')
   .map((l) => l.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' '))
   .map(comparable).filter((l) => l.split(' ').length >= 3);
 
-/** How much of the locked lyrics appears on the page? */
+/**
+ * How much of the locked lyrics appears on the page?
+ * Two measures, so honest teams are not tripped by layout: whole lines, and
+ * four-word runs (which still work when the lyrics were pasted as one paragraph).
+ */
 function lyricMatch(lockedLyrics, pageSource) {
   const page = ' ' + comparable(pageSource) + ' ';
   const lines = [...new Set(lyricLines(lockedLyrics))];
-  if (lines.length < 3) return { lines: lines.length, found: 0, pct: 0 };
-  const found = lines.filter((l) => page.includes(' ' + l + ' ') || page.includes(l)).length;
-  return { lines: lines.length, found, pct: Math.round((100 * found) / lines.length) };
+  const foundLines = lines.filter((l) => page.includes(' ' + l + ' ')).length;
+  const words = comparable(String(lockedLyrics || '').replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ')).split(' ').filter(Boolean);
+  const runs = new Set();
+  for (let i = 0; i + 4 <= words.length; i++) runs.add(words.slice(i, i + 4).join(' '));
+  const foundRuns = [...runs].filter((r) => page.includes(' ' + r + ' ')).length;
+  const linePct = lines.length ? Math.round((100 * foundLines) / lines.length) : 0;
+  const runPct = runs.size ? Math.round((100 * foundRuns) / runs.size) : 0;
+  return { lines: lines.length, found: foundLines, linePct, runs: runs.size, foundRuns, runPct, pct: Math.max(linePct, runPct), enough: foundLines >= 3 || foundRuns >= 10 };
 }
 
 function pageFacts(html, finalUrl) {
@@ -95,7 +111,7 @@ function pageFacts(html, finalUrl) {
   return { title: title ? title.replace(/\s*\|\s*Suno.*$/i, '').trim() : null, hasAudio: !!audio, songId: (idFromUrl || idFromPage || '').toLowerCase() || null };
 }
 
-const MATCH_PCT = Number(process.env.EVALROOM_SONG_MATCH_PCT || 60);
+const MATCH_PCT = Number(process.env.EVALROOM_SONG_MATCH_PCT || 50);
 
 /**
  * Full check. verdict is one of:
@@ -120,7 +136,8 @@ async function checkSong(inputUrl, lockedLyrics) {
     canonical: 'https://suno.com/song/' + songId, songId, title: facts.title, hasAudio: facts.hasAudio,
     embedUrl: 'https://suno.com/embed/' + songId, match, bytes: page.html.length,
   };
-  out.verdict = match.pct >= MATCH_PCT ? 'verified' : 'mismatch';
+  // At least half of the locked words must be in the song, and enough of them that it cannot be chance.
+  out.verdict = match.pct >= MATCH_PCT && match.enough ? 'verified' : 'mismatch';
   return out;
 }
 

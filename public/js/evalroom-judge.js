@@ -144,7 +144,7 @@
   }
   function leftLine() {
     var t = S.remaining === null ? '' : S.remaining === 0
-      ? 'Your team has used all of its rehearsals with this judge. Submit officially when you are ready.'
+      ? 'Your team has used all of its rehearsals with this judge. Choose one below and Take the Stage when you are ready.'
       : 'Your team has ' + S.remaining + ' rehearsal' + (S.remaining === 1 ? '' : 's') + ' left with this judge. Rehearsals never change the leaderboard.';
     $('#leftLine').textContent = t;
     go.disabled = S.busy || S.remaining === 0;
@@ -242,6 +242,8 @@
     $('#offSong').hidden = !hasSong;
     if (hasSong) { if (L.embed_url && $('#offPlayer').src !== L.embed_url) $('#offPlayer').src = L.embed_url; $('#offSongLink').href = L.song_url; $('#offSongLink').textContent = 'Open \u201c' + (L.song_title || 'your song') + '\u201d on Suno'; }
     $('#addSong').hidden = !(key === 'lyric' && !L.song_url);
+    $('#offLyrics').hidden = !(key === 'lyric' && L.locked_text);
+    if (L.locked_text) $('#offLyricsText').textContent = L.locked_text;
   }
   function updateStage() {
     var box = $('#stage');
@@ -250,6 +252,11 @@
     $('#stageIntro').textContent = 'Happy with this rehearsal? Lock it and the score you see becomes your team\u2019s official score for Trove ' + P.trove + '. The score you saw is the score you keep.' + (S.practice ? ' On this preview copy the lock is practice only.' : '');
     $('#songField').hidden = key !== 'lyric'; $('#danceField').hidden = key !== 'lesson'; $('#picsNote').hidden = key !== 'visual';
   }
+  $('#offLyricsCopy').addEventListener('click', function () {
+    var b = this, t = $('#offLyricsText').textContent, done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy locked lyrics'; }, 1800); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () {});
+    else { var ta = ER.el('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) {} ta.remove(); }
+  });
   $('#stageOpen').addEventListener('click', function () { $('#stagePanel').hidden = false; $('#stageOpen').hidden = true; });
   $('#stageCancel').addEventListener('click', function () { $('#stagePanel').hidden = true; $('#stageOpen').hidden = false; $('#stageConfirm').checked = false; $('#stageLock').disabled = true; ER.hideMsg($('#stageMsg')); });
   $('#stageConfirm').addEventListener('change', function () { $('#stageLock').disabled = !this.checked; });
@@ -266,8 +273,8 @@
     var btn = this, m = $('#stageMsg'), opts;
     ER.hideMsg(m);
     if (key === 'visual') {
-      if (!S.files.avatar || !S.files.poster) { ER.showMsg(m, 'Choose the same avatar and poster you rehearsed with in the boxes above, then lock.'); return; }
-      var fd = new FormData(); fd.append('rehearsal_id', S.shown); fd.append('confirm', 'true'); fd.append('avatar', S.files.avatar); fd.append('poster', S.files.poster);
+      var fd = new FormData(); fd.append('rehearsal_id', S.shown); fd.append('confirm', 'true');
+      if (S.files.avatar && S.files.poster) { fd.append('avatar', S.files.avatar); fd.append('poster', S.files.poster); }
       opts = { form: fd };
     } else {
       opts = { json: { rehearsal_id: S.shown, confirm: 'true', song_url: $('#songUrl').value.trim(), dance_video_url: $('#danceUrl').value.trim() } };
@@ -305,7 +312,7 @@
       box.hidden = rows.length === 0;
       $('#histList').innerHTML = rows.map(function (r, i) {
         var when = new Date(r.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-        return '<li><span>Rehearsal ' + (rows.length - i) + ' · ' + esc(when) + '</span><span><b>' + r.score + ' / ' + r.max_score + '</b> &nbsp;<button class="er-linkbtn" data-i="' + i + '">View</button>' +
+        return '<li><span>Rehearsal ' + (rows.length - i) + ' · ' + esc(when) + (S.lock && S.lock.rehearsal_id === r.id ? ' <span class="er-badge">Official</span>' : '') + '</span><span><b>' + r.score + ' / ' + r.max_score + '</b> &nbsp;<button class="er-linkbtn" data-i="' + i + '">View</button>' +
           (r.input_text ? ' <button class="er-linkbtn" data-load="' + i + '">Load text</button>' : '') + '</span></li>';
       }).join('');
       if (showLatest && rows.length) render(rows[0], rows[1], false);

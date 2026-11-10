@@ -195,8 +195,20 @@ async function runCase(row, port) {
 
     // Pictures (Trove 01)
     const r2 = await call('POST', '/rehearse/visual', A, null, pics('avatar_good.png', 'poster_good.png')); step('rehearse pictures', r2.status === 200 && r2.d.ok, true, 'score ' + r2.d.score);
-    step('lock with different pictures is refused', (await call('POST', '/stage/visual', A, null, (() => { const f = pics('avatar_good.png', 'poster_weak.png'); f.append('rehearsal_id', r2.d.id); f.append('confirm', 'true'); return f; })())).status, 400);
-    const l1 = await call('POST', '/stage/visual', A, null, (() => { const f = pics('avatar_good.png', 'poster_good.png'); f.append('rehearsal_id', r2.d.id); f.append('confirm', 'true'); return f; })()); step('lock with the same pictures', l1.status === 200 && l1.d.lock.score === r2.d.score, true);
+    const { data: keptRow } = await R.supabase.from('evalroom_rehearsals').select('input_meta').eq('id', r2.d.id).single();
+    step('rehearsal pictures were kept privately', !!(keptRow && keptRow.input_meta && keptRow.input_meta.kept), true);
+    const l1 = await call('POST', '/stage/visual', A, { rehearsal_id: r2.d.id, confirm: 'true' }); step('lock pictures without re-uploading them', l1.status === 200 && l1.d.lock.score === r2.d.score, true);
+    // Practice locks stay out of the official table.
+    const { count: officialLocks } = await R.supabase.from('evalroom_locks').select('id', { count: 'exact', head: true }).eq('team_key', 'preview:' + run + '-a').is('reset_at', null);
+    step('practice locks are not in the official locks table', officialLocks, 0);
+    // Song happy path: a second practice team locks a verse taken from a real Suno song, with that song.
+    const C = tok(run + '-c');
+    const pg = await require('./evalroom-song').fetchSuno(require('./evalroom-song').normalizeSongUrl(p.realSong).canonical);
+    const verse = ((pg.html || '').match(/\[Verse[^\]]*\]\s*([\s\S]{60,900}?)\n\s*\[/) || [])[1] || '';
+    const rc = await call('POST', '/rehearse/lyric', C, { text: verse.replace(/<[^>]+>/g, '') });
+    const lc = await call('POST', '/stage/lyric', C, { rehearsal_id: rc.d.id, confirm: 'true', song_url: 'Listen on Suno: ' + p.realSong.replace('https://', '') }); step('lock with a matching song pasted as share text adds 10', lc.d.lock && lc.d.lock.bonus, 10, lc.d.error);
+    const dup = await call('POST', '/stage/lyric/song', A, { song_url: p.realSong }); step('another team cannot turn in the same song', dup.status, 400, dup.d.song);
+    step('team gets its locked lyrics back', !!(lc.d.lock && lc.d.lock.locked_text), true);
 
     // Organizer
     step('organizer list with a wrong password is refused', (await call('GET', '/organizer/locks', null, null, null, { 'x-organizer-password': 'guess' })).status, 401);
@@ -206,7 +218,7 @@ async function runCase(row, port) {
     step('organizer reset', (await call('POST', '/organizer/reset', null, { lock_id: lock.d.lock.id, note: 'selftest' }, null, org)).status, 200);
     const again = await call('POST', '/stage/lyric', A, { rehearsal_id: rid, confirm: 'true' }); step('after a reset the team can lock again', again.status, 200);
     // Tidy up: reset every lock this run made.
-    for (const l of [again.d.lock, l3.d.lock, l1.d.lock]) if (l) await call('POST', '/organizer/reset', null, { lock_id: l.id, note: 'selftest cleanup' }, null, org);
+    for (const l of [again.d.lock, l3.d.lock, l1.d.lock, lc.d.lock]) if (l) await call('POST', '/organizer/reset', null, { lock_id: l.id, note: 'selftest cleanup' }, null, org);
     // The official tables must be untouched by all of the above.
     const { count } = await R.supabase.from('submissions').select('id', { count: 'exact', head: true });
     return { passed: steps.filter((x) => x.pass).length, total: steps.length, failed: steps.filter((x) => !x.pass), steps: steps.map((x) => (x.pass ? 'PASS ' : 'FAIL ') + x.name + (x.note ? ' (' + x.note + ')' : '')), submissionsRows: count };

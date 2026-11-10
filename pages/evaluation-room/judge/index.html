@@ -32,11 +32,16 @@
       <iframe class="er-player" id="offPlayer" title="Your team's song" allow="autoplay; encrypted-media; fullscreen" loading="lazy"></iframe>
       <p class="er-small" style="margin-top:8px"><a id="offSongLink" target="_blank" rel="noopener">Open the song on Suno</a></p>
     </div>
+    <details class="er-more" id="offLyrics" hidden style="margin-top:12px">
+      <summary>Show the lyrics your team locked</summary>
+      <pre id="offLyricsText" style="white-space:pre-wrap;font:inherit;font-size:0.92rem;background:#0c0d12;border:1px solid var(--line);border-radius:8px;padding:14px;margin:8px 0 10px"></pre>
+      <button class="er-btn ghost small" id="offLyricsCopy" type="button">Copy locked lyrics</button>
+    </details>
     <div id="addSong" hidden style="margin-top:16px">
       <div class="er-field" style="margin-bottom:10px">
         <label for="songLater">Add your Suno song for <span class="songPts">10</span> more points</label>
         <input class="er-input" id="songLater" inputmode="url" autocapitalize="off" placeholder="https://suno.com/s/..." />
-        <p class="hint">Make the song in <a href="https://suno.com" target="_blank" rel="noopener">Suno</a> with your locked lyrics, tap Share, copy the link and paste it here.</p>
+        <p class="hint">Copy your locked lyrics above, paste them into <a href="https://suno.com" target="_blank" rel="noopener">Suno</a> in Custom mode, make the song, tap Share, copy the link and paste it here.</p>
       </div>
       <button class="er-btn amber small" id="songLaterBtn" type="button">Turn in my song</button>
       <p class="er-msg" id="songLaterMsg"></p>
@@ -76,7 +81,7 @@
           <input type="file" id="poster" accept="image/png,image/jpeg,image/webp" aria-label="Poster picture" />
         </label>
       </div>
-      <p class="er-small" style="margin-top:10px">PNG or JPG. Your pictures are used for this rehearsal only and are not saved.</p>
+      <p class="er-small" style="margin-top:10px">PNG or JPG. Your pictures are kept privately with your rehearsal so your team can lock that score later. They are not shown to other teams.</p>
     </div>
 
     <div class="er-row" style="margin-top:18px">
@@ -123,7 +128,7 @@
           <label for="danceUrl">Your dance video link <span class="er-small">(optional, <span class="dancePts">10</span> more points)</span></label>
           <input class="er-input" id="danceUrl" inputmode="url" autocapitalize="off" placeholder="https://..." />
         </div>
-        <p class="er-muted" id="picsNote" hidden style="margin-top:16px">Keep the same avatar and poster selected in the boxes above. They are saved with your official entry.</p>
+        <p class="er-muted" id="picsNote" hidden style="margin-top:16px">The avatar and poster from this rehearsal are saved with your official entry.</p>
         <div class="er-warn" role="note"><b>Warning: this is final.</b> Once you lock your official score, your team cannot submit again or change it for this Trove. If you still want to improve your work, press Not yet and keep rehearsing.</div>
         <label class="er-check"><input type="checkbox" id="stageConfirm" /><span>Our team is ready. We understand this locks our official score for this Trove and <b>cannot be changed</b>.</span></label>
         <div class="er-row">

@@ -309,6 +309,34 @@ function sniffImage(buf) {
 }
 const dataUrl = (buf, mime) => `data:${mime};base64,${buf.toString('base64')}`;
 
+// Rehearsal pictures are kept in a private storage area (never public) so a team can
+// lock that rehearsal later without finding the same files again.
+const PRIVATE_BUCKET = 'evalroom-private';
+const safePart = (x) => String(x).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
+const EXT = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' };
+async function keepPictures(teamKey, rehearsalId, avatar, poster) {
+  const kept = {};
+  for (const [slot, f] of [['avatar', avatar], ['poster', poster]]) {
+    const mime = sniffImage(f.buffer);
+    const pth = `${safePart(teamKey)}/${safePart(rehearsalId)}/${slot}.${EXT[mime] || 'img'}`;
+    const { error } = await supabase.storage.from(PRIVATE_BUCKET).upload(pth, f.buffer, { contentType: mime, upsert: true });
+    if (error) { console.error('evalroom keep pictures error:', error.message); return null; }
+    kept[slot] = { path: pth, type: mime, name: String(f.originalname || slot).slice(0, 120) };
+  }
+  return kept;
+}
+async function loadPictures(rehearsal) {
+  const kept = rehearsal && rehearsal.input_meta && rehearsal.input_meta.kept;
+  if (!kept || !kept.avatar || !kept.poster) return [];
+  const out = [];
+  for (const slot of ['avatar', 'poster']) {
+    const { data, error } = await supabase.storage.from(PRIVATE_BUCKET).download(kept[slot].path);
+    if (error || !data) return [];
+    out.push({ buffer: Buffer.from(await data.arrayBuffer()), mimetype: kept[slot].type, originalname: kept[slot].name });
+  }
+  return out;
+}
+
 // ── Running a judge (used by the page and by the tests) ──────────────────────
 async function runJudge(j, input, opts = {}) {
   const models = opts.models || CFG.judgeModels;
@@ -508,6 +536,10 @@ router.post('/rehearse/:judge', requireTeam, uploadTwo, async (req, res) => {
       tokens_in: ai.tokensIn, tokens_out: ai.tokensOut, cost_usd: ai.costUsd,
     }).select('id, created_at').single();
     if (saveErr) console.error('evalroom save error:', saveErr.message);
+    if (saved && j.input === 'images') {
+      const kept = await keepPictures(req.team.key, saved.id, req.files.avatar[0], req.files.poster[0]);
+      if (kept) await supabase.from('evalroom_rehearsals').update({ input_meta: { ...inputMeta, kept } }).eq('id', saved.id);
+    }
 
     res.json({
       ok: true, id: saved && saved.id, created_at: saved && saved.created_at,
@@ -583,7 +615,7 @@ router.post('/studio/chat', requireTeam, async (req, res) => {
 });
 
 // ── Take the Stage (official locks) ─────────────────────────────────────────
-require('./evalroom-stage')(router, { supabase, JUDGES, PREVIEW_MODE, requireTeam, uploadTwo, limited, clientIp, sniffImage });
+require('./evalroom-stage')(router, { supabase, JUDGES, PREVIEW_MODE, requireTeam, uploadTwo, limited, clientIp, sniffImage, loadPictures });
 
 // Anything else under /api/evalroom
 router.use((req, res) => res.status(404).json({ error: 'Not found.' }));
