@@ -270,7 +270,7 @@ async function runCase(row, port) {
     const K = require('./evalroom-karaoke')._internal;
     const base = `http://127.0.0.1:${port}/api/evalroom`;
     const run = 'k' + Date.now().toString(36);
-    const A = R.signToken({ t: 'preview:' + run + '-a', n: 'Preview: ' + run, p: 1 }); const B = R.signToken({ t: 'preview:' + run + '-b', n: 'Preview: other', p: 1 });
+    const A = R.signToken({ t: p.team || 'preview:' + run + '-a', n: p.teamName || 'Preview: ' + run, p: 1 }); const B = R.signToken({ t: 'preview:' + run + '-b', n: 'Preview: other', p: 1 });
     const steps = []; const step = (name, got, want, note) => steps.push((got === want ? 'PASS ' : 'FAIL ') + name + (got === want ? '' : ' (got ' + JSON.stringify(got) + ')') + (note ? ' [' + note + ']' : ''));
     const original = 'Morning light is on the stage\nEvery voice begins to sing\nHand in hand we turn the page\nHear the music that we bring';
     const rewrite = 'Luz del día on the stage\nMis amigos start to sing\nJuntos now we turn the page\nHear the música we bring';
@@ -280,7 +280,14 @@ async function runCase(row, port) {
     const form = (fields, file) => { const f = new FormData(); for (const [k, v] of Object.entries(fields)) f.append(k, v); if (file) f.append('song', new Blob([file.buf], { type: file.type }), file.name); return f; };
     const post = async (pth, token, body, json) => { const r = await fetch(base + pth, { method: 'POST', headers: { 'x-evalroom-token': token, ...(json ? { 'content-type': 'application/json' } : {}) }, body: json ? JSON.stringify(body) : body }); let d = {}; try { d = await r.json(); } catch (_) {} return { status: r.status, d }; };
     const get = async (pth, token) => { const r = await fetch(base + pth, { headers: token ? { 'x-evalroom-token': token } : {} }); let d = {}; try { d = await r.json(); } catch (_) {} return { status: r.status, d }; };
-    const good = { title: 'Selftest song', original_lyrics: original, new_lyrics: rewrite, rights: 'true' };
+    const good = { title: p.title || 'Selftest song', original_lyrics: original, new_lyrics: rewrite, rights: 'true' };
+    if (p.sample) {
+      // Leave a finished sample in a team's Song Maker so a person can listen to it.
+      const m = await post('/karaoke', A, form(good, { buf: song, type: 'audio/mpeg', name: 's.mp3' }));
+      const sid = m.d.song && m.d.song.id; let s2 = null; const s0 = Date.now();
+      while (sid && Date.now() - s0 < 240000) { s2 = await get('/karaoke/' + sid, A); if (['ready', 'failed'].includes(s2.d.song && s2.d.song.status)) break; await new Promise((r) => setTimeout(r, 3000)); }
+      return { sample: true, id: sid, status: s2 && s2.d.song && s2.d.song.status, error: (m.d && m.d.error) || (s2 && s2.d.song && s2.d.song.error), lines: s2 && s2.d.lines && s2.d.lines.map((l) => l.start + '-' + l.end + ' ' + l.text) };
+    }
     step('upload without the rights box is refused', (await post('/karaoke', A, form({ ...good, rights: 'false' }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }))).status, 400);
     step('a file that is not audio is refused', (await post('/karaoke', A, form(good, { buf: Buffer.from('<html>not a song</html>'), type: 'audio/mpeg', name: 's.mp3' }))).status, 400);
     step('upload with no lyrics is refused', (await post('/karaoke', A, form({ ...good, original_lyrics: '' }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }))).status, 400);
