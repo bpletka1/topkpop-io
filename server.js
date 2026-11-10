@@ -19,18 +19,21 @@ const PORT = process.env.PORT || 3000;
 
 // ── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
+app.use('/api/evalroom', express.json({ limit: '400kb' })); // studio conversations can be long
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ── Preview safety ───────────────────────────────────────────────────────────
 if (PREVIEW_MODE) {
   app.use((req, res, next) => { res.set('X-Robots-Tag', 'noindex, nofollow'); next(); });
+  // Allow-list: only the room, Jeannie and three public read-only pages of game info.
+  const PREVIEW_PUBLIC_READS = ['/health', '/leaderboard', '/game-settings'];
   app.use('/api', (req, res, next) => {
-    const open = req.path.startsWith('/evalroom') || req.path.startsWith('/jeannie');
-    if (open) return next();
-    // Reads of public game info are fine; everything else is switched off here.
-    const safeRead = req.method === 'GET' && !req.path.startsWith('/admin');
-    if (safeRead) return next();
+    let p = req.path;
+    try { p = decodeURIComponent(p); } catch (_) { return res.status(400).json({ error: 'Bad request.' }); }
+    p = p.toLowerCase().replace(/\/{2,}/g, '/').replace(/\/+$/, '') || '/';
+    if (p === '/evalroom' || p.startsWith('/evalroom/') || p === '/jeannie' || p.startsWith('/jeannie/')) return next();
+    if (req.method === 'GET' && PREVIEW_PUBLIC_READS.includes(p)) return next();
     return res.status(403).json({ error: 'This is the preview copy. That action is switched off here.' });
   });
 }

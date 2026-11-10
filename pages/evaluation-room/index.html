@@ -40,7 +40,7 @@
       <button class="er-btn" type="submit" id="pvBtn">Enter the room</button>
     </form>
     <p class="er-msg" id="signMsg"></p>
-    <p class="er-small" style="margin-top:16px">Not registered yet? <a href="/pages/register">Register your team</a>. Lost your details? <a href="/pages/jeannie?q=I+cannot+sign+in+to+the+Evaluation+Room">Ask Jeannie</a>.</p>
+    <p class="er-small" style="margin-top:16px">Not registered yet? <a href="/pages/register">Register your team</a>. Lost your details? Your registration email shows the exact team name and captain email.</p>
   </section>
 
   <!-- The room -->
@@ -108,7 +108,7 @@
     $('#room').hidden = false;
     var line = $('#teamLine');
     line.hidden = false;
-    line.innerHTML = 'Signed in as <b>' + ER.esc(t.name || 'your team') + '</b> <button class="er-linkbtn" id="signOut">Sign out</button>';
+    line.innerHTML = 'Signed in as <b>' + ER.esc(t.name || 'your team') + '</b> <button class="er-linkbtn" id="signOut">Sign out</button> <span class="er-small">(clears drafts on this device)</span>';
     $('#signOut').addEventListener('click', ER.signOut);
     var dir;
     var state = { judges: {} };
@@ -157,6 +157,10 @@
   }
 
   function entered(data) {
+    // A different team on this device starts with a clean slate.
+    var before = ER.store.get('owner');
+    if (before && before !== data.team.name) ER.store.clear();
+    ER.store.set('owner', data.team.name);
     ER.store.set('token', data.token);
     ER.store.set('team', data.team);
     if (next) location.href = next; else { history.replaceState(null, '', ER.ROOM); showRoom(); window.scrollTo(0, 0); }

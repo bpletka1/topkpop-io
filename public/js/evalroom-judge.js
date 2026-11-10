@@ -169,12 +169,15 @@
       if (!r.ok) { ER.showMsg(msg, r.message, 'info'); return; }
       S.count = r.used; S.remaining = r.remaining;
       render(r, r.previous, true);
+      if (r.repeat) ER.showMsg(msg, 'You already rehearsed this exact entry, so here is the score it earned. No rehearsal was used. Change your work to rehearse again.', 'info');
       leftLine();
       return loadHistory(false);
     }).catch(function (e) {
       if (e.status === 401) { location.replace(ER.ROOM + '?next=' + encodeURIComponent(location.pathname + location.search)); return; }
       if (e.data && e.data.remaining === 0) { S.remaining = 0; leftLine(); }
       ER.showMsg(msg, e.message);
+      // If the connection dropped while the judge was working, the result may already be saved.
+      if (!e.status) setTimeout(function () { var had = rows.length; loadHistory(false).then(function () { if (rows.length > had) { render(rows[0], rows[1], true); ER.showMsg(msg, 'Your connection dropped, but the judge finished. Here is your rehearsal.', 'info'); } }).catch(function () {}); }, 4000);
     }).then(function () { setBusy(false); if (dir) dir.update(); });
   });
 

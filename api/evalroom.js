@@ -28,7 +28,7 @@ const num = (k, d) => { const n = Number(env(k, d)); return Number.isFinite(n) ?
 
 const PREVIEW_MODE = env('PREVIEW_MODE', '') === '1';
 const CFG = {
-  judgeModels: list(env('EVALROOM_JUDGE_MODELS', 'gpt-6-sol,gpt-6.1-sol,gpt-4o')),
+  judgeModels: list(env('EVALROOM_JUDGE_MODELS', 'gpt-6.1-sol,gpt-6-sol,gpt-4o')),
   judgeEffort: env('EVALROOM_JUDGE_EFFORT', 'low'),
   studioModels: list(env('EVALROOM_STUDIO_MODELS', 'gpt-6.1-sol,gpt-6-sol,gpt-4o')),
   studioEffort: env('EVALROOM_STUDIO_EFFORT', 'medium'),
@@ -58,6 +58,7 @@ const promptDir = path.join(__dirname, 'evalroom-prompts');
 const readPrompt = (f) => fs.readFileSync(path.join(promptDir, f), 'utf8');
 
 const JUDGES = {
+  __proto__: null,
   visual: {
     key: 'visual', name: 'Visual Judge', trove: 1, max: 100, input: 'images',
     instructions: readPrompt('poster-avatar.txt'),
@@ -129,7 +130,7 @@ function displayFormatNote(j) {
     '•',
     '•',
     '',
-    'Use whole numbers. If the submission is missing, reply with only the exact missing-submission sentence from the rules above.',
+    'Use whole numbers. If the submission is missing, or is only a greeting or a question rather than work to be scored, reply with only the exact missing-submission sentence from the rules above.',
   ].join('\n');
 }
 
@@ -162,26 +163,27 @@ function judgeMessages(j, input) {
 
 // ── Reading the judge's answer ───────────────────────────────────────────────
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const cleanLine = (s) => s.replace(/^[\s•\-\*–—\d.)]+/, '').replace(/\*\*/g, '').trim();
+const cleanLine = (s) => s.replace(/^[\s•\-\*–—\d.)]+/, '').replace(/\*+/g, '').trim();
 
+// A section starts where its label begins a line (so the word "Strengths" inside a sentence is not a heading).
+function labelAt(text, label, from) {
+  const re = new RegExp('(^|\\n)[ \\t>#*_•\\-\\d.)]*' + esc(label), 'i');
+  const m = re.exec(text.slice(from));
+  if (!m) return null;
+  const start = from + m.index + (m[1] ? 1 : 0);
+  return { start, end: from + m.index + m[0].length };
+}
 function section(text, startLabels, endLabels) {
-  const lower = text.toLowerCase();
-  let start = -1; let labelLen = 0;
-  for (const l of startLabels) {
-    const i = lower.indexOf(l.toLowerCase());
-    if (i !== -1 && (start === -1 || i < start)) { start = i; labelLen = l.length; }
-  }
-  if (start === -1) return '';
-  let from = start + labelLen;
+  let hit = null;
+  for (const l of startLabels) { const h = labelAt(text, l, 0); if (h && (!hit || h.start < hit.start)) hit = h; }
+  if (!hit) return '';
+  let from = hit.end;
   const nl = text.indexOf('\n', from);
   const restOfLine = text.slice(from, nl === -1 ? text.length : nl);
-  // Skip a trailing "(40–60 words)" or ":" on the label line.
-  if (/^[\s:*()\d–—\-–a-z]*$/i.test(restOfLine) && restOfLine.length < 40) from = nl === -1 ? text.length : nl + 1;
+  // Skip a trailing "(40-60 words)" or ":" on the label line.
+  if (/^[\s:*()\d–—\-a-z]*$/i.test(restOfLine) && restOfLine.length < 40) from = nl === -1 ? text.length : nl + 1;
   let end = text.length;
-  for (const l of endLabels) {
-    const i = lower.indexOf(l.toLowerCase(), from);
-    if (i !== -1 && i < end) end = i;
-  }
+  for (const l of endLabels) { const h = labelAt(text, l, from); if (h && h.start < end) end = h.start; }
   return text.slice(from, end).trim();
 }
 
@@ -202,9 +204,9 @@ function parseJudgeAnswer(text, j) {
   }
   const complete_ = found === j.categories.length;
   const total = complete_ ? categories.reduce((s, c) => s + c.score, 0) : null;
-  const summary = section(raw, ['Feedback Summary'], ['Strengths']).replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+  const summary = section(raw, ['Feedback Summary'], ['Strengths']).replace(/\*+/g, '').replace(/\s+/g, ' ').trim();
   const strengths = bullets(section(raw, ['Strengths'], [j.improveLabel, 'Improvement Suggestions', 'Growth Opportunities', 'Improvements']), 3);
-  const improvements = bullets(section(raw, [j.improveLabel, 'Improvement Suggestions', 'Growth Opportunities'], ['<<<']), 2);
+  const improvements = bullets(section(raw, [j.improveLabel, 'Improvement Suggestions', 'Growth Opportunities'], []), 2);
   return { ok: complete_, score: total, max: j.max, categories, summary, strengths, improvements };
 }
 
@@ -234,7 +236,7 @@ function readToken(token) {
 
 function requireTeam(req, res, next) {
   const p = readToken(req.headers['x-evalroom-token']);
-  if (!p) return res.status(401).json({ error: 'Please sign in to The Evaluation Room.' });
+  if (!p || (p.p && !PREVIEW_MODE)) return res.status(401).json({ error: 'Please sign in to The Evaluation Room.' });
   req.team = { key: p.t, name: p.n, preview: !!p.p };
   next();
 }
@@ -251,10 +253,10 @@ function limited(key, max, windowMs) {
 setInterval(() => { const now = Date.now(); for (const [k, b] of buckets) if (b.reset < now) buckets.delete(k); }, 60000).unref();
 
 function clientIp(req) {
-  const real = req.headers['x-real-ip'];
-  if (real) return String(real);
-  const xff = String(req.headers['x-forwarded-for'] || '').split(',').map((s) => s.trim()).filter(Boolean);
-  return xff.length ? xff[xff.length - 1] : (req.socket && req.socket.remoteAddress) || 'unknown';
+  // The last address in X-Forwarded-For is the one added by the hosting proxy; earlier ones can be typed in by anyone.
+  const xff = String(req.headers['x-forwarded-for'] || '').split(',').map((x) => x.trim()).filter(Boolean);
+  if (xff.length) return xff[xff.length - 1];
+  return (req.socket && req.socket.remoteAddress) || 'unknown';
 }
 
 let capCache = { at: 0, spent: 0 };
@@ -356,7 +358,7 @@ router.post('/signin', async (req, res) => {
     if (!teamName || !email || teamName.length > 120 || email.length > 200 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ error: SIGNIN_ERROR });
     }
-    if (limited('signin-email:' + email, 10, 15 * 60000)) return res.status(429).json({ error: 'Too many tries. Please wait 15 minutes and try again.' });
+    if (limited('signin-email:' + email, 40, 15 * 60000)) return res.status(429).json({ error: 'Too many tries. Please wait 15 minutes and try again.' });
     const pattern = email.replace(/[\\%_]/g, (c) => '\\' + c);
     const { data, error } = await supabase.from('registrations').select('id, team_name, captain_email, status').ilike('captain_email', pattern).limit(5);
     if (error) throw new Error(error.message);
@@ -442,7 +444,7 @@ router.post('/rehearse/:judge', requireTeam, uploadTwo, async (req, res) => {
   inFlight.add(flightKey);
   try {
     // 1. Check the entry before spending anything.
-    const input = {}; let inputText = null; let inputMeta = {};
+    const input = {}; let inputText = null; let inputMeta = {}; let fingerprint = null;
     if (j.input === 'images') {
       const a = req.files && req.files.avatar && req.files.avatar[0];
       const p = req.files && req.files.poster && req.files.poster[0];
@@ -450,12 +452,29 @@ router.post('/rehearse/:judge', requireTeam, uploadTwo, async (req, res) => {
       const am = sniffImage(a.buffer); const pm = sniffImage(p.buffer);
       if (!am || !pm) return res.status(400).json({ error: 'Please upload pictures saved as PNG, JPG or WEBP.' });
       input.avatarDataUrl = dataUrl(a.buffer, am); input.posterDataUrl = dataUrl(p.buffer, pm);
+      fingerprint = crypto.createHash('sha256').update(a.buffer).update('|').update(p.buffer).digest('hex');
       inputMeta = { avatar: { name: String(a.originalname || '').slice(0, 120), bytes: a.size, type: am }, poster: { name: String(p.originalname || '').slice(0, 120), bytes: p.size, type: pm } };
     } else {
       const text = String((req.body && req.body.text) || '').replace(/\u0000/g, '').trim();
       if (text.length < 20) return res.json({ ok: false, message: j.missing });
       if (text.length > CFG.maxTextChars) return res.status(400).json({ error: `That is longer than the room can take (${CFG.maxTextChars.toLocaleString()} characters). Please trim it and try again.` });
       input.text = text; inputText = text;
+      fingerprint = crypto.createHash('sha256').update(text.replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ').replace(/ ?\n ?/g, '\n').toLowerCase()).digest('hex');
+    }
+    inputMeta.fingerprint = fingerprint;
+
+    // The same entry again? Show the score it already earned. Same work, same score, and no rehearsal used.
+    const { data: same } = await supabase.from('evalroom_rehearsals')
+      .select('id, score, max_score, categories, summary, strengths, improvements, created_at')
+      .eq('team_key', req.team.key).eq('judge', j.key).eq('ok', true).eq('input_meta->>fingerprint', fingerprint)
+      .order('created_at', { ascending: false }).limit(1);
+    if (same && same[0]) {
+      const usedNow = await rehearsalsUsed(req.team.key, j.key);
+      return res.json({
+        ok: true, repeat: true, id: same[0].id, created_at: same[0].created_at, judge: j.key, score: same[0].score, max: j.max,
+        categories: same[0].categories, summary: same[0].summary, strengths: same[0].strengths, improvements: same[0].improvements,
+        improveLabel: j.improveLabel, previous: null, used: usedNow, remaining: Math.max(0, CFG.maxRehearsals - usedNow),
+      });
     }
 
     // 2. Limits.
@@ -508,7 +527,8 @@ router.post('/rehearse/:judge', requireTeam, uploadTwo, async (req, res) => {
 function cleanStudioMessages(raw) {
   if (!Array.isArray(raw)) return null;
   const out = [];
-  for (const m of raw.slice(-30)) {
+  const picked = raw.length > 30 ? [raw[0], ...raw.slice(-29)] : raw;
+  for (const m of picked) {
     if (!m || (m.role !== 'user' && m.role !== 'assistant') || typeof m.content !== 'string') return null;
     const content = m.content.replace(/\u0000/g, '').slice(0, CFG.maxTextChars);
     if (content.trim()) out.push({ role: m.role, content });
@@ -516,7 +536,8 @@ function cleanStudioMessages(raw) {
   if (!out.length || out[out.length - 1].role !== 'user') return null;
   // Keep the conversation to a sensible size: drop the oldest turns first.
   let total = out.reduce((s, m) => s + m.content.length, 0);
-  while (total > 60000 && out.length > 1) { total -= out[0].content.length; out.shift(); }
+  // Trim the middle, never the first message: it holds the original lyrics and the vocabulary.
+  while (total > 60000 && out.length > 2) { total -= out[1].content.length; out.splice(1, 1); }
   return out;
 }
 

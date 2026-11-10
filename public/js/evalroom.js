@@ -8,7 +8,12 @@
   var store = {
     get: function (k) { try { var v = localStorage.getItem('er:' + k); return v === null ? (k in mem ? mem[k] : null) : JSON.parse(v); } catch (e) { return k in mem ? mem[k] : null; } },
     set: function (k, v) { mem[k] = v; try { localStorage.setItem('er:' + k, JSON.stringify(v)); } catch (e) {} },
-    del: function (k) { delete mem[k]; try { localStorage.removeItem('er:' + k); } catch (e) {} }
+    del: function (k) { delete mem[k]; try { localStorage.removeItem('er:' + k); } catch (e) {} },
+    // Removes everything the room saved on this device (drafts, studio conversation, sign-in).
+    clear: function () {
+      mem = {};
+      try { var ks = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('er:') === 0) ks.push(k); } ks.forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+    }
   };
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -34,7 +39,7 @@
 
   function token() { return store.get('token'); }
   function team() { return store.get('team'); }
-  function signOut() { store.del('token'); store.del('team'); location.href = ROOM; }
+  function signOut() { store.clear(); location.href = ROOM; }
 
   function api(path, opts) {
     opts = opts || {};

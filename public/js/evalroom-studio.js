@@ -136,6 +136,14 @@
     $('#wait').classList.toggle('on', b);
   }
 
+  // Send the first message (original lyrics + vocabulary) and as many recent turns as fit.
+  function forSending(all) {
+    if (all.length <= 3) return all;
+    var first = all[0], rest = all.slice(1), budget = 70000 - first.content.length, keep = [];
+    for (var i = rest.length - 1; i >= 0 && keep.length < 28; i--) { budget -= rest[i].content.length; if (budget < 0 && keep.length) break; keep.unshift(rest[i]); }
+    return [first].concat(keep);
+  }
+
   function ask(text) {
     if (S.busy) return;
     text = String(text || '').trim();
@@ -153,7 +161,7 @@
     fetch('/api/evalroom/studio/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-evalroom-token': ER.token() || '' },
-      body: JSON.stringify({ messages: S.messages })
+      body: JSON.stringify({ messages: forSending(S.messages) })
     }).then(function (r) {
       if (r.status === 401) { ER.store.del('token'); location.replace(ER.ROOM + '?next=' + encodeURIComponent(location.pathname)); throw new Error('Please sign in again.'); }
       if (!r.ok || !r.body) return r.json().then(function (d) { throw new Error(d.error || 'The studio could not answer. Please try again.'); }, function () { throw new Error('The studio could not answer. Please try again.'); });
