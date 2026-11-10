@@ -9,6 +9,8 @@ const fs = require('fs');
 const path = require('path');
 const { complete } = require('./ai-complete');
 const { _internal: R } = require('./evalroom');
+const { SUITES } = require('./evalroom-fixtures/cases');
+const { compare } = require('./evalroom-syllables');
 
 const FIXTURES = path.join(__dirname, 'evalroom-fixtures');
 const MAX_PARALLEL = 3;
@@ -27,15 +29,68 @@ function judgeInput(j, p) {
   return { text: String(p.text || '') };
 }
 
+
+const words = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
+
+// The quality rules written into each judge's instructions, checked by program.
+function feedbackChecks(j, parsed, raw) {
+  const [lo, hi] = j.key === 'lesson' ? [40, 60] : [48, 52];
+  const n = words(parsed.summary);
+  return {
+    summaryWords: n, summaryInRange: n >= lo && n <= hi, summaryNear: n >= lo - 6 && n <= hi + 6,
+    strengths: parsed.strengths.length, improvements: parsed.improvements.length,
+    hasWelcome: /welcome/i.test(raw.split('Category Scores')[0] || ''),
+    mentionsTikTok: /tiktok/i.test(raw),
+    mentionsAI: j.key === 'lesson' ? /\b(AI|prompt|ChatGPT)\b/.test(raw) : false,
+  };
+}
+
+// Same rule the studio page uses to find the finished lyrics.
+function cleanCopy(text) {
+  const lines = String(text || '').split('\n');
+  let start = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (/clean\s+copy/i.test(lines[i]) && lines[i].replace(/[^a-z]/gi, '').length < 30) { start = i + 1; break; }
+  }
+  if (start === -1) return '';
+  const out = [];
+  for (let k = start; k < lines.length; k++) {
+    const l = lines[k];
+    if (/^\s*(#{1,6}\s|\*\*[^*]+\*\*\s*$)/.test(l) && out.join('').trim()) break;
+    if (/^\s*(-{3,}|⸻+)\s*$/.test(l)) { if (out.join('').trim()) break; else continue; }
+    out.push(l.replace(/\*\*/g, '').replace(/^\s*#{1,6}\s*/, '').replace(/^```.*$/, ''));
+  }
+  const body = out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  return body.length >= 40 ? body : '';
+}
+
 async function runCase(row, port) {
   const p = row.payload || {};
   const models = p.model ? [p.model] : undefined;
+
+  if (row.kind === 'suite') {
+    const cases = SUITES[p.name];
+    if (!cases) throw new Error('No such suite: ' + p.name);
+    const rows = cases.map((c) => ({
+      suite: row.suite || p.name, label: c.label, kind: c.kind,
+      payload: { ...c.payload, ...(p.model ? { model: p.model } : {}), ...(p.effort !== undefined ? { effort: p.effort } : {}) },
+    }));
+    const { error } = await R.supabase.from('evalroom_selftest').insert(rows);
+    if (error) throw new Error(error.message);
+    return { queued: rows.length };
+  }
 
   if (row.kind === 'judge') {
     const j = R.JUDGES[p.judge];
     const { ai, parsed, saidMissing } = await R.runJudge(j, judgeInput(j, p), { models, effort: p.effort });
     await R.logUsage('selftest', 'selftest', ai);
-    return { ...parsed, saidMissing, raw: ai.text, model: ai.model, ms: ai.ms, dropped: ai.dropped, tokensIn: ai.tokensIn, tokensOut: ai.tokensOut, costUsd: ai.costUsd };
+    const e = p.expect || {};
+    let pass = null;
+    if (e.min !== undefined || e.max !== undefined) {
+      if (!parsed.ok) pass = !!e.missingOk;
+      else pass = (e.min === undefined || parsed.score >= e.min) && (e.max === undefined || parsed.score <= e.max);
+    }
+    return { ...parsed, saidMissing, pass, expect: e, checks: parsed.ok ? feedbackChecks(j, parsed, ai.text) : null, raw: ai.text, model: ai.model, ms: ai.ms, dropped: ai.dropped, tokensIn: ai.tokensIn, tokensOut: ai.tokensOut, costUsd: ai.costUsd };
   }
 
   if (row.kind === 'baseline') {
@@ -57,7 +112,15 @@ async function runCase(row, port) {
       { effort: p.effort === undefined ? R.CFG.studioEffort : p.effort, maxTokens: 12000, timeoutMs: 280000 }
     );
     await R.logUsage('selftest', 'selftest', ai);
-    return { raw: ai.text, model: ai.model, ms: ai.ms, dropped: ai.dropped, tokensIn: ai.tokensIn, tokensOut: ai.tokensOut, costUsd: ai.costUsd };
+    const out = { raw: ai.text, model: ai.model, ms: ai.ms, dropped: ai.dropped, tokensIn: ai.tokensIn, tokensOut: ai.tokensOut, costUsd: ai.costUsd };
+    if (p.original) {
+      const copy = cleanCopy(ai.text);
+      out.foundCleanCopy = !!copy;
+      out.sections = ['Karaoke Version', 'Teacher Version', 'Meaning Version', 'Clean Copy'].filter((h) => new RegExp(h, 'i').test(ai.text)).length;
+      out.askedAQuestion = !copy && /\?/.test(ai.text);
+      if (copy) out.fit = await compare(p.original, copy, p.vocab);
+    }
+    return out;
   }
 
   if (row.kind === 'http') {
