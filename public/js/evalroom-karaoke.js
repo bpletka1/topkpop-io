@@ -22,7 +22,7 @@
     var a = lines(f.orig.value).length, b = lines(f.neu.value).length, h = $('#lineHint');
     h.style.color = '';
     if (a && b && a !== b) h.textContent = 'Your new lyrics have ' + b + ' lines and box 2 has ' + a + '. That is fine if the recording is only part of the song: the room matches your lines, in order, to the lines it hears.';
-    else h.textContent = 'Each new line takes the timing of the matching line in the recording.' + (a && b ? ' Both boxes have ' + a + ' lines.' : '');
+    else h.textContent = 'Lyrics only, please: leave out the song title. Each new line takes the timing of the matching line in the recording.' + (a && b ? ' Both boxes have ' + a + ' lines.' : '');
     dir.update();
   }
   ['title', 'orig', 'neu'].forEach(function (k) { f[k].addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { ER.store.set('karaoke:draft', { title: f.title.value, orig: f.orig.value, neu: f.neu.value }); hint(); }, 400); }); });
@@ -120,10 +120,12 @@
       if (q.mode === 'nothing-heard' || !S.lines.length) parts.push('<b>The room could not hear any singing in this file.</b> Check that it is the full song with vocals, then make it again. You can also press Fix the timing and tap the lines in yourself.');
       else {
         if (q.mode === 'matched' && q.sungLines < q.originalLines) parts.push('<b>The room heard ' + q.sungLines + ' of the ' + q.originalLines + ' lines in box 2 in this recording</b> and timed your lyrics to those. Lines that are not in the recording were left out.');
-        if (q.mode === 'heard-instead') parts.push('<b>The words in box 2 are not the words sung in this recording,</b> so the room went by ear and timed your lyrics to the lines it heard.');
+        if (q.mode === 'heard-instead' && q.reasons && q.reasons.indexOf('line-counts-differ') !== -1) parts.push('<b>Box 2 and box 3 have different numbers of lines,</b> so the room went by ear and put your lines, in order, on the lines it heard sung.');
+        else if (q.mode === 'heard-instead') parts.push('<b>The words in box 2 are not the words sung in this recording,</b> so the room went by ear and timed your lyrics to the lines it heard.');
         if (q.mode === 'heard-only') parts.push('<b>The room went by ear</b> and timed your lyrics to the lines it heard.');
         if (q.mode === 'no-listening') parts.push('<b>Some lines may be out of step.</b>');
-        if (q.linesLeftOut) parts.push(q.linesLeftOut + ' of your ' + q.newLines + ' new lines are not shown, because the recording has no more sung lines to put them on.');
+        if (q.reasons && q.reasons.indexOf('more-singing-than-lyrics') !== -1) parts.push('<b>The room heard more singing than box 2 has lines for</b> (a chorus sung twice, perhaps), so part of the song may show no words.');
+        if (q.linesLeftOut) parts.push(q.linesLeftOut + ' of your ' + q.newLines + ' new lines are not shown, because the room ran out of sung lines to put them on.');
         if (q.reasons && q.reasons.indexOf('used-listening-times') !== -1) parts.push('The timing is approximate for this recording.');
         if (parts.length) parts.push('Play it through, and use Fix the timing if a line lights up early or late.');
       }

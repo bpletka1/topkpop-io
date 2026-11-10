@@ -109,6 +109,15 @@ async function transcribe(buf, kind) {
 // ── Lyrics and timing ────────────────────────────────────────────────────────
 const lyricLines = (t) => String(t || '').replace(/\r/g, '').split('\n').map((l) => l.trim())
   .filter((l) => l && !/^\[[^\]]*\]$/.test(l) && !/^(verse|chorus|bridge|intro|outro|pre-chorus|hook|refrain)\s*\d*\s*[:.-]?$/i.test(l));
+// A title pasted above the lyrics is not a sung line: drop it when it repeats the song name or reads like "Name — Somebody's Version".
+function dropTitleLine(text, title) {
+  const all = String(text || '').replace(/\r/g, '').split('\n'); const k = all.findIndex((l) => l.trim());
+  if (k === -1) return String(text || '');
+  const first = all[k].trim(); const b = (x) => String(x || '').toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '');
+  const isTitle = (b(title).length >= 4 && b(first) === b(title)) || /\s[\u2014\u2013-]\s.*\bversion\)?$/i.test(first);
+  if (!isTitle) return String(text || '');
+  all.splice(k, 1); return all.join('\n');
+}
 const tokens = (line) => line.split(/\s+/).filter(Boolean);
 const bare = (w) => String(w).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '');
 // A rough size for spreading words across a line: Hangul blocks count once each, otherwise vowel groups.
@@ -309,6 +318,18 @@ async function timeSong(vocals, originalLyrics, newLyrics, note = () => {}) {
   } else {
     mode = 'nothing-heard'; reasons.push('no-words');
   }
+  // Different line counts in box 2 and box 3: placing lines by position is only safe when the sung lines are one
+  // unbroken run and nearly all the singing was matched. Otherwise go by ear, which covers every sung line in order.
+  const newCount = lyricLines(newLyrics).length;
+  if (mode === 'matched' && orig.length !== newCount) {
+    const unbroken = found.sung.every((li, k) => k === 0 || li === found.sung[k - 1] + 1);
+    const byEar = linesFromHeard(heard.words);
+    if ((!unbroken || found.matchedHeardPct < 70) && byEar.length >= 2) {
+      windows = byEar.map((l, k) => ({ start: l.start, end: l.end, origIndex: k }));
+      mode = 'heard-instead'; reasons.push('line-counts-differ');
+    }
+  }
+  if (mode === 'matched' && found.matchedHeardPct < 70) reasons.push('more-singing-than-lyrics');
   windows.sort((a, b) => a.start - b.start);
   const laid = layNewLyrics(newLyrics, windows, mode === 'matched' ? orig.length : windows.length);
   const level = mode === 'nothing-heard' || !laid.lines.length ? 'poor' : mode === 'matched' && !laid.dropped && found.sung.length === orig.length && !reasons.length ? 'good' : 'check';
@@ -332,8 +353,7 @@ module.exports = function attachKaraoke(router, deps) {
 
   async function prepare(id, buf, kind) {
     const set = (patch) => supabase.from('evalroom_karaoke').update(patch).eq('id', id);
-    let sourcePath = null;
-    running++;
+    let sourcePath = null; // (the place in the queue was taken when the upload was accepted)
     try {
       const { data: row } = await supabase.from('evalroom_karaoke').select('*').eq('id', id).single();
       sourcePath = row.source_path;
@@ -367,17 +387,18 @@ module.exports = function attachKaraoke(router, deps) {
   });
 
   router.post('/karaoke', requireTeam, one, async (req, res) => {
+    let reserved = false;
     try {
-      if (limited('karaoke:' + req.team.key, 4, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of songs in a few minutes. Please wait a little and try again.' });
       if (!process.env.ELEVENLABS_API_KEY) return res.status(503).json({ error: 'The song maker is not switched on yet.' });
       const b = req.body || {};
       if (String(b.rights) !== 'true') return res.status(400).json({ error: 'Tick the box to confirm your team bought this song or has the right to use it.' });
       const f = req.file; const kind = f && sniffAudio(f.buffer);
       if (!kind) return res.status(400).json({ error: 'Please choose a song file saved as MP3, M4A or WAV.' });
-      const orig = String(b.original_lyrics || ''); const neu = String(b.new_lyrics || '');
+      const orig = String(b.original_lyrics || ''); const neu = dropTitleLine(String(b.new_lyrics || ''), b.title);
       if (orig.length > CFG.maxTextChars || neu.length > CFG.maxTextChars) return res.status(400).json({ error: `Those lyrics are longer than the song maker can take (${CFG.maxTextChars.toLocaleString()} characters). Please trim them.` });
       const ol = lyricLines(orig); const nl = lyricLines(neu);
       if (nl.length < 2) return res.status(400).json({ error: 'Paste your new lyrics, one line per line. Lines that are only a label, like [Chorus], are skipped.' });
+      if (limited('karaoke:' + req.team.key, 4, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of songs in a few minutes. Please wait a little and try again.' });
       const since = new Date(Date.now() - 864e5).toISOString();
       const { data: today } = await supabase.from('evalroom_karaoke').select('status').eq('team_key', req.team.key).gte('created_at', since);
       const made = (today || []).filter((x) => x.status !== 'failed').length;
@@ -386,6 +407,7 @@ module.exports = function attachKaraoke(router, deps) {
       const { count: everyone } = await supabase.from('evalroom_karaoke').select('id', { count: 'exact', head: true }).gte('created_at', since);
       if ((everyone || 0) >= MAX_ALL_TEAMS_PER_DAY) return res.status(503).json({ error: 'The song maker has reached its limit for today. It opens again tomorrow.' });
       if (running >= MAX_AT_ONCE) return res.status(503).json({ error: 'The song maker is busy with other teams\' songs. Please try again in a minute.' });
+      running++; reserved = true; // held from here so two uploads at the same moment cannot both slip through
 
       const { data: row, error } = await supabase.from('evalroom_karaoke').insert({
         team_key: req.team.key, team_name: req.team.name, title: String(b.title || 'Our song').replace(/[<>]/g, '').trim().slice(0, 80) || 'Our song',
@@ -395,9 +417,10 @@ module.exports = function attachKaraoke(router, deps) {
       const spath = `${safePart(req.team.key)}/karaoke/${row.id}/source.${kind.ext}`;
       const up = await supabase.storage.from(BUCKET).upload(spath, f.buffer, { contentType: kind.mime, upsert: true });
       if (!up.error) await supabase.from('evalroom_karaoke').update({ source_path: spath }).eq('id', row.id);
-      prepare(row.id, f.buffer, kind); // carries on after this reply; the page checks back for progress
+      reserved = false; prepare(row.id, f.buffer, kind); // carries on after this reply; the page checks back for progress
       res.json({ ok: true, song: view(row), lineNote: null });
     } catch (err) {
+      if (reserved) running--;
       console.error('evalroom karaoke create error:', err.message);
       res.status(502).json({ error: 'The song maker could not start. Please try again.' });
     }
@@ -469,4 +492,4 @@ module.exports = function attachKaraoke(router, deps) {
       .in('status', ['queued', 'splitting', 'timing']).lt('created_at', new Date(Date.now() - 6 * 60000).toISOString()).then(() => {});
   }, 8000).unref();
 };
-module.exports._internal = { separate, align, transcribe, timeSong, findSungLines, linesFromHeard, layNewLyrics, alike, buildTimings, sniffAudio, lyricLines, elevenKey, API };
+module.exports._internal = { separate, align, transcribe, timeSong, findSungLines, linesFromHeard, layNewLyrics, alike, buildTimings, sniffAudio, lyricLines, dropTitleLine, elevenKey, API };

@@ -17,6 +17,7 @@ const MAX_MB = Number(process.env.EVALROOM_SONG_MAX_MB || 25);
 const MAX_PER_DAY = Number(process.env.EVALROOM_COVERS_PER_DAY || 3);
 const MAX_TRIES_PER_DAY = Number(process.env.EVALROOM_COVER_TRIES_PER_DAY || 6);
 const MAX_ALL_TEAMS_PER_DAY = Number(process.env.EVALROOM_COVERS_ALL_TEAMS_PER_DAY || 40);
+const MAX_AT_ONCE = Number(process.env.EVALROOM_COVERS_AT_ONCE || 3);
 const LYRICS_MAX = 2800; // the singing service takes up to 3,000 characters
 const safePart = (x) => String(x).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
 
@@ -38,16 +39,20 @@ function token() {
 function fitLyrics(text) {
   const lines = K.lyricLines(text); const kept = [];
   let n = 0;
-  for (const l of lines) { if (n + l.length + 1 > LYRICS_MAX) break; kept.push(l); n += l.length + 1; }
+  for (const l of lines) { if (n + l.length + (kept.length ? 1 : 0) > LYRICS_MAX) break; kept.push(l); n += l.length + 1; }
   return { text: kept.join('\n'), kept: kept.length, total: lines.length };
 }
 
 // What the singer is given: the team's words in ordinary capitals, without stage notes.
 // Stress marks like "eMERgency" help a person but trip the AI singer.
+const STAGE_NOTE = /^(x\s*\d+|\d+\s*x|repeat.*|spoken.*|chorus.*|verse.*|bridge.*|intro.*|outro.*|pre-?chorus.*|instrumental.*|whisper.*|shout.*|pause.*|music.*|laugh.*|clap.*|with .*|all|solo)$/i;
 function forSinger(text) {
   return K.lyricLines(text).map((line) => {
-    let l = line.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
-    if (!/[A-Za-z0-9À-ɏ]/.test(l)) return '';
+    let l = line; let prev;
+    // Stage notes in brackets go; sung words in brackets, like (oh oh oh), stay without the brackets.
+    do { prev = l; l = l.replace(/\(([^()]*)\)/g, (m, inner) => (STAGE_NOTE.test(inner.trim()) ? ' ' : ' ' + inner + ' ')); } while (l !== prev);
+    l = l.replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!/[\p{L}\p{N}]/u.test(l)) return '';
     l = l.split(' ').map((w) => (/[A-ZÀ-Þ]/.test(w.slice(1)) ? w.toLowerCase() : w)).join(' ');
     l = l.replace(/\bi\b(?=$|[\s'’,.!?;:])/g, 'I');
     return l.replace(/^([^A-Za-zÀ-ɏ]*)([a-zß-ɏ])/, (m, pre, c) => pre + c.toUpperCase());
@@ -72,21 +77,36 @@ async function sing(audioUrl, stylePrompt, lyrics, onNote = () => {}) {
   const input = { prompt: stylePrompt };
   input[has('audio_url') ? 'audio_url' : has('reference_audio') ? 'reference_audio' : 'audio_url'] = audioUrl;
   if (lyrics && has('lyrics')) input.lyrics = lyrics;
-  const t0 = Date.now();
-  const start = await fetch(`${REPLICATE}/models/${MODEL}/predictions`, { method: 'POST', headers: { Authorization: 'Bearer ' + token(), 'Content-Type': 'application/json' }, body: JSON.stringify({ input }), signal: AbortSignal.timeout(60000) });
-  let p = await start.json().catch(() => ({}));
+  const t0 = Date.now(); const auth = { Authorization: 'Bearer ' + token() };
+  const nap = (ms) => new Promise((r) => setTimeout(r, ms));
+  // The service lets only a few songs start per minute. When it says "wait", wait and try again.
+  let start; let p;
+  for (let attempt = 0; ; attempt++) {
+    start = await fetch(`${REPLICATE}/models/${MODEL}/predictions`, { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ input }), signal: AbortSignal.timeout(60000) });
+    p = await start.json().catch(() => ({}));
+    if (start.status !== 429 || attempt >= 8) break;
+    await nap(Math.min(30, Math.max(5, Number(p.retry_after) || Number(start.headers.get('retry-after')) || 10)) * 1000 + 500);
+  }
   if (!start.ok) throw Object.assign(new Error('Replicate ' + start.status + ': ' + JSON.stringify(p).slice(0, 400)), { status: start.status });
   await onNote(p.id);
+  let misses = 0;
   while (['starting', 'processing'].includes(p.status)) {
-    if (Date.now() - t0 > 9 * 60000) throw new Error('The singer took too long.');
-    await new Promise((r) => setTimeout(r, 4000));
-    const g = await fetch(`${REPLICATE}/predictions/${p.id}`, { headers: { Authorization: 'Bearer ' + token() }, signal: AbortSignal.timeout(30000) });
-    p = await g.json();
+    if (Date.now() - t0 > 9 * 60000) {
+      await fetch(`${REPLICATE}/predictions/${p.id}/cancel`, { method: 'POST', headers: auth, signal: AbortSignal.timeout(15000) }).catch(() => {});
+      throw new Error('The singer took too long.');
+    }
+    await nap(4000);
+    try {
+      const g = await fetch(`${REPLICATE}/predictions/${p.id}`, { headers: auth, signal: AbortSignal.timeout(30000) });
+      const j = g.ok ? await g.json() : null;
+      if (j && j.status) { p = j; misses = 0; } else if (++misses > 12) throw new Error('lost touch with the singer');
+    } catch (e) { if (++misses > 12) throw e; } // one bad reply must not throw away a song that is still being made
   }
   if (p.status !== 'succeeded') throw Object.assign(new Error('Replicate ' + p.status + ': ' + String(p.error || '').slice(0, 400)), { status: 422 });
   const out = Array.isArray(p.output) ? p.output[0] : (p.output && p.output.audio) || p.output;
   if (!out || typeof out !== 'string') throw new Error('The singer returned nothing to play.');
-  if (!/^https:\/\/[a-z0-9.-]*replicate\.(delivery|com)\//i.test(out)) throw new Error('The singer returned an unexpected address.');
+  let host = ''; try { const u = new URL(out); if (u.protocol === 'https:') host = u.hostname.toLowerCase(); } catch (e) { /* not an address */ }
+  if (!/(^|\.)replicate\.(delivery|com)$/.test(host)) throw new Error('The singer returned an unexpected address.');
   return { url: out, id: p.id, seconds: Math.round((Date.now() - t0) / 1000), usedLyrics: 'lyrics' in input, fields: Object.keys(fields) };
 }
 
@@ -94,16 +114,17 @@ module.exports = function attachCover(router, deps) {
   const { supabase, requireTeam, limited, multer, CFG } = deps;
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_MB * 1024 * 1024, files: 1, fields: 8, fieldSize: 400000 } });
   const one = (req, res, next) => upload.single('song')(req, res, (err) => {
-    if (err) return res.status(400).json({ error: err.code === 'LIMIT_FILE_SIZE' ? `That file is over ${MAX_MB} MB. Most songs saved as MP3 or M4A are well under that.` : 'That file could not be read. Please choose an MP3, M4A or WAV song file.' });
+    if (err) return res.status(400).json({ error: err.code === 'LIMIT_FILE_SIZE' ? `That file is over ${MAX_MB} MB. Most songs saved as MP3 are well under that.` : 'That file could not be read. Please choose an MP3 or WAV song file.' });
     next();
   });
   let running = 0;
+  // The uploaded song is never kept: remove it wherever a run can end, including runs cut short by a restart.
+  const dropSource = (r) => supabase.storage.from(BUCKET).remove(['mp3', 'wav'].map((x) => `${safePart(r.team_key)}/sung/${r.id}/source.${x}`)).catch(() => {});
   const view = (r) => ({ id: r.id, title: r.title, style: r.style, styleLabel: (STYLES[r.style] || {}).label || r.style, status: r.status, note: r.status === 'failed' ? null : r.step_note, error: r.error, seconds: r.seconds_taken, created_at: r.created_at });
 
   async function make(id, buf, kind, sourcePath) {
     const set = (patch) => supabase.from('evalroom_covers').update(patch).eq('id', id);
-    running++;
-    try {
+    try { // (the place in the queue was taken when the upload was accepted)
       const { data: row } = await supabase.from('evalroom_covers').select('*').eq('id', id).single();
       await set({ status: 'singing', step_note: 'The singer is learning the tune' });
       const { data: signed, error: sErr } = await supabase.storage.from(BUCKET).createSignedUrl(sourcePath, 3600);
@@ -122,8 +143,9 @@ module.exports = function attachCover(router, deps) {
       const m = String(err.message || '');
       const friendly = /not switched on/.test(m) ? m
         : err.status === 401 || err.status === 403 ? 'The singer could not sign in to its service. The organizer needs to check the key.'
+        : err.status === 429 ? 'The singer is busy with other teams right now. Please try again in a minute.'
         : err.status === 402 || /billing|payment|credit|insufficient/i.test(m) ? 'The singing service needs a payment method or more credit. Please tell the organizer.'
-        : /copyright|protected|sensitive|moderat|policy|not allowed/i.test(m) ? 'The singing service would not use this recording. It may recognise it as a protected song. Try a recording your team made.'
+        : /copyright|protected|sensitive|moderat|policy|not allowed/i.test(m) ? 'The singing service would not use this recording or these lyrics. It may recognise a protected song. Try a recording your team made.'
         : 'The song could not be sung this time. Check that the file is a normal song with singing, then try again.';
       await set({ status: 'failed', error: friendly, step_note: m.slice(0, 500), finished_at: new Date().toISOString() });
     } finally {
@@ -139,8 +161,8 @@ module.exports = function attachCover(router, deps) {
   });
 
   router.post('/sung', requireTeam, one, async (req, res) => {
+    let reserved = false;
     try {
-      if (limited('sung:' + req.team.key, 4, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of songs in a few minutes. Please wait a little and try again.' });
       if (!process.env.REPLICATE_API_TOKEN) return res.status(503).json({ error: 'Hear it sung is not switched on yet.' });
       const b = req.body || {};
       if (String(b.rights) !== 'true') return res.status(400).json({ error: 'Tick the box to confirm your team bought this song or has the right to use it.' });
@@ -148,18 +170,22 @@ module.exports = function attachCover(router, deps) {
       const f = req.file; const kind = f && K.sniffAudio(f.buffer);
       if (!kind) return res.status(400).json({ error: 'Please choose a song file saved as MP3 or WAV.' });
       if (!/mpeg|mp3|wav/i.test(kind.mime)) return res.status(400).json({ error: 'The singer can only learn from MP3 or WAV files. Please save the song as MP3 or WAV and try again.' });
-      const raw = String(b.lyrics || '');
+      const raw = K.dropTitleLine(String(b.lyrics || ''), b.title);
       if (raw.length > CFG.maxTextChars) return res.status(400).json({ error: 'Those lyrics are too long. Please trim them.' });
       const fit = fitLyrics(raw);
       if (fit.kept < 2 || fit.text.length < 10) return res.status(400).json({ error: 'Paste your new lyrics in box 3, one line per line.' });
+      if (K.lyricLines(forSinger(fit.text)).length < 2) return res.status(400).json({ error: 'The singer needs at least two lines of words to sing. Lines that are only notes in brackets are left out.' });
+      if (limited('sung:' + req.team.key, 4, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of songs in a few minutes. Please wait a little and try again.' });
 
       const since = new Date(Date.now() - 864e5).toISOString();
       const { data: today } = await supabase.from('evalroom_covers').select('status').eq('team_key', req.team.key).gte('created_at', since);
+      if ((today || []).some((x) => x.status === 'queued' || x.status === 'singing')) return res.status(429).json({ error: 'Your team\'s song is still being sung. Wait for it to finish, then you can make another.' });
       if ((today || []).filter((x) => x.status !== 'failed').length >= MAX_PER_DAY) return res.status(429).json({ error: `Your team has had ${MAX_PER_DAY} songs sung today. The singer is back tomorrow.` });
       if ((today || []).length >= MAX_TRIES_PER_DAY) return res.status(429).json({ error: 'Your team has reached today\'s limit of tries. The singer is back tomorrow.' });
       const { count: everyone } = await supabase.from('evalroom_covers').select('id', { count: 'exact', head: true }).gte('created_at', since);
       if ((everyone || 0) >= MAX_ALL_TEAMS_PER_DAY) return res.status(503).json({ error: 'The singer has reached its limit for today. It is back tomorrow.' });
-      if (running >= 2) return res.status(503).json({ error: 'The singer is busy with other teams\' songs. Please try again in a minute.' });
+      if (running >= MAX_AT_ONCE) return res.status(503).json({ error: 'The singer is busy with other teams\' songs. Please try again in a minute.' });
+      running++; reserved = true; // held from here so uploads arriving at the same moment cannot all slip through
 
       const { data: row, error } = await supabase.from('evalroom_covers').insert({
         team_key: req.team.key, team_name: req.team.name, title: String(b.title || 'Our song').replace(/[<>]/g, '').trim().slice(0, 80) || 'Our song',
@@ -169,9 +195,10 @@ module.exports = function attachCover(router, deps) {
       const spath = `${safePart(req.team.key)}/sung/${row.id}/source.${kind.ext}`;
       const up = await supabase.storage.from(BUCKET).upload(spath, f.buffer, { contentType: kind.mime, upsert: true });
       if (up.error) { await supabase.from('evalroom_covers').update({ status: 'failed', error: 'The song could not be uploaded. Please try again.' }).eq('id', row.id); throw new Error(up.error.message); }
-      make(row.id, f.buffer, kind, spath); // carries on after this reply; the page checks back
+      reserved = false; make(row.id, f.buffer, kind, spath); // carries on after this reply; the page checks back
       res.json({ ok: true, song: view(row), lyricNote: fit.kept < fit.total ? `The singer can take about ${LYRICS_MAX} characters, so it will sing your first ${fit.kept} of ${fit.total} lines.` : null });
     } catch (err) {
+      if (reserved) running--;
       console.error('evalroom cover create error:', err.message);
       res.status(502).json({ error: 'The singer could not start. Please try again.' });
     }
@@ -183,7 +210,7 @@ module.exports = function attachCover(router, deps) {
     if (!r || r.status === 'deleted') return res.status(404).json({ error: 'Song not found.' });
     if (['queued', 'singing'].includes(r.status) && Date.now() - new Date(r.created_at).getTime() > 11 * 60000) {
       await supabase.from('evalroom_covers').update({ status: 'failed', error: 'The singer was interrupted. Please try again.' }).eq('id', r.id);
-      r.status = 'failed'; r.error = 'The singer was interrupted. Please try again.';
+      r.status = 'failed'; r.error = 'The singer was interrupted. Please try again.'; await dropSource(r);
     }
     const out = { song: view(r) };
     if (r.status === 'ready') {
@@ -198,17 +225,21 @@ module.exports = function attachCover(router, deps) {
 
   router.post('/sung/:id/delete', requireTeam, async (req, res) => {
     if (!UUID.test(req.params.id)) return res.status(404).json({ error: 'Song not found.' });
-    const { data: r } = await supabase.from('evalroom_covers').select('id, audio_path, status').eq('id', req.params.id).eq('team_key', req.team.key).single();
+    const { data: r } = await supabase.from('evalroom_covers').select('id, team_key, audio_path, status').eq('id', req.params.id).eq('team_key', req.team.key).single();
     if (!r || r.status === 'deleted') return res.status(404).json({ error: 'Song not found.' });
     if (r.audio_path) await supabase.storage.from(BUCKET).remove([r.audio_path]);
+    await dropSource(r);
     const { error } = await supabase.from('evalroom_covers').update({ status: 'deleted', audio_path: null, lyrics: '' }).eq('id', r.id);
     if (error) return res.status(500).json({ error: 'That song could not be removed. Please try again.' });
     res.json({ ok: true });
   });
 
-  setTimeout(() => {
-    supabase.from('evalroom_covers').update({ status: 'failed', error: 'The singer was interrupted. Please try again.' })
-      .in('status', ['queued', 'singing']).lt('created_at', new Date(Date.now() - 6 * 60000).toISOString()).then(() => {});
+  setTimeout(async () => {
+    try {
+      const { data } = await supabase.from('evalroom_covers').update({ status: 'failed', error: 'The singer was interrupted. Please try again.' })
+        .in('status', ['queued', 'singing']).lt('created_at', new Date(Date.now() - 11 * 60000).toISOString()).select('id, team_key');
+      for (const r of data || []) await dropSource(r);
+    } catch (e) { /* best effort */ }
   }, 9000).unref();
 };
 module.exports._internal = { forSinger, sing, inputFields, fitLyrics, STYLES, token, REPLICATE, MODEL };
