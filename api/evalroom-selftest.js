@@ -290,7 +290,7 @@ async function runCase(row, port) {
     }
     step('upload without the rights box is refused', (await post('/karaoke', A, form({ ...good, rights: 'false' }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }))).status, 400);
     step('a file that is not audio is refused', (await post('/karaoke', A, form(good, { buf: Buffer.from('<html>not a song</html>'), type: 'audio/mpeg', name: 's.mp3' }))).status, 400);
-    step('upload with no lyrics is refused', (await post('/karaoke', A, form({ ...good, original_lyrics: '' }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }))).status, 400);
+    step('upload with no new lyrics is refused', (await post('/karaoke', A, form({ ...good, new_lyrics: '' }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }))).status, 400);
     step('signed-out upload is refused', (await post('/karaoke', '', form(good, { buf: song, type: 'audio/mpeg', name: 's.mp3' }))).status, 401);
     const made = await post('/karaoke', A, form(good, { buf: song, type: 'audio/mpeg', name: 's.mp3' })); step('upload accepted', made.status, 200, made.d.error);
     const id = made.d.song && made.d.song.id; let st = null; const t0 = Date.now(); const seen = new Set();
@@ -308,26 +308,41 @@ async function runCase(row, port) {
       step('out-of-order taps are refused', (await post('/karaoke/' + id + '/timings', A, { starts: [5, 9, 4, 8] }, true)).status, 400);
       step('taps all at one moment are refused', (await post('/karaoke/' + id + '/timings', A, { starts: [5, 5, 5, 5] }, true)).status, 400);
       const back = await post('/karaoke/' + id + '/timings/reset', A, {}, true); step('go back to automatic timing', back.status === 200 && back.d.lines[0].start === st.d.lines[0].start, true);
-      step('automatic timing was judged trustworthy', st.d.song.quality && st.d.song.quality.level, 'good', JSON.stringify(st.d.song.quality && st.d.song.quality.reasons));
+      step('automatic timing was judged trustworthy', st.d.song.quality && st.d.song.quality.level, 'good', JSON.stringify(st.d.song.quality));
       step('another team cannot delete this song', (await post('/karaoke/' + id + '/delete', B, {}, true)).status, 404);
       step('another team cannot change the timing', (await post('/karaoke/' + id + '/timings', B, { starts: [1, 2, 3, 4] }, true)).status, 404);
       const pathPublic = await fetch(`${process.env.SUPABASE_URL}/storage/v1/object/public/evalroom-private/preview_${run}-a/karaoke/${id}/music.mp3`);
       step('the audio is not reachable without the private link', pathPublic.status >= 400, true, 'status ' + pathPublic.status);
     }
     if (id) {
-      // Wrong lyrics for this recording must be flagged, not presented as fine.
-      const wrongLyrics = 'Purple elephants are dancing on the ceiling of the kitchen\nSeventeen umbrellas float across a field of frozen butter\nMy accountant plays the tuba every Wednesday after breakfast\nNobody remembers where the yellow submarine was parked\nQuantum sandwiches are better when the weather turns to gravel\nGrandma built a rocket from a toaster and a trombone';
-      const C = R.signToken({ t: 'preview:' + run + '-c', n: 'Preview: wrong lyrics', p: 1 }); // its own team, so the upload limit is not in the way
-      const bad = await post('/karaoke', C, form({ ...good, title: 'Wrong lyrics', original_lyrics: wrongLyrics, new_lyrics: wrongLyrics }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }));
-      let bs = null; const b0 = Date.now();
-      while (bad.d.song && Date.now() - b0 < 240000) { bs = await get('/karaoke/' + bad.d.song.id, C); if (['ready', 'failed'].includes(bs.d.song && bs.d.song.status)) break; await new Promise((r) => setTimeout(r, 3000)); }
-      const lvl = bs && bs.d.song && bs.d.song.quality && bs.d.song.quality.level;
-      step('lyrics that do not match the recording are flagged', lvl === 'poor' || (bs && bs.d.song && bs.d.song.status === 'failed'), true, 'level ' + lvl + ' loss ' + (bs && bs.d.song && bs.d.song.quality && bs.d.song.quality.loss) + ' reasons ' + JSON.stringify(bs && bs.d.song && bs.d.song.quality && bs.d.song.quality.reasons) + ' ' + ((bad.d && bad.d.error) || ''));
+      // The real-life mess: box 2 holds the whole song (pasted twice, with a stray fragment) but the recording is a short clip.
+      const wait = async (sid, tk) => { let x = null; const w0 = Date.now(); while (sid && Date.now() - w0 < 240000) { x = await get('/karaoke/' + sid, tk); if (['ready', 'failed'].includes(x.d.song && x.d.song.status)) break; await new Promise((r) => setTimeout(r, 3000)); } return x; };
+      const extra = 'Later on the curtain falls\nEverybody heads for home\nNo more echoes in the halls\nI am singing all alone';
+      const messy = 'Hear the music that we bring\n' + original + '\n' + extra + '\n' + original + '\n' + extra; // 17 lines, only 4 are sung
+      const eightNew = rewrite + '\nCae el telón at the end\nTodos go back to their home\nNo more ecos in the hall\nCanto solo, all alone';
+      const C = R.signToken({ t: 'preview:' + run + '-c', n: 'Preview: clip', p: 1 });
+      const mc = await post('/karaoke', C, form({ ...good, title: 'Clip of a longer song', original_lyrics: messy, new_lyrics: eightNew }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }));
+      const cs = await wait(mc.d.song && mc.d.song.id, C); const cq = (cs && cs.d.song && cs.d.song.quality) || {};
+      step('clip with a long messy paste: finds the 4 sung lines', cq.sungLines, 4, JSON.stringify({ mode: cq.mode, heard: cq.heardWords, matched: cq.matchedHeardPct, shown: cq.linesShown, left: cq.linesLeftOut, level: cq.level, reasons: cq.reasons }));
+      const good4 = st.d.lines.map((l) => l.start); const got4 = ((cs && cs.d.lines) || []).map((l) => l.start);
+      step('clip: the first 4 new lines land where the clean run put them (within 1 second)', got4.length === 4 && got4.every((x, k) => Math.abs(x - good4[k]) <= 1), true, 'clean ' + good4.join(',') + ' vs messy ' + got4.join(','));
+      step('clip: the extra new lines are left out and the team is told', cq.linesLeftOut, 4);
+      // Box 2 left empty: the room goes by ear.
+      const D = R.signToken({ t: 'preview:' + run + '-d', n: 'Preview: by ear', p: 1 });
+      const md = await post('/karaoke', D, form({ ...good, title: 'By ear', original_lyrics: '' }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }));
+      const ds = await wait(md.d.song && md.d.song.id, D); const dq = (ds && ds.d.song && ds.d.song.quality) || {};
+      step('box 2 empty: the room goes by ear and still makes a playable song', ds && ds.d.song && ds.d.song.status === 'ready' && dq.mode === 'heard-only' && (ds.d.lines || []).length >= 2, true, JSON.stringify({ mode: dq.mode, shown: dq.linesShown, heard: (dq.heard || '').slice(0, 160), lines: ((ds && ds.d.lines) || []).map((l) => l.start) }));
+      // Completely wrong lyrics: the room must not pretend they fit.
+      const wrongLyrics = 'Purple elephants are dancing on the ceiling of the kitchen\nSeventeen umbrellas float across a field of frozen butter\nMy accountant plays the tuba every Wednesday after breakfast\nNobody remembers where the yellow submarine was parked';
+      const E = R.signToken({ t: 'preview:' + run + '-e', n: 'Preview: wrong lyrics', p: 1 });
+      const bad = await post('/karaoke', E, form({ ...good, title: 'Wrong lyrics', original_lyrics: wrongLyrics }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }));
+      const bs = await wait(bad.d.song && bad.d.song.id, E); const bq = (bs && bs.d.song && bs.d.song.quality) || {};
+      step('wrong lyrics in box 2: the room goes by ear instead and says so', bq.mode, 'heard-instead', JSON.stringify({ sung: bq.sungLines, matched: bq.matchedHeardPct, shown: bq.linesShown, lines: ((bs && bs.d.lines) || []).map((l) => l.start) }));
+      for (const [x, tk] of [[mc, C], [md, D], [bad, E]]) if (x.d.song) await post('/karaoke/' + x.d.song.id + '/delete', tk, {}, true);
       const del = await post('/karaoke/' + id + '/delete', A, {}, true); step('team can delete its song', del.status, 200);
       step('deleted song is gone', (await get('/karaoke/' + id, A)).status, 404);
       const { data: left } = await R.supabase.storage.from('evalroom-private').list(`preview_${run}-a/karaoke/${id}`);
       step('deleted audio is removed from storage', (left || []).length, 0);
-      if (bad.d.song) await post('/karaoke/' + bad.d.song.id + '/delete', C, {}, true);
     }
     return { passed: steps.filter((x) => x.startsWith('PASS')).length, total: steps.length, steps, secondsToReady: secs, lines: st && st.d.lines && st.d.lines.map((l) => l.start + '-' + l.end + ' ' + l.text), quality: st && st.d.song && st.d.song.quality };
   }

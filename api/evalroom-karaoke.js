@@ -90,6 +90,22 @@ async function align(buf, kind, text) {
   return { words: (j.words || []).filter((w) => String(w.text || '').trim()), loss: j.loss };
 }
 
+/** Listen to a recording. Returns { words: [{text,start,end}], text, language }. */
+async function transcribe(buf, kind) {
+  const form = new FormData();
+  form.append('file', new Blob([buf], { type: kind.mime }), 'vocals.' + kind.ext);
+  form.append('model_id', process.env.EVALROOM_STT_MODEL || 'scribe_v1');
+  form.append('timestamps_granularity', 'word');
+  form.append('tag_audio_events', 'false');
+  form.append('diarize', 'false');
+  const res = await fetch(`${API}/v1/speech-to-text`, { method: 'POST', headers: { 'xi-api-key': elevenKey() }, body: form, signal: AbortSignal.timeout(240000) });
+  if (!res.ok) throw await elevenError(res);
+  const j = await res.json();
+  const words = (j.words || []).filter((w) => (w.type || 'word') === 'word' && String(w.text || '').trim() && Number.isFinite(w.start) && Number.isFinite(w.end))
+    .map((w) => ({ text: String(w.text).trim(), start: w.start, end: w.end }));
+  return { words, text: j.text || words.map((w) => w.text).join(' '), language: j.language_code || null };
+}
+
 // ── Lyrics and timing ────────────────────────────────────────────────────────
 const lyricLines = (t) => String(t || '').replace(/\r/g, '').split('\n').map((l) => l.trim())
   .filter((l) => l && !/^\[[^\]]*\]$/.test(l) && !/^(verse|chorus|bridge|intro|outro|pre-chorus|hook|refrain)\s*\d*\s*[:.-]?$/i.test(l));
@@ -97,6 +113,89 @@ const tokens = (line) => line.split(/\s+/).filter(Boolean);
 const bare = (w) => String(w).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '');
 // A rough size for spreading words across a line: Hangul blocks count once each, otherwise vowel groups.
 const weight = (w) => { const h = (w.match(/[가-힣]/g) || []).length; if (h) return h; return Math.max(1, (bare(w).match(/[aeiouyáéíóúü]+/g) || []).length); };
+
+// Do two words sound like the same word? (Hearing is imperfect: "gimme"/"give me", "ready"/"reddy".)
+function alike(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a))) return true;
+  if (Math.abs(a.length - b.length) > 1 || Math.min(a.length, b.length) < 4) return false;
+  let i = 0; let j = 0; let edits = 0; // one letter added, dropped or changed
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+  }
+  return edits + (a.length - i) + (b.length - j) <= 1;
+}
+
+/**
+ * Which of the pasted lines are actually sung in the recording, and roughly when?
+ * Lines up the pasted words with the heard words in order (longest common run of
+ * matching words), so extra verses, a doubled paste or a short clip do no harm.
+ */
+function findSungLines(origLines, heard) {
+  const toks = []; // every pasted word, with the line it belongs to
+  origLines.forEach((line, li) => tokens(line).forEach((t) => { const b = bare(t); if (b) toks.push({ b, li }); }));
+  const h = heard.map((w) => ({ b: bare(w.text), start: w.start, end: w.end })).filter((w) => w.b);
+  const n = toks.length; const m = h.length;
+  const per = origLines.map((l) => ({ words: tokens(l).map(bare).filter(Boolean).length, hit: 0, start: null, end: null }));
+  if (!n || !m) return { per, sung: [], matchedHeardPct: 0 };
+  // Longest common run of matching words, filled from the end so the walk forward
+  // picks the EARLIEST place each heard word fits (a clip is usually the start of the song).
+  const W = m + 1; const dp = new Uint16Array((n + 1) * W);
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) {
+    dp[i * W + j] = alike(toks[i].b, h[j].b) ? dp[(i + 1) * W + j + 1] + 1 : Math.max(dp[(i + 1) * W + j], dp[i * W + j + 1]);
+  }
+  let i = 0; let j = 0; let matched = 0;
+  while (i < n && j < m) {
+    if (alike(toks[i].b, h[j].b) && dp[i * W + j] === dp[(i + 1) * W + j + 1] + 1) {
+      const p = per[toks[i].li]; p.hit++; matched++;
+      if (p.start === null) p.start = h[j].start;
+      p.end = h[j].end;
+      i++; j++;
+    } else if (dp[i * W + j + 1] >= dp[(i + 1) * W + j]) j++; else i++;
+  }
+  // A line counts as sung when at least half of its words were heard (one-word lines need that word).
+  const sung = [];
+  per.forEach((p, li) => { if (p.words && p.hit >= Math.max(1, Math.ceil(p.words * 0.5))) sung.push(li); });
+  return { per, sung, matchedHeardPct: Math.round((100 * matched) / m) };
+}
+
+// When there are no usable pasted lyrics, make lines out of what was heard.
+function linesFromHeard(heard) {
+  const lines = []; let cur = [];
+  const flush = () => { if (cur.length) { lines.push({ text: cur.map((w) => w.text).join(' '), start: cur[0].start, end: cur[cur.length - 1].end }); cur = []; } };
+  heard.forEach((w, k) => {
+    cur.push(w);
+    const gap = k + 1 < heard.length ? heard[k + 1].start - w.end : 9;
+    if (gap >= 0.6 || /[.!?,;]$/.test(w.text) && cur.length >= 3 || cur.length >= 9) flush();
+  });
+  flush();
+  return lines;
+}
+
+/**
+ * Give the NEW lyrics their timing from the lines that were really sung.
+ *   sungWindows: [{ start, end, origIndex }] in song order
+ */
+function layNewLyrics(newLyrics, sungWindows, origCount) {
+  const neu = lyricLines(newLyrics);
+  const byOrig = new Map(sungWindows.map((w) => [w.origIndex, w]));
+  const oneToOne = origCount === neu.length; // same line count: line i of the new lyrics belongs to line i of the original
+  const lines = []; let dropped = 0;
+  neu.forEach((text, i) => {
+    const win = oneToOne ? byOrig.get(i) : sungWindows[i];
+    if (!win) { dropped++; return; }
+    const s = win.start; const e = Math.max(win.end, s + 0.5);
+    const toks = tokens(text); const sum = toks.reduce((a, t) => a + weight(t), 0) || 1; let at = s;
+    const ws = toks.map((t) => { const d = ((e - s) * weight(t)) / sum; const w = { t, s: +at.toFixed(3), e: +(at + d).toFixed(3) }; at += d; return w; });
+    lines.push({ start: +s.toFixed(3), end: +e.toFixed(3), text, words: ws });
+  });
+  // Keep order sane.
+  for (let k = 1; k < lines.length; k++) if (lines[k].start < lines[k - 1].start + 0.1) lines[k].start = +(lines[k - 1].start + 0.1).toFixed(3);
+  return { lines, newLines: neu.length, dropped, oneToOne };
+}
 
 /**
  * Turn word timings for the ORIGINAL lyrics into line timings, then give each
@@ -162,6 +261,63 @@ function buildTimings(originalLyrics, newLyrics, aligned, durationHint) {
   return { lines, quality };
 }
 
+/**
+ * The whole timing job for one song:
+ *   listen -> find which pasted lines are sung -> time exactly those -> lay the new lyrics on them.
+ */
+async function timeSong(vocals, originalLyrics, newLyrics, note = () => {}) {
+  const orig = lyricLines(originalLyrics);
+  let heard;
+  try { heard = await transcribe(vocals.buf, vocals); }
+  catch (e) {
+    // Listening is unavailable: fall back to timing everything in box 2, and say so.
+    if (!orig.length) throw e;
+    await note('Timing the lyrics to the singing');
+    const aligned = await align(vocals.buf, vocals, orig.join('\n'));
+    const t = buildTimings(originalLyrics, newLyrics, aligned);
+    return { lines: t.lines, heardText: '', quality: { ...t.quality, mode: 'no-listening', reasons: [...t.quality.reasons, 'could-not-listen'], level: t.quality.level === 'good' ? 'check' : t.quality.level, linesShown: t.lines.length, linesLeftOut: 0 } };
+  }
+  const found = findSungLines(orig, heard.words);
+  const base = { originalLines: orig.length, heardWords: heard.words.length, matchedHeardPct: found.matchedHeardPct, sungLines: found.sung.length, language: heard.language };
+  let windows = []; let mode; let loss = null; const reasons = [];
+
+  if (found.sung.length >= 2 && found.matchedHeardPct >= 35) {
+    // The pasted lyrics (or part of them) are in the recording: time exactly the sung lines.
+    mode = 'matched';
+    await note('Timing the lyrics to the singing');
+    const sungText = found.sung.map((li) => orig[li]);
+    let aligned = null;
+    try { aligned = await align(vocals.buf, vocals, sungText.join('\n')); } catch (e) { reasons.push('align-failed'); }
+    const words = aligned ? aligned.words.filter((w) => Number.isFinite(w.start) && Number.isFinite(w.end)) : [];
+    let wi = 0; let stacked = 0;
+    for (let i = 1; i < words.length; i++) if (words[i].start - words[i - 1].start < 0.02) stacked++;
+    const usable = aligned && words.length && (aligned.loss === undefined || aligned.loss <= LOSS_WARN) && stacked / Math.max(1, words.length) < 0.15;
+    loss = aligned ? aligned.loss : null;
+    found.sung.forEach((li, k) => {
+      const want = tokens(sungText[k]).length; const mine = usable ? words.slice(wi, wi + want) : []; wi += want;
+      const rough = found.per[li];
+      // Precise times when the fit is good; otherwise the times from listening, which are always in the right place.
+      if (mine.length && Math.abs(mine[0].start - rough.start) < 4) windows.push({ start: mine[0].start, end: mine[mine.length - 1].end, origIndex: li });
+      else windows.push({ start: rough.start, end: rough.end, origIndex: li });
+    });
+    if (!usable) reasons.push('used-listening-times');
+  } else if (heard.words.length >= 4) {
+    // The pasted lyrics are not in this recording (or box 2 was left empty): use the lines as heard.
+    mode = orig.length ? 'heard-instead' : 'heard-only';
+    linesFromHeard(heard.words).forEach((l, k) => windows.push({ start: l.start, end: l.end, origIndex: k }));
+    if (orig.length) reasons.push('lyrics-not-in-recording');
+  } else {
+    mode = 'nothing-heard'; reasons.push('no-words');
+  }
+  windows.sort((a, b) => a.start - b.start);
+  const laid = layNewLyrics(newLyrics, windows, mode === 'matched' ? orig.length : windows.length);
+  const level = mode === 'nothing-heard' || !laid.lines.length ? 'poor' : mode === 'matched' && !laid.dropped && found.sung.length === orig.length && !reasons.length ? 'good' : 'check';
+  return {
+    lines: laid.lines, heardText: heard.text,
+    quality: { ...base, mode, loss, reasons, level, newLines: laid.newLines, linesShown: laid.lines.length, linesLeftOut: laid.dropped, oneToOne: laid.oneToOne, timedLines: windows.length },
+  };
+}
+
 // ── Routes ───────────────────────────────────────────────────────────────────
 module.exports = function attachKaraoke(router, deps) {
   const { supabase, requireTeam, limited, multer, CFG } = deps;
@@ -186,11 +342,10 @@ module.exports = function attachKaraoke(router, deps) {
       const ipath = `${safePart(row.team_key)}/karaoke/${id}/music.${split.instrumental.ext}`;
       const up = await supabase.storage.from(BUCKET).upload(ipath, split.instrumental.buf, { contentType: split.instrumental.mime, upsert: true });
       if (up.error) throw new Error('storage: ' + up.error.message);
-      await set({ status: 'timing', step_note: 'Timing the lyrics to the singing', instrumental_path: ipath, instrumental_type: split.instrumental.mime });
-      const aligned = await align(split.vocals.buf, split.vocals, lyricLines(row.original_lyrics).join('\n'));
-      const { lines, quality } = buildTimings(row.original_lyrics, row.new_lyrics, aligned);
+      await set({ status: 'timing', step_note: 'Listening for the words', instrumental_path: ipath, instrumental_type: split.instrumental.mime });
+      const { lines, quality, heardText } = await timeSong(split.vocals, row.original_lyrics, row.new_lyrics, (note) => set({ step_note: note }));
       const dur = lines.length ? lines[lines.length - 1].end : null;
-      await set({ status: 'ready', step_note: null, timings: lines, auto_timings: lines, timing_quality: quality, duration_s: dur, finished_at: new Date().toISOString() });
+      await set({ status: 'ready', step_note: null, timings: lines, auto_timings: lines, timing_quality: { ...quality, heard: String(heardText || '').slice(0, 6000) }, duration_s: dur, finished_at: new Date().toISOString() });
     } catch (err) {
       console.error('evalroom karaoke error:', err.message);
       const friendly = /not switched on/.test(err.message) ? err.message
@@ -222,7 +377,6 @@ module.exports = function attachKaraoke(router, deps) {
       const orig = String(b.original_lyrics || ''); const neu = String(b.new_lyrics || '');
       if (orig.length > CFG.maxTextChars || neu.length > CFG.maxTextChars) return res.status(400).json({ error: `Those lyrics are longer than the song maker can take (${CFG.maxTextChars.toLocaleString()} characters). Please trim them.` });
       const ol = lyricLines(orig); const nl = lyricLines(neu);
-      if (ol.length < 2) return res.status(400).json({ error: 'Paste the original lyrics of the song, one line per line. Lines that are only a label, like [Chorus], are skipped.' });
       if (nl.length < 2) return res.status(400).json({ error: 'Paste your new lyrics, one line per line. Lines that are only a label, like [Chorus], are skipped.' });
       const since = new Date(Date.now() - 864e5).toISOString();
       const { data: today } = await supabase.from('evalroom_karaoke').select('status').eq('team_key', req.team.key).gte('created_at', since);
@@ -242,7 +396,7 @@ module.exports = function attachKaraoke(router, deps) {
       const up = await supabase.storage.from(BUCKET).upload(spath, f.buffer, { contentType: kind.mime, upsert: true });
       if (!up.error) await supabase.from('evalroom_karaoke').update({ source_path: spath }).eq('id', row.id);
       prepare(row.id, f.buffer, kind); // carries on after this reply; the page checks back for progress
-      res.json({ ok: true, song: view(row), lineNote: ol.length === nl.length ? null : `Your new lyrics have ${nl.length} lines and the original has ${ol.length}. The timing works best when they match line for line.` });
+      res.json({ ok: true, song: view(row), lineNote: null });
     } catch (err) {
       console.error('evalroom karaoke create error:', err.message);
       res.status(502).json({ error: 'The song maker could not start. Please try again.' });
@@ -315,4 +469,4 @@ module.exports = function attachKaraoke(router, deps) {
       .in('status', ['queued', 'splitting', 'timing']).lt('created_at', new Date(Date.now() - 6 * 60000).toISOString()).then(() => {});
   }, 8000).unref();
 };
-module.exports._internal = { separate, align, buildTimings, sniffAudio, lyricLines, elevenKey, API };
+module.exports._internal = { separate, align, transcribe, timeSong, findSungLines, linesFromHeard, layNewLyrics, alike, buildTimings, sniffAudio, lyricLines, elevenKey, API };

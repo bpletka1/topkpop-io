@@ -20,8 +20,9 @@
   var t = null;
   function hint() {
     var a = lines(f.orig.value).length, b = lines(f.neu.value).length, h = $('#lineHint');
-    if (a && b && a !== b) { h.textContent = 'Your new lyrics have ' + b + ' lines and the original has ' + a + '. The timing works best when they match line for line.'; h.style.color = '#ffe08a'; }
-    else { h.textContent = 'Each new line takes the timing of the same line in the original.' + (a && b ? ' Both have ' + a + ' lines.' : ''); h.style.color = ''; }
+    h.style.color = '';
+    if (a && b && a !== b) h.textContent = 'Your new lyrics have ' + b + ' lines and box 2 has ' + a + '. That is fine if the recording is only part of the song: the room matches your lines, in order, to the lines it hears.';
+    else h.textContent = 'Each new line takes the timing of the matching line in the recording.' + (a && b ? ' Both boxes have ' + a + ' lines.' : '');
     dir.update();
   }
   ['title', 'orig', 'neu'].forEach(function (k) { f[k].addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { ER.store.set('karaoke:draft', { title: f.title.value, orig: f.orig.value, neu: f.neu.value }); hint(); }, 400); }); });
@@ -33,7 +34,7 @@
     steps: [
       { html: '<b>Finish your lyrics first.</b> Write them in the <a href="/pages/evaluation-room/studio/">Songwriting Studio</a> and rehearse with the <a href="/pages/evaluation-room/judge/?j=lyric">Lyric Judge</a>.', done: function () { return lines(f.neu.value).length >= 2 || S.songs.length > 0; } },
       { html: '<b>Choose the original song file</b> in box 1. It must be a song your team bought or may use.', done: function () { return !!(f.song.files && f.song.files[0]) || S.songs.length > 0; } },
-      { html: '<b>Paste the original lyrics</b> in box 2 and <b>your new lyrics</b> in box 3, one line per line.', done: function () { return (lines(f.orig.value).length >= 2 && lines(f.neu.value).length >= 2) || S.songs.length > 0; } },
+      { html: '<b>Paste your new lyrics</b> in box 3, one line per line. The original lyrics in box 2 help the room find each line, but you can leave box 2 empty.', done: function () { return lines(f.neu.value).length >= 2 || S.songs.length > 0; } },
       { html: '<b>Press Make my song.</b> It takes a few minutes.', done: function () { return S.songs.length > 0; } },
       { html: '<b>Press Play and sing along.</b> If a line is out of step, use Fix the timing.', done: function () { return !!ER.store.get('karaoke:played'); } }
     ],
@@ -74,7 +75,6 @@
     var m = $('#makeMsg'), btn = this, file = f.song.files && f.song.files[0];
     ER.hideMsg(m);
     if (!file) { ER.showMsg(m, 'Choose the original song file in box 1.'); return; }
-    if (lines(f.orig.value).length < 2) { ER.showMsg(m, 'Paste the original lyrics in box 2, one line per line.'); return; }
     if (lines(f.neu.value).length < 2) { ER.showMsg(m, 'Paste your new lyrics in box 3, one line per line.'); return; }
     if (!f.rights.checked) { ER.showMsg(m, 'Tick the box to confirm your team bought this song or has the right to use it.'); return; }
     var fd = new FormData();
@@ -114,14 +114,20 @@
     S.lines = d.lines || [];
     $('#player').hidden = false; $('#playerTitle').textContent = d.song.title || 'Our song';
     if (audio.getAttribute('data-id') !== d.song.id || audio.getAttribute('data-stale')) { audio.src = d.audio_url; audio.setAttribute('data-id', d.song.id); audio.removeAttribute('data-stale'); $('#seek').value = 0; $('#seek').max = 100; }
-    var q = d.song.quality || {}, w = $('#timingWarn');
-    w.hidden = true;
-    if (!d.song.edited && q.level === 'poor') {
-      w.hidden = false;
-      w.innerHTML = '<b>The lyrics in box 2 do not seem to match this recording.</b> The words will probably light up at the wrong times. Check that box 2 has the words actually sung in this file (the same version of the song, sung in English). Then make the song again, or press Fix the timing and tap the lines in yourself.';
-    } else if (!d.song.edited && q.level === 'check') {
-      w.hidden = false;
-      w.innerHTML = '<b>Some lines may be out of step.</b> ' + (q.sameLineCount === false ? 'Your new lyrics have ' + q.newLines + ' lines and the original has ' + q.originalLines + ', so the lines could not be matched one for one. ' : '') + 'Play it through, and use Fix the timing if a line lights up early or late.';
+    var q = d.song.quality || {}, w = $('#timingWarn'), parts = [];
+    w.hidden = true; w.className = 'er-warn';
+    if (!d.song.edited) {
+      if (q.mode === 'nothing-heard' || !S.lines.length) parts.push('<b>The room could not hear any singing in this file.</b> Check that it is the full song with vocals, then make it again. You can also press Fix the timing and tap the lines in yourself.');
+      else {
+        if (q.mode === 'matched' && q.sungLines < q.originalLines) parts.push('<b>The room heard ' + q.sungLines + ' of the ' + q.originalLines + ' lines in box 2 in this recording</b> and timed your lyrics to those. Lines that are not in the recording were left out.');
+        if (q.mode === 'heard-instead') parts.push('<b>The words in box 2 are not the words sung in this recording,</b> so the room went by ear and timed your lyrics to the lines it heard.');
+        if (q.mode === 'heard-only') parts.push('<b>The room went by ear</b> and timed your lyrics to the lines it heard.');
+        if (q.mode === 'no-listening') parts.push('<b>Some lines may be out of step.</b>');
+        if (q.linesLeftOut) parts.push(q.linesLeftOut + ' of your ' + q.newLines + ' new lines are not shown, because the recording has no more sung lines to put them on.');
+        if (q.reasons && q.reasons.indexOf('used-listening-times') !== -1) parts.push('The timing is approximate for this recording.');
+        if (parts.length) parts.push('Play it through, and use Fix the timing if a line lights up early or late.');
+      }
+      if (parts.length) { w.hidden = false; w.innerHTML = parts.join(' '); if (q.level !== 'poor') w.className = 'er-msg on info'; }
     }
     $('#fixIntro').textContent = (d.song.edited ? 'Your team set this timing by tapping. ' : '') + 'If a line lights up too early or too late, fix it by tapping along once. Tap the big button each time a new line should start.';
     $('#fixReset').hidden = !d.canUndo;
