@@ -243,6 +243,13 @@ const SUITES = {
     { label: 'baseline-visual-good', kind: 'baseline', payload: { judge: 'visual', avatar: 'avatar_good.png', poster: 'poster_good.png' } },
     { label: 'baseline-visual-weak', kind: 'baseline', payload: { judge: 'visual', avatar: 'avatar_weak.png', poster: 'poster_weak.png' } },
   ],
+  // Same, but pasted the way a person would after the GPT's welcome ("Here are my lyrics: ...").
+  baseline2: [
+    ...[['lyric-strong', 'lyric', L_STRONG, 'Here are my full lyrics to evaluate:'], ['lyric-mid', 'lyric', L_MID, 'Here are my full lyrics to evaluate:'], ['lyric-mid-revised', 'lyric', L_MID_REVISED, 'Here are my full lyrics to evaluate:'], ['lyric-weak', 'lyric', L_WEAK, 'Here are my full lyrics to evaluate:'], ['lyric-korean', 'lyric', L_KOREAN, 'Here are my full lyrics to evaluate:'],
+      ['lesson-mid', 'lesson', P_MID, 'Here is my full lesson plan to evaluate:'], ['lesson-mid-revised', 'lesson', P_MID_REVISED, 'Here is my full lesson plan to evaluate:'], ['lesson-weak', 'lesson', P_WEAK, 'Here is my full lesson plan to evaluate:']]
+      .map(([l, j, text, leadIn]) => ({ label: 'baseline2-' + l, kind: 'baseline', payload: { judge: j, text, leadIn } })),
+    { label: 'baseline2-visual-weak', kind: 'baseline', payload: { judge: 'visual', avatar: 'avatar_weak.png', poster: 'poster_weak.png' } },
+  ],
   studio: [
     studioCase('studio-fun-es', SONG.fun, VOCAB_ES, 'detectives solving a mystery', 'Mainly English with vocabulary words'),
     studioCase('studio-bananas-es', SONG.bananas, VOCAB_ES, 'courage', 'English + Spanish mix'),

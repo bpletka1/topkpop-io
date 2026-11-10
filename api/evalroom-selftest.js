@@ -60,7 +60,15 @@ function cleanCopy(text) {
     if (/^\s*(-{3,}|⸻+)\s*$/.test(l)) { if (out.join('').trim()) break; else continue; }
     out.push(l.replace(/\*\*/g, '').replace(/^\s*#{1,6}\s*/, '').replace(/^```.*$/, ''));
   }
-  const body = out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  let body = out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  // Leave off a closing remark such as "Would you like any changes?"
+  const stanzas = body.split(/\n\s*\n/);
+  while (stanzas.length > 1) {
+  const last = stanzas[stanzas.length - 1].trim();
+  const oneLine = last.indexOf('\n') === -1;
+    if (oneLine && (/\?\s*$/.test(last) || /^(would you|let me know|if you|want me|i can|feel free|note:|tip:|ready to)/i.test(last))) stanzas.pop(); else break;
+  }
+  body = stanzas.join('\n\n').trim();
   return body.length >= 40 ? body : '';
 }
 
@@ -99,7 +107,7 @@ async function runCase(row, port) {
     const input = judgeInput(j, p);
     const user = j.input === 'images'
       ? [{ type: 'text', text: 'Here are my avatar and my poster.' }, { type: 'image_url', image_url: { url: input.avatarDataUrl } }, { type: 'image_url', image_url: { url: input.posterDataUrl } }]
-      : input.text;
+      : (p.leadIn ? p.leadIn + '\n\n' : '') + input.text;
     const ai = await complete(R.openai, models || ['gpt-4o'], [{ role: 'system', content: j.instructions }, { role: 'user', content: user }], { maxTokens: 3000, effort: p.effort });
     await R.logUsage('selftest', 'selftest', ai);
     return { raw: ai.text, model: ai.model, ms: ai.ms, dropped: ai.dropped, costUsd: ai.costUsd };
@@ -121,6 +129,14 @@ async function runCase(row, port) {
       if (copy) out.fit = await compare(p.original, copy, p.vocab);
     }
     return out;
+  }
+
+  if (row.kind === 'refit') {
+    // Re-run the syllable comparison on an answer that is already stored (no AI call).
+    const { data, error } = await R.supabase.from('evalroom_selftest').select('payload, result').eq('id', p.id).single();
+    if (error) throw new Error(error.message);
+    const copy = cleanCopy(data.result.raw);
+    return { of: p.id, foundCleanCopy: !!copy, model: data.result.model, fit: copy ? await compare(data.payload.original, copy, data.payload.vocab) : null };
   }
 
   if (row.kind === 'http') {
@@ -145,7 +161,7 @@ async function runCase(row, port) {
     for (let i = 0; i < times; i++) {
       const r = await fetch(`http://127.0.0.1:${port}${p.path}`, { method: p.method || 'GET', headers, body });
       const text = await r.text();
-      out.push({ status: r.status, type: r.headers.get('content-type'), body: text.slice(0, p.keep || 1500) });
+      out.push({ status: r.status, type: r.headers.get('content-type'), jeannieModel: r.headers.get('x-jeannie-model') || undefined, body: text.slice(0, p.keep || 1500) });
     }
     return { ms: Date.now() - t0, responses: times === 1 ? undefined : out.map((o) => o.status), ...out[out.length - 1] };
   }
@@ -173,6 +189,8 @@ async function tick(port) {
 function startSelftestRunner(port) {
   if (!R.PREVIEW_MODE) return;
   console.log('Evaluation Room: preview test runner is on.');
+  // Anything left "running" by a restart goes back in the queue.
+  R.supabase.from('evalroom_selftest').update({ status: 'pending', started_at: null }).eq('status', 'running').then(() => {});
   setInterval(() => { tick(port).catch((e) => console.error('selftest tick error:', e.message)); }, 4000);
 }
 

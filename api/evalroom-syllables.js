@@ -24,6 +24,9 @@ function spanishCount(w) {
   return Math.max(1, n);
 }
 
+// Words the dictionary splits in two but singers almost always sing as written here.
+const SUNG = { our: 1, ours: 1, hour: 1, hours: 1, fire: 1, fires: 1, every: 2, everything: 3, everyone: 3, everybody: 4, different: 2, family: 2, favorite: 2 };
+
 function wordCount(word, spanishSet) {
   const hangul = (word.match(/[가-힣]/g) || []).length;
   if (hangul) return hangul;
@@ -31,6 +34,7 @@ function wordCount(word, spanishSet) {
   if (!/[a-záéíóúñü]/.test(w)) return /\d/.test(w) ? 1 : 0;
   const plain = w.normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (/[áéíóúñü]/.test(w) || spanishSet.has(w) || spanishSet.has(plain)) return spanishCount(w);
+  if (SUNG[w]) return SUNG[w];
   const p = dict[w] || dict[w.replace(/'/g, '')] || (w.endsWith("'s") ? dict[w.slice(0, -2)] : null);
   if (p) return (p.match(/\d/g) || []).length || 1;
   return heuristic(plain) || 1;

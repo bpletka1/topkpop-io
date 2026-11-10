@@ -70,13 +70,29 @@
       out.push(l.replace(/\*\*/g, '').replace(/^\s*#{1,6}\s*/, '').replace(/^```.*$/, ''));
     }
     var body = out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    // Leave off a closing remark such as "Would you like any changes?"
+    var stanzas = body.split(/\n\s*\n/);
+    while (stanzas.length > 1) {
+      var last = stanzas[stanzas.length - 1].trim();
+      var oneLine = last.indexOf('\n') === -1;
+      if (oneLine && (/\?\s*$/.test(last) || /^(would you|let me know|if you|want me|i can|feel free|note:|tip:|ready to)/i.test(last))) stanzas.pop(); else break;
+    }
+    body = stanzas.join('\n\n').trim();
     return body.length >= 40 ? body : '';
   }
 
   // ── Showing the conversation ──
   function bubble(m, live) {
     var b = ER.el('div', 'er-bubble ' + (m.role === 'user' ? 'user' : 'bot'));
-    if (m.role === 'user') { b.textContent = m.content; return b; }
+    if (m.role === 'user') {
+      if (m.content.length > 420) {
+        var short = ER.el('span'); short.textContent = m.content.slice(0, 260).replace(/\s+\S*$/, '') + '\u2026 ';
+        var more = ER.el('button', 'er-linkbtn', 'Show all'); more.type = 'button';
+        more.addEventListener('click', function () { b.textContent = m.content; });
+        b.appendChild(short); b.appendChild(more);
+      } else b.textContent = m.content;
+      return b;
+    }
     b.innerHTML = '<div class="who">Songwriting Studio</div><div class="body">' + ER.md(m.content) + '</div>';
     if (!live) addActions(b, m.content);
     return b;
