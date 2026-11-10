@@ -224,6 +224,47 @@ async function runCase(row, port) {
     return { passed: steps.filter((x) => x.pass).length, total: steps.length, failed: steps.filter((x) => !x.pass), steps: steps.map((x) => (x.pass ? 'PASS ' : 'FAIL ') + x.name + (x.note ? ' (' + x.note + ')' : '')), submissionsRows: count };
   }
 
+  if (row.kind === 'karaoke') {
+    // Makes a short test song, then runs the Song Maker's two audio steps on it and reports what came back.
+    const K = require('./evalroom-karaoke')._internal;
+    const key = K.elevenKey(); const out = { steps: [] };
+    const original = p.original || 'Morning light is on the stage\nEvery voice begins to sing\nHand in hand we turn the page\nHear the music that we bring';
+    const rewrite = p.rewrite || 'Luz del día on the stage\nMis amigos start to sing\nJuntos now we turn the page\nHear the música we bring';
+    let audio = null; let kind = null;
+    if (p.source !== 'speech') {
+      try {
+        const r = await fetch(K.API + '/v1/music', { method: 'POST', headers: { 'xi-api-key': key, 'content-type': 'application/json' }, signal: AbortSignal.timeout(240000),
+          body: JSON.stringify({ prompt: 'A simple upbeat pop song with a clear solo female lead vocal and light band backing. The singer sings exactly these lyrics, clearly, once through:\n' + original, music_length_ms: p.lengthMs || 30000 }) });
+        const buf = Buffer.from(await r.arrayBuffer());
+        out.steps.push('music: ' + r.status + ' ' + (r.headers.get('content-type') || '') + ' ' + buf.length + ' bytes' + (r.ok ? '' : ' ' + buf.toString('utf8').slice(0, 400)));
+        if (r.ok) { audio = buf; kind = K.sniffAudio(buf); }
+      } catch (e) { out.steps.push('music error: ' + e.message); }
+    }
+    if (!audio || !kind) {
+      const r = await fetch(K.API + '/v1/text-to-speech/' + (p.voice || '21m00Tcm4TlvDq8ikWAM'), { method: 'POST', headers: { 'xi-api-key': key, 'content-type': 'application/json' }, signal: AbortSignal.timeout(120000),
+        body: JSON.stringify({ text: original.replace(/\n/g, '. '), model_id: 'eleven_multilingual_v2' }) });
+      const buf = Buffer.from(await r.arrayBuffer());
+      out.steps.push('speech: ' + r.status + ' ' + (r.headers.get('content-type') || '') + ' ' + buf.length + ' bytes' + (r.ok ? '' : ' ' + buf.toString('utf8').slice(0, 400)));
+      if (r.ok) { audio = buf; kind = K.sniffAudio(buf); out.usedSpeech = true; }
+    }
+    if (!audio || !kind) return { ...out, error: 'no test audio could be made' };
+    out.sourceKind = kind.mime;
+    let split = null;
+    for (const variation of (p.variations || ['two_stems_v1', ''])) {
+      try { split = await K.separate(audio, kind, variation); out.steps.push('split(' + (variation || 'default') + '): ok ' + split.contentType + ' ' + split.bytes + ' bytes; files: ' + split.names.join(', ') + '; vocals=' + split.vocals.name + ' music=' + split.instrumental.name); break; }
+      catch (e) { out.steps.push('split(' + (variation || 'default') + ') failed: ' + String(e.message).slice(0, 700)); }
+    }
+    const forAlign = split ? split.vocals : { buf: audio, ...kind };
+    try {
+      const a = await K.align(forAlign.buf, forAlign, K.lyricLines(original).join('\n'));
+      const t = K.buildTimings(original, rewrite, a);
+      out.steps.push('align: ok words=' + a.words.length + ' loss=' + a.loss);
+      out.quality = t.quality; out.lines = t.lines.map((l) => l.start + '-' + l.end + ' ' + l.text + (l.guessed ? ' (guessed)' : ''));
+      out.firstWords = a.words.slice(0, 8).map((w) => w.text + '@' + w.start);
+    } catch (e) { out.steps.push('align failed: ' + String(e.message).slice(0, 700)); }
+    return out;
+  }
+
   if (row.kind === 'refit') {
     // Re-run the syllable comparison on an answer that is already stored (no AI call).
     const { data, error } = await R.supabase.from('evalroom_selftest').select('payload, result').eq('id', p.id).single();

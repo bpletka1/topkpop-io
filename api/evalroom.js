@@ -617,6 +617,9 @@ router.post('/studio/chat', requireTeam, async (req, res) => {
 // ── Take the Stage (official locks) ─────────────────────────────────────────
 require('./evalroom-stage')(router, { supabase, JUDGES, PREVIEW_MODE, requireTeam, uploadTwo, limited, clientIp, sniffImage, loadPictures });
 
+// ── Song Maker (karaoke) ─────────────────────────────────────────────────────
+require('./evalroom-karaoke')(router, { supabase, requireTeam, limited, multer, CFG });
+
 // Anything else under /api/evalroom
 router.use((req, res) => res.status(404).json({ error: 'Not found.' }));
 
