@@ -196,3 +196,12 @@ details.er-more summary { cursor: pointer; color: var(--amber); font-weight: 600
 .er-foot { border-top: 1px solid var(--line); padding: 26px 20px 40px; text-align: center; font-size: 0.8rem; color: var(--faint); }
 .er-foot a { color: var(--dim); }
 [hidden] { display: none !important; }
+
+/* song maker */
+.er-kscreen { margin: 16px 0; padding: 26px 18px; border-radius: 14px; text-align: center; background: radial-gradient(500px 200px at 50% 0%, rgba(138,43,226,0.35), transparent 70%), #0a0b10; border: 1px solid rgba(138,43,226,0.4); min-height: 190px; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+.er-kprev, .er-knext { font-size: 0.95rem; color: var(--faint); min-height: 1.4em; }
+.er-kline { font-size: clamp(1.3rem, 5.2vw, 2.1rem); font-weight: 600; line-height: 1.3; color: rgba(255,255,255,0.5); }
+.er-kline .w { transition: color .08s linear; }
+.er-kline .w.on { color: var(--amber); text-shadow: 0 0 18px rgba(255,191,0,0.55); }
+.er-seek { width: 100%; margin: 6px 0 14px; accent-color: var(--crimson); height: 28px; }
+.er-tap { width: 100%; min-height: 84px; font-size: 0.8rem; }

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Song Maker | The Evaluation Room | TopKpop.io</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="/css/evalroom.css" />
+</head>
+<body class="er">
+
+<header class="er-hero">
+  <p class="er-eyebrow">The Evaluation Room &middot; Trove 02</p>
+  <h1 class="er-title">Song <em>Maker</em></h1>
+  <p class="er-sub">Sing your new lyrics over the music of the original song, karaoke style.</p>
+</header>
+
+<main class="er-wrap">
+  <a class="er-back" href="/pages/evaluation-room/">&larr; Back to the room</a>
+
+  <section id="dir"></section>
+
+  <!-- Player -->
+  <section class="er-card glow" id="player" hidden aria-labelledby="playerTitle">
+    <p class="er-label">Now playing</p>
+    <h2 class="er-h2" id="playerTitle">Our song</h2>
+    <div class="er-kscreen" id="screen" aria-live="off">
+      <p class="er-kprev" id="kPrev"></p>
+      <p class="er-kline" id="kLine">Press Play to start</p>
+      <p class="er-knext" id="kNext"></p>
+    </div>
+    <audio id="audio" preload="auto"></audio>
+    <input type="range" id="seek" class="er-seek" min="0" max="100" value="0" step="0.1" aria-label="Position in the song" />
+    <div class="er-row" style="justify-content:space-between">
+      <div class="er-row">
+        <button class="er-btn" id="play" type="button">Play</button>
+        <button class="er-btn ghost small" id="restart" type="button">Start over</button>
+      </div>
+      <span class="er-small" id="clock">0:00</span>
+    </div>
+    <p class="er-msg" id="playMsg"></p>
+
+    <div class="er-next">
+      <p class="er-label">Lyrics out of step?</p>
+      <p class="er-muted" id="fixIntro" style="margin-bottom:12px">If a line lights up too early or too late, fix it by tapping along once. Tap the big button each time a new line should start.</p>
+      <button class="er-btn ghost small" id="fixStart" type="button">Fix the timing</button>
+      <div id="fixPanel" hidden>
+        <p class="er-kline" id="fixLine" style="margin:14px 0"></p>
+        <button class="er-btn amber er-tap" id="tap" type="button">Tap when this line starts</button>
+        <div class="er-row" style="margin-top:12px">
+          <span class="er-small" id="fixCount"></span>
+          <button class="er-btn ghost small" id="fixCancel" type="button">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Progress -->
+  <section class="er-card" id="progress" hidden role="status">
+    <p class="er-label">Making your song</p>
+    <h2 class="er-h2" id="progTitle">Getting ready</h2>
+    <ol class="er-steps" id="progSteps">
+      <li class="er-step" data-s="queued"><span class="dot">1</span><div class="txt">Song received</div></li>
+      <li class="er-step" data-s="splitting"><span class="dot">2</span><div class="txt">Separating the singing from the music</div></li>
+      <li class="er-step" data-s="timing"><span class="dot">3</span><div class="txt">Timing the lyrics</div></li>
+      <li class="er-step" data-s="ready"><span class="dot">4</span><div class="txt">Ready to sing</div></li>
+    </ol>
+    <p class="er-muted" style="margin-top:12px">This usually takes two to four minutes. You can leave this page open; it updates by itself.</p>
+  </section>
+
+  <!-- Make a song -->
+  <section class="er-card" id="maker" aria-labelledby="makerTitle">
+    <p class="er-label">Make a song</p>
+    <h2 class="er-h2" id="makerTitle">Bring the song and both sets of lyrics</h2>
+    <p class="er-muted" style="margin:8px 0 18px">For songs sung in English. Is your song in another language? Use <a href="https://www.mykaraoke.video" target="_blank" rel="noopener">MyKaraoke.Video</a> instead, as shown on the <a href="/pages/trove-02" target="_blank" rel="noopener">Trove 02 page</a>.</p>
+
+    <div class="er-field"><label for="title">Song name</label><input class="er-input" id="title" maxlength="80" placeholder="For example: Detectives of the Night" /></div>
+
+    <div class="er-field">
+      <label for="song">1. The original song file</label>
+      <input class="er-input" id="song" type="file" accept="audio/*,.mp3,.m4a,.wav" />
+      <p class="hint">The full song with singing, saved as MP3 or M4A, up to <span id="maxMb">25</span> MB.</p>
+    </div>
+
+    <div class="er-field">
+      <label for="orig">2. The original lyrics</label>
+      <textarea class="er-textarea" id="orig" style="min-height:150px" placeholder="The words the singer sings in the song file, one line per line&hellip;" spellcheck="false"></textarea>
+      <p class="hint">These are used to find where each line is sung.</p>
+    </div>
+
+    <div class="er-field">
+      <label for="neu">3. Your new lyrics</label>
+      <textarea class="er-textarea" id="neu" style="min-height:150px" placeholder="Your rewritten lyrics, one line per line&hellip;" spellcheck="false"></textarea>
+      <p class="hint" id="lineHint">Each new line takes the timing of the same line in the original.</p>
+    </div>
+
+    <label class="er-check"><input type="checkbox" id="rights" /><span>Our team bought this song or has the right to use it for this activity.</span></label>
+    <div class="er-row"><button class="er-btn" id="make" type="button">Make my song</button><span class="er-small" id="leftToday"></span></div>
+    <p class="er-msg" id="makeMsg"></p>
+  </section>
+
+  <!-- Earlier songs -->
+  <section class="er-card" id="mine" hidden>
+    <p class="er-label">Your team's songs</p>
+    <ul class="er-hist" id="songList"></ul>
+  </section>
+</main>
+
+<script src="/js/evalroom.js"></script>
+<script src="/js/evalroom-karaoke.js"></script>
+</body>
+</html>
