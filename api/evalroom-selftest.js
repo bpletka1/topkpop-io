@@ -317,15 +317,17 @@ async function runCase(row, port) {
     if (id) {
       // Wrong lyrics for this recording must be flagged, not presented as fine.
       const wrongLyrics = 'Purple elephants are dancing on the ceiling of the kitchen\nSeventeen umbrellas float across a field of frozen butter\nMy accountant plays the tuba every Wednesday after breakfast\nNobody remembers where the yellow submarine was parked\nQuantum sandwiches are better when the weather turns to gravel\nGrandma built a rocket from a toaster and a trombone';
-      const bad = await post('/karaoke', A, form({ ...good, title: 'Wrong lyrics', original_lyrics: wrongLyrics, new_lyrics: wrongLyrics }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }));
+      const C = R.signToken({ t: 'preview:' + run + '-c', n: 'Preview: wrong lyrics', p: 1 }); // its own team, so the upload limit is not in the way
+      const bad = await post('/karaoke', C, form({ ...good, title: 'Wrong lyrics', original_lyrics: wrongLyrics, new_lyrics: wrongLyrics }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }));
       let bs = null; const b0 = Date.now();
-      while (bad.d.song && Date.now() - b0 < 240000) { bs = await get('/karaoke/' + bad.d.song.id, A); if (['ready', 'failed'].includes(bs.d.song && bs.d.song.status)) break; await new Promise((r) => setTimeout(r, 3000)); }
+      while (bad.d.song && Date.now() - b0 < 240000) { bs = await get('/karaoke/' + bad.d.song.id, C); if (['ready', 'failed'].includes(bs.d.song && bs.d.song.status)) break; await new Promise((r) => setTimeout(r, 3000)); }
       const lvl = bs && bs.d.song && bs.d.song.quality && bs.d.song.quality.level;
       step('lyrics that do not match the recording are flagged', lvl === 'poor' || (bs && bs.d.song && bs.d.song.status === 'failed'), true, 'level ' + lvl + ' loss ' + (bs && bs.d.song && bs.d.song.quality && bs.d.song.quality.loss) + ' reasons ' + JSON.stringify(bs && bs.d.song && bs.d.song.quality && bs.d.song.quality.reasons) + ' ' + ((bad.d && bad.d.error) || ''));
       const del = await post('/karaoke/' + id + '/delete', A, {}, true); step('team can delete its song', del.status, 200);
       step('deleted song is gone', (await get('/karaoke/' + id, A)).status, 404);
-      if (st && st.d.audio_url) { const gone = await fetch(st.d.audio_url); step('deleted audio no longer plays', gone.status >= 400, true, 'status ' + gone.status); }
-      if (bad.d.song) await post('/karaoke/' + bad.d.song.id + '/delete', A, {}, true);
+      const { data: left } = await R.supabase.storage.from('evalroom-private').list(`preview_${run}-a/karaoke/${id}`);
+      step('deleted audio is removed from storage', (left || []).length, 0);
+      if (bad.d.song) await post('/karaoke/' + bad.d.song.id + '/delete', C, {}, true);
     }
     return { passed: steps.filter((x) => x.startsWith('PASS')).length, total: steps.length, steps, secondsToReady: secs, lines: st && st.d.lines && st.d.lines.map((l) => l.start + '-' + l.end + ' ' + l.text), quality: st && st.d.song && st.d.song.quality };
   }
