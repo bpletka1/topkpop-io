@@ -17,10 +17,10 @@
         { html: '<b>Upload your poster</b> in box 2 below. The judge needs both pictures.', done: function () { return !!S.files.poster; } },
         { html: '<b>Press Rehearse.</b> The Visual Judge scores your work out of 100 and gives feedback.', done: function () { return S.count > 0; } },
         { html: '<b>Revise and rehearse again.</b> Improve your pictures and see what changed.', done: function () { return S.count > 1; } },
-        { html: '<b>Take the stage.</b> When your team is happy, <a href="/pages/submit-trove-01">submit Trove 01 officially</a>.' }
+        { html: '<b>Take the Stage.</b> When your team is happy, press Take the Stage under your score to lock it as official. A lock is final.', done: function () { return !!S.lock; } }
       ]; },
-      next: 'Use the feedback to improve your avatar or poster, then rehearse again. When your team is happy, submit Trove 01 officially.',
-      nextBtns: [['Submit Trove 01 officially', '/pages/submit-trove-01', 'amber'], ['Trove 01 directions', '/pages/trove-01', 'ghost']]
+      next: 'Use the feedback to improve your avatar or poster, then rehearse again. When your team is happy, Take the Stage above.',
+      nextBtns: [['Trove 01 directions', '/pages/trove-01', 'ghost']]
     },
     lyric: {
       trove: '02', sub: 'Show the Lyric Judge your rewritten song.',
@@ -31,11 +31,11 @@
         { html: '<b>Paste your full lyrics</b> in the box below. Include at least 10 Spanish or Korean vocabulary words.', done: function () { return S.textLen >= 20; } },
         { html: '<b>Press Rehearse.</b> The Lyric Judge scores your lyrics out of 90 and gives feedback.', done: function () { return S.count > 0; } },
         { html: '<b>Revise and rehearse again.</b> Change your lyrics and see what moved.', done: function () { return S.count > 1; } },
-        { html: '<b>Make your song for up to 10 more points.</b> Paste your final lyrics into <a href="https://suno.com" target="_blank" rel="noopener">Suno</a> and copy the share link.' },
-        { html: '<b>Take the stage.</b> <a href="/pages/submit-trove-02">Submit Trove 02 officially</a> with your lyrics and your song link.' }
+        { html: '<b>Take the Stage.</b> When your team is happy, press Take the Stage under your score to lock your lyrics as official. A lock is final.', done: function () { return !!S.lock; } },
+        { html: '<b>Add your song for 10 more points.</b> Paste your locked lyrics into <a href="https://suno.com" target="_blank" rel="noopener">Suno</a> in Custom mode, tap Share, copy the link and turn it in here.', done: function () { return !!(S.lock && S.lock.song_url); } }
       ]; },
-      next: 'Use the feedback to revise your lyrics, then rehearse again. When your team is happy, turn the lyrics into a song in Suno for up to 10 more points and submit Trove 02 officially.',
-      nextBtns: [['Submit Trove 02 officially', '/pages/submit-trove-02', 'amber'], ['Open Suno', 'https://suno.com', 'ghost'], ['Back to the studio', '/pages/evaluation-room/studio/', 'ghost']]
+      next: 'Use the feedback to revise your lyrics, then rehearse again. When your team is happy, Take the Stage above, then make your song in Suno for 10 more points.',
+      nextBtns: [['Open Suno', 'https://suno.com', 'ghost'], ['Back to the studio', '/pages/evaluation-room/studio/', 'ghost']]
     },
     lesson: {
       trove: '03', sub: 'Show the Lesson Judge your lesson plan.',
@@ -46,16 +46,16 @@
         { html: '<b>Paste the full lesson plan</b> in the box below, including the ELA standard, the sub-skill and your movement phrases.', done: function () { return S.textLen >= 20; } },
         { html: '<b>Press Rehearse.</b> The Lesson Judge scores your plan out of 100 and gives coaching feedback.', done: function () { return S.count > 0; } },
         { html: '<b>Revise and rehearse again.</b> Strengthen the plan and see what moved.', done: function () { return S.count > 1; } },
-        { html: '<b>Take the stage.</b> When your team is happy, <a href="/pages/submit-trove-03">submit Trove 03 officially</a>.' }
+        { html: '<b>Take the Stage.</b> When your team is happy, press Take the Stage under your score to lock it as official. Add your dance video link there for 10 more points. A lock is final.', done: function () { return !!S.lock; } }
       ]; },
-      next: 'Use the feedback to strengthen your lesson plan, then rehearse again. When your team is happy, submit Trove 03 officially.',
-      nextBtns: [['Submit Trove 03 officially', '/pages/submit-trove-03', 'amber'], ['Trove 03 directions', '/pages/trove-03', 'ghost']]
+      next: 'Use the feedback to strengthen your lesson plan, then rehearse again. When your team is happy, Take the Stage above.',
+      nextBtns: [['Trove 03 directions', '/pages/trove-03', 'ghost']]
     }
   };
   var P = PAGES[key];
   if (!P) { location.replace(ER.ROOM); return; }
 
-  var S = { files: { avatar: null, poster: null }, textLen: 0, count: 0, remaining: null, busy: false };
+  var S = { files: { avatar: null, poster: null }, textLen: 0, count: 0, remaining: null, busy: false, lock: null, shown: null, practice: false, songBonus: 10, danceBonus: 10 };
   var J = null, dir = null, cfg = null;
   var work = $('#work'), msg = $('#msg'), go = $('#go');
 
@@ -82,7 +82,7 @@
       id: 'judge-' + key, title: 'Rehearse with the ' + J.name, steps: P.steps(S),
       help: 'Stuck? Watch the mission video on the <a href="' + P.directions + '" target="_blank" rel="noopener">Trove ' + P.trove + ' page</a> or <a href="/pages/jeannie?q=' + encodeURIComponent('Help me with Trove ' + parseInt(P.trove, 10)) + '" target="_blank" rel="noopener">ask Jeannie</a>.'
     });
-    return loadHistory(true);
+    return loadStage().then(function () { return loadHistory(true); });
   }).catch(function (e) {
     if (e.status === 401) { location.replace(ER.ROOM + '?next=' + encodeURIComponent(location.pathname + location.search)); return; }
     ER.showMsg(msg, e.message);
@@ -184,6 +184,8 @@
   // ── Showing a result ──
   function render(r, prev, fresh) {
     $('#result').hidden = false;
+    S.shown = r.id || null;
+    updateStage();
     $('#resultLabel').textContent = fresh ? 'Rehearsal score (practice only)' : 'Earlier rehearsal (practice only)';
     $('#score').textContent = r.score;
     var d = $('#delta');
@@ -216,6 +218,80 @@
     }).join('');
     if (fresh) $('#result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+
+  // ── Take the Stage ──
+  function loadStage() {
+    return ER.api('/stage').then(function (d) {
+      S.lock = d.locks[key] || null; S.practice = d.practice; S.songBonus = d.songBonus; S.danceBonus = d.danceBonus;
+      document.querySelectorAll('.songPts').forEach(function (n) { n.textContent = d.songBonus; });
+      document.querySelectorAll('.dancePts').forEach(function (n) { n.textContent = d.danceBonus; });
+      showOfficial(); updateStage();
+    });
+  }
+  function showOfficial() {
+    var L = S.lock, box = $('#official');
+    box.hidden = !L;
+    if (!L) return;
+    $('#offTotal').textContent = L.total; $('#offMax').textContent = L.max + (key === 'lyric' ? S.songBonus : 0);
+    var b = $('#offBadge'); b.textContent = L.practice ? 'Practice lock (preview)' : 'Locked'; b.className = 'er-badge' + (L.practice ? ' practice' : '');
+    var when = new Date(L.locked_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    var parts = [L.score + ' from the ' + (J ? J.name : 'judge')];
+    if (L.bonus) parts.push(L.bonus + (key === 'lyric' ? ' for your song' : ' bonus'));
+    $('#offLine').textContent = parts.join(' + ') + '. Locked ' + when + '. ' + (L.practice ? 'This is a practice lock on the preview copy and does not reach the leaderboard.' : 'Your leaderboard score is updated. You can keep rehearsing for fun, but this score is final.');
+    var hasSong = key === 'lyric' && !!L.song_url;
+    $('#offSong').hidden = !hasSong;
+    if (hasSong) { if (L.embed_url && $('#offPlayer').src !== L.embed_url) $('#offPlayer').src = L.embed_url; $('#offSongLink').href = L.song_url; $('#offSongLink').textContent = 'Open \u201c' + (L.song_title || 'your song') + '\u201d on Suno'; }
+    $('#addSong').hidden = !(key === 'lyric' && !L.song_url);
+  }
+  function updateStage() {
+    var box = $('#stage');
+    box.hidden = !!S.lock || !S.shown;
+    if (box.hidden) return;
+    $('#stageIntro').textContent = 'Happy with this rehearsal? Lock it and the score you see becomes your team\u2019s official score for Trove ' + P.trove + '. The score you saw is the score you keep.' + (S.practice ? ' On this preview copy the lock is practice only.' : '');
+    $('#songField').hidden = key !== 'lyric'; $('#danceField').hidden = key !== 'lesson'; $('#picsNote').hidden = key !== 'visual';
+  }
+  $('#stageOpen').addEventListener('click', function () { $('#stagePanel').hidden = false; $('#stageOpen').hidden = true; });
+  $('#stageCancel').addEventListener('click', function () { $('#stagePanel').hidden = true; $('#stageOpen').hidden = false; $('#stageConfirm').checked = false; $('#stageLock').disabled = true; ER.hideMsg($('#stageMsg')); });
+  $('#stageConfirm').addEventListener('change', function () { $('#stageLock').disabled = !this.checked; });
+  $('#songCheck').addEventListener('click', function () {
+    var btn = this, m = $('#songMsg'), url = $('#songUrl').value.trim();
+    if (!url) { ER.showMsg(m, 'Paste your Suno song link first.'); return; }
+    btn.disabled = true; btn.textContent = 'Checking\u2026'; ER.hideMsg(m);
+    ER.api('/stage/check-song', { json: { rehearsal_id: S.shown, song_url: url } })
+      .then(function (d) { ER.showMsg(m, d.ok ? 'Song confirmed' + (d.title ? ': \u201c' + d.title + '\u201d' : '') + '. It matches these lyrics.' : d.message, d.ok ? 'info' : 'err'); })
+      .catch(function (e) { ER.showMsg(m, e.message); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Check my song'; });
+  });
+  $('#stageLock').addEventListener('click', function () {
+    var btn = this, m = $('#stageMsg'), opts;
+    ER.hideMsg(m);
+    if (key === 'visual') {
+      if (!S.files.avatar || !S.files.poster) { ER.showMsg(m, 'Choose the same avatar and poster you rehearsed with in the boxes above, then lock.'); return; }
+      var fd = new FormData(); fd.append('rehearsal_id', S.shown); fd.append('confirm', 'true'); fd.append('avatar', S.files.avatar); fd.append('poster', S.files.poster);
+      opts = { form: fd };
+    } else {
+      opts = { json: { rehearsal_id: S.shown, confirm: 'true', song_url: $('#songUrl').value.trim(), dance_video_url: $('#danceUrl').value.trim() } };
+    }
+    if (!window.confirm('Lock ' + $('#score').textContent + ' out of ' + $('#max').textContent + ' as your team\u2019s official score for Trove ' + P.trove + '?\n\nThis is final. Your team cannot submit again for this Trove.')) return;
+    btn.disabled = true; btn.textContent = 'Locking\u2026';
+    ER.api('/stage/' + key, opts).then(function (d) {
+      S.lock = d.lock; showOfficial(); updateStage(); if (dir) dir.update();
+      $('#official').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }).catch(function (e) {
+      if (e.data && e.data.lock) { S.lock = e.data.lock; showOfficial(); updateStage(); }
+      ER.showMsg(m, e.message);
+    }).then(function () { btn.textContent = 'Lock our official score'; btn.disabled = !$('#stageConfirm').checked; });
+  });
+  $('#songLaterBtn').addEventListener('click', function () {
+    var btn = this, m = $('#songLaterMsg'), url = $('#songLater').value.trim();
+    if (!url) { ER.showMsg(m, 'Paste your Suno song link first.'); return; }
+    if (!window.confirm('Turn in this song? A team can turn in one song, and it cannot be changed.')) return;
+    btn.disabled = true; btn.textContent = 'Checking\u2026'; ER.hideMsg(m);
+    ER.api('/stage/lyric/song', { json: { song_url: url } })
+      .then(function (d) { S.lock = d.lock; showOfficial(); if (dir) dir.update(); })
+      .catch(function (e) { if (e.data && e.data.lock) { S.lock = e.data.lock; showOfficial(); } ER.showMsg(m, e.message); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Turn in my song'; });
+  });
 
   // ── Earlier rehearsals ──
   var rows = [];

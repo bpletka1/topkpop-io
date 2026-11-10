@@ -176,6 +176,22 @@ body.er { margin: 0; background: var(--black); color: var(--silver); font-family
 .er-song span { font-size: 0.8rem; color: var(--faint); }
 details.er-more summary { cursor: pointer; color: var(--amber); font-weight: 600; padding: 10px 0; }
 
+/* take the stage */
+.er-official { border-color: rgba(25,195,125,0.55) !important; background: linear-gradient(180deg, rgba(25,195,125,0.09), var(--panel)) !important; }
+.er-official .er-label { color: #6ff0b6; }
+.er-badge { display: inline-block; border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; font-weight: 600; background: rgba(25,195,125,0.14); color: #6ff0b6; border: 1px solid rgba(25,195,125,0.45); }
+.er-badge.practice { background: rgba(255,191,0,0.1); color: #ffe08a; border-color: rgba(255,191,0,0.45); }
+.er-stage { margin-top: 20px; padding: 18px; border: 1px solid rgba(255,191,0,0.4); border-radius: 12px; background: rgba(255,191,0,0.05); }
+.er-warn { margin-top: 16px; padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(230,0,92,0.6); background: rgba(230,0,92,0.1); color: #ffd3e4; font-size: 0.95rem; }
+.er-warn b { color: #fff; }
+.er-check { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0; font-size: 0.95rem; cursor: pointer; }
+.er-check input { width: 24px; height: 24px; flex-shrink: 0; accent-color: var(--amber); margin-top: 1px; }
+.er-player { width: 100%; height: 240px; border: 0; border-radius: 10px; margin-top: 14px; background: #000; }
+.er-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.er-table th, .er-table td { text-align: left; padding: 10px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+.er-table th { font-family: 'Syncopate', sans-serif; font-size: 0.5rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--amber); border-top: 0; }
+.er-scroll { overflow-x: auto; }
+
 /* footer */
 .er-foot { border-top: 1px solid var(--line); padding: 26px 20px 40px; text-align: center; font-size: 0.8rem; color: var(--faint); }
 .er-foot a { color: var(--dim); }

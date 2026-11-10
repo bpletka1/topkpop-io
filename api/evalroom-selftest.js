@@ -134,7 +134,16 @@ async function runCase(row, port) {
   if (row.kind === 'song') {
     // What does a Suno page look like from this server?
     const song = require('./evalroom-song');
-    const out = await song.checkSong(p.url, p.lyrics || '');
+    let lyrics = p.lyrics || '';
+    if (p.selfLyrics) {
+      // Positive check without storing anyone's lyrics: use a verse taken from the page itself.
+      const n0 = song.normalizeSongUrl(p.url);
+      const pg = n0.ok ? await song.fetchSuno(n0.canonical) : { html: '' };
+      const m = (pg.html || '').match(/\[Verse[^\]]*\]\s*([\s\S]{40,900}?)\n\s*\[/);
+      lyrics = m ? m[1].replace(/<[^>]+>/g, '') : '';
+    }
+    const out = await song.checkSong(p.url, lyrics);
+    out.lyricLinesUsed = lyrics.split('\n').filter((l) => l.trim()).length;
     if (p.probe) {
       const n = song.normalizeSongUrl(p.url);
       const page = n.ok ? await song.fetchSuno(n.canonical) : { status: 0 };

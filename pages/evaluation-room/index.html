@@ -80,14 +80,9 @@
     </div>
 
     <section class="er-card">
-      <p class="er-label">Next: Take the Stage</p>
+      <p class="er-label">Take the Stage</p>
       <h2 class="er-h2">Ready to make it official?</h2>
-      <p class="er-muted" style="margin:8px 0 16px">Rehearsals are practice and never change the leaderboard. When your team is happy with a rehearsal, submit your work on the Trove page to lock in your official score.</p>
-      <div class="er-row">
-        <a class="er-btn ghost small" href="/pages/submit-trove-01">Submit Trove 01</a>
-        <a class="er-btn ghost small" href="/pages/submit-trove-02">Submit Trove 02</a>
-        <a class="er-btn ghost small" href="/pages/submit-trove-03">Submit Trove 03</a>
-      </div>
+      <p class="er-muted" style="margin:8px 0 0">Rehearsals are practice and never change the leaderboard. When your team is happy with a rehearsal, open that judge and press <b>Take the Stage</b> under the score. That locks it as your official score for the Trove. A lock is final.</p>
     </section>
     <p class="er-msg" id="roomMsg"></p>
   </div>
@@ -111,7 +106,7 @@
     line.innerHTML = 'Signed in as <b>' + ER.esc(t.name || 'your team') + '</b> <button class="er-linkbtn" id="signOut">Sign out</button> <span class="er-small">(clears drafts on this device)</span>';
     $('#signOut').addEventListener('click', ER.signOut);
     var dir;
-    var state = { judges: {} };
+    var state = { judges: {}, locks: {} };
     function used() { var n = 0; for (var k in state.judges) n += state.judges[k].used; return n; }
     dir = ER.directions($('#dir'), {
       id: 'room', title: 'How the room works',
@@ -119,7 +114,7 @@
       steps: [
         { html: '<b>Rehearse.</b> Pick a door below and show the judge your work. Your team gets a set number of rehearsals with each judge.', done: function () { return used() > 0; } },
         { html: '<b>Revise.</b> Read the feedback, improve your work, and rehearse again to see what changed.', done: function () { return used() > 1; } },
-        { html: '<b>Take the stage.</b> When you are happy, submit officially on the Trove page: <a href="/pages/submit-trove-01">Trove 01</a>, <a href="/pages/submit-trove-02">Trove 02</a> or <a href="/pages/submit-trove-03">Trove 03</a>.' }
+        { html: '<b>Take the Stage.</b> When you are happy, press Take the Stage under that score to lock it as official. A lock is final.', done: function () { return Object.keys(state.locks).length > 0; } }
       ],
       help: 'Need the mission directions? Open the <a href="/pages/missions">Missions Hub</a>. Stuck? <a href="/pages/jeannie">Ask Jeannie</a>.'
     });
@@ -132,6 +127,14 @@
         s.querySelector('.best').textContent = j.best === null ? '–' : j.best + '/' + j.max;
       });
       dir.update();
+      return ER.api('/stage').then(function (st) {
+        state.locks = st.locks;
+        document.querySelectorAll('.stat[data-judge]').forEach(function (s) {
+          var L = st.locks[s.getAttribute('data-judge')];
+          if (L) s.innerHTML = '<span class="er-badge' + (L.practice ? ' practice' : '') + '">' + (L.practice ? 'Practice lock' : 'Official') + '</span><span>Score <b>' + L.total + '</b></span>';
+        });
+        dir.update();
+      });
     }).catch(function (e) {
       if (e.status === 401) { showSignIn(); return; }
       ER.showMsg($('#roomMsg'), e.message);

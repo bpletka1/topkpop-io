@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organizer | The Evaluation Room | TopKpop.io</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="/css/evalroom.css" />
+</head>
+<body class="er">
+<header class="er-hero">
+  <p class="er-eyebrow">The Evaluation Room &middot; Organizer</p>
+  <h1 class="er-title">Official <em>Locks</em></h1>
+  <p class="er-sub">Every score a team has locked. Reset one only if something went wrong; the team can then lock again.</p>
+</header>
+<main class="er-wrap">
+  <section class="er-card glow" id="gate">
+    <p class="er-label">Organizer access</p>
+    <form id="gateForm">
+      <div class="er-field"><label for="pw">Organizer password</label><input class="er-input" id="pw" type="password" autocomplete="current-password" required /></div>
+      <button class="er-btn" type="submit" id="gateBtn">Show the locks</button>
+    </form>
+    <p class="er-msg" id="gateMsg"></p>
+  </section>
+  <section class="er-card" id="list" hidden>
+    <div class="er-row" style="justify-content:space-between;margin-bottom:12px">
+      <div><p class="er-label">Locked scores</p><h2 class="er-h2" id="count"></h2></div>
+      <button class="er-btn ghost small" id="refresh" type="button">Refresh</button>
+    </div>
+    <div class="er-scroll"><table class="er-table"><thead><tr><th>Team</th><th>Trove</th><th>Score</th><th>Locked</th><th>Extras</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+    <p class="er-msg" id="listMsg"></p>
+  </section>
+</main>
+<script src="/js/evalroom.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = ER.$, esc = ER.esc, pw = '';
+  ER.chrome(); ER.config().catch(function () {});
+  function call(path, body) {
+    return fetch('/api/evalroom' + path, { method: body ? 'POST' : 'GET', headers: Object.assign({ 'x-organizer-password': pw }, body ? { 'Content-Type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined })
+      .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || 'Something went wrong.'); return d; }); });
+  }
+  function load() {
+    return call('/organizer/locks').then(function (d) {
+      $('#gate').hidden = true; $('#list').hidden = false;
+      var live = d.locks.filter(function (l) { return !l.reset_at; });
+      $('#count').textContent = live.length + ' active lock' + (live.length === 1 ? '' : 's');
+      $('#rows').innerHTML = d.locks.map(function (l) {
+        var when = new Date(l.locked_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        var extras = [l.practice ? '<span class="er-badge practice">Practice</span>' : '', l.song_url ? '<a href="' + esc(l.song_url) + '" target="_blank" rel="noopener">Song</a>' : '', l.dance_video_url ? '<a href="' + esc(l.dance_video_url) + '" target="_blank" rel="noopener">Dance video</a>' : ''].filter(Boolean).join(' ');
+        return '<tr><td><b>' + esc(l.team_name || '') + '</b></td><td>0' + l.trove + '</td><td>' + l.score + (l.bonus ? ' + ' + l.bonus : '') + ' = <b>' + l.total + '</b></td><td>' + esc(when) + '</td><td>' + extras + '</td><td>' +
+          (l.reset_at ? '<span class="er-small">Reset' + (l.reset_note ? ': ' + esc(l.reset_note) : '') + '</span>' : '<button class="er-btn ghost small" data-id="' + esc(l.id) + '" data-team="' + esc(l.team_name || '') + '" data-trove="' + l.trove + '">Reset</button>') + '</td></tr>';
+      }).join('') || '<tr><td colspan="6" class="er-muted">No team has locked a score yet.</td></tr>';
+    });
+  }
+  $('#gateForm').addEventListener('submit', function (ev) {
+    ev.preventDefault(); pw = $('#pw').value; ER.hideMsg($('#gateMsg'));
+    load().catch(function (e) { ER.showMsg($('#gateMsg'), e.message); });
+  });
+  $('#refresh').addEventListener('click', function () { load().catch(function (e) { ER.showMsg($('#listMsg'), e.message); }); });
+  $('#rows').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-id]'); if (!b) return;
+    var note = window.prompt('Reset the Trove 0' + b.getAttribute('data-trove') + ' lock for "' + b.getAttribute('data-team') + '"?\n\nTheir official score for this Trove is removed and they can lock again. Type a short reason and press OK, or Cancel to leave it.');
+    if (note === null) return;
+    call('/organizer/reset', { lock_id: b.getAttribute('data-id'), note: note }).then(load).catch(function (e) { ER.showMsg($('#listMsg'), e.message); });
+  });
+})();
+</script>
+</body>
+</html>

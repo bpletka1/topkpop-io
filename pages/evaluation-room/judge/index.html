@@ -20,6 +20,29 @@
 <main class="er-wrap">
   <a class="er-back" href="/pages/evaluation-room/">&larr; Back to the room</a>
 
+  <!-- Official score, once locked -->
+  <section class="er-card er-official" id="official" hidden aria-live="polite">
+    <p class="er-label">Official score</p>
+    <div class="er-score" style="margin-bottom:8px">
+      <div class="er-big"><span id="offTotal">0</span><small> / <span id="offMax">100</span></small></div>
+      <span class="er-badge" id="offBadge">Locked</span>
+    </div>
+    <p class="er-muted" id="offLine"></p>
+    <div id="offSong" hidden>
+      <iframe class="er-player" id="offPlayer" title="Your team's song" allow="autoplay; encrypted-media; fullscreen" loading="lazy"></iframe>
+      <p class="er-small" style="margin-top:8px"><a id="offSongLink" target="_blank" rel="noopener">Open the song on Suno</a></p>
+    </div>
+    <div id="addSong" hidden style="margin-top:16px">
+      <div class="er-field" style="margin-bottom:10px">
+        <label for="songLater">Add your Suno song for <span class="songPts">10</span> more points</label>
+        <input class="er-input" id="songLater" inputmode="url" autocapitalize="off" placeholder="https://suno.com/s/..." />
+        <p class="hint">Make the song in <a href="https://suno.com" target="_blank" rel="noopener">Suno</a> with your locked lyrics, tap Share, copy the link and paste it here.</p>
+      </div>
+      <button class="er-btn amber small" id="songLaterBtn" type="button">Turn in my song</button>
+      <p class="er-msg" id="songLaterMsg"></p>
+    </div>
+  </section>
+
   <section id="dir"></section>
 
   <!-- Entry -->
@@ -77,6 +100,40 @@
       <div><p class="er-label" style="color:#6ff0b6">Strengths</p><ul class="er-list" id="strengths"></ul></div>
       <div><p class="er-label" id="improveLabel">Improvement Suggestions</p><ul class="er-list" id="improvements"></ul></div>
     </div>
+    <!-- Take the Stage -->
+    <div class="er-stage" id="stage" hidden>
+      <p class="er-label">Take the Stage</p>
+      <h2 class="er-h2">Make this your official score</h2>
+      <p class="er-muted" style="margin:8px 0 4px" id="stageIntro"></p>
+      <ul class="er-list" style="margin-top:10px">
+        <li><b>What it means:</b> Take the Stage is how you turn in your work. The score on this rehearsal becomes your team's official score for this Trove.</li>
+        <li><b>The score you see is the score you keep.</b> It goes on the leaderboard right away.</li>
+        <li><b>You can only do this once.</b> After you lock, your team cannot submit again for this Trove.</li>
+      </ul>
+      <button class="er-btn amber" id="stageOpen" type="button" style="margin-top:12px">Take the Stage with this score</button>
+      <div id="stagePanel" hidden>
+        <div class="er-field" id="songField" hidden style="margin-top:16px">
+          <label for="songUrl">Your Suno song link <span class="er-small">(optional, <span class="songPts">10</span> more points)</span></label>
+          <input class="er-input" id="songUrl" inputmode="url" autocapitalize="off" placeholder="https://suno.com/s/..." />
+          <p class="hint">The song must use these exact lyrics. No song yet? Lock your lyrics now and add the song later on this page.</p>
+          <button class="er-btn ghost small" id="songCheck" type="button" style="margin-top:10px">Check my song</button>
+          <p class="er-msg" id="songMsg"></p>
+        </div>
+        <div class="er-field" id="danceField" hidden style="margin-top:16px">
+          <label for="danceUrl">Your dance video link <span class="er-small">(optional, <span class="dancePts">10</span> more points)</span></label>
+          <input class="er-input" id="danceUrl" inputmode="url" autocapitalize="off" placeholder="https://..." />
+        </div>
+        <p class="er-muted" id="picsNote" hidden style="margin-top:16px">Keep the same avatar and poster selected in the boxes above. They are saved with your official entry.</p>
+        <div class="er-warn" role="note"><b>Warning: this is final.</b> Once you lock your official score, your team cannot submit again or change it for this Trove. If you still want to improve your work, press Not yet and keep rehearsing.</div>
+        <label class="er-check"><input type="checkbox" id="stageConfirm" /><span>Our team is ready. We understand this locks our official score for this Trove and <b>cannot be changed</b>.</span></label>
+        <div class="er-row">
+          <button class="er-btn" id="stageLock" type="button" disabled>Lock our official score</button>
+          <button class="er-btn ghost small" id="stageCancel" type="button">Not yet</button>
+        </div>
+        <p class="er-msg" id="stageMsg"></p>
+      </div>
+    </div>
+
     <div class="er-next">
       <p class="er-label">What next</p>
       <p class="er-muted" id="nextText" style="margin-bottom:14px"></p>
