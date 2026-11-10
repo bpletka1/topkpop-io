@@ -42,6 +42,18 @@ function fitLyrics(text) {
   return { text: kept.join('\n'), kept: kept.length, total: lines.length };
 }
 
+// What the singer is given: the team's words in ordinary capitals, without stage notes.
+// Stress marks like "eMERgency" help a person but trip the AI singer.
+function forSinger(text) {
+  return K.lyricLines(text).map((line) => {
+    let l = line.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!/[A-Za-z0-9À-ɏ]/.test(l)) return '';
+    l = l.split(' ').map((w) => (/[A-ZÀ-Þ]/.test(w.slice(1)) ? w.toLowerCase() : w)).join(' ');
+    l = l.replace(/\bi\b(?=$|[\s'’,.!?;:])/g, 'I');
+    return l.replace(/^([^A-Za-zÀ-ɏ]*)([a-zß-ɏ])/, (m, pre, c) => pre + c.toUpperCase());
+  }).filter(Boolean).join('\n');
+}
+
 let schemaCache = null;
 async function inputFields() {
   if (schemaCache) return schemaCache;
@@ -96,7 +108,7 @@ module.exports = function attachCover(router, deps) {
       await set({ status: 'singing', step_note: 'The singer is learning the tune' });
       const { data: signed, error: sErr } = await supabase.storage.from(BUCKET).createSignedUrl(sourcePath, 3600);
       if (sErr || !signed) throw new Error('storage: ' + (sErr && sErr.message));
-      const result = await sing(signed.signedUrl, STYLES[row.style].prompt, row.lyrics, (pid) => set({ prediction_id: pid, step_note: 'The singer is recording your song' }));
+      const result = await sing(signed.signedUrl, STYLES[row.style].prompt, forSinger(row.lyrics), (pid) => set({ prediction_id: pid, step_note: 'The singer is recording your song' }));
       const got = await fetch(result.url, { signal: AbortSignal.timeout(120000) });
       if (!got.ok) throw new Error('download ' + got.status);
       const audio = Buffer.from(await got.arrayBuffer());
@@ -199,4 +211,4 @@ module.exports = function attachCover(router, deps) {
       .in('status', ['queued', 'singing']).lt('created_at', new Date(Date.now() - 6 * 60000).toISOString()).then(() => {});
   }, 9000).unref();
 };
-module.exports._internal = { sing, inputFields, fitLyrics, STYLES, token, REPLICATE, MODEL };
+module.exports._internal = { forSinger, sing, inputFields, fitLyrics, STYLES, token, REPLICATE, MODEL };
