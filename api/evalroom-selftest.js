@@ -131,6 +131,20 @@ async function runCase(row, port) {
     return out;
   }
 
+  if (row.kind === 'song') {
+    // What does a Suno page look like from this server?
+    const song = require('./evalroom-song');
+    const out = await song.checkSong(p.url, p.lyrics || '');
+    if (p.probe) {
+      const n = song.normalizeSongUrl(p.url);
+      const page = n.ok ? await song.fetchSuno(n.canonical) : { status: 0 };
+      const html = page.html || '';
+      const at = (needle) => { const i = html.indexOf(needle); return i === -1 ? null : html.slice(Math.max(0, i - 60), i + 420); };
+      out.probe = { status: page.status, finalUrl: page.finalUrl, type: page.type, bytes: html.length, head: html.slice(0, 300), prompt: at('prompt'), lyrics: at('yrics'), ogDesc: at('og:description'), challenge: /cf-challenge|Just a moment|captcha/i.test(html) };
+    }
+    return out;
+  }
+
   if (row.kind === 'refit') {
     // Re-run the syllable comparison on an answer that is already stored (no AI call).
     const { data, error } = await R.supabase.from('evalroom_selftest').select('payload, result').eq('id', p.id).single();
