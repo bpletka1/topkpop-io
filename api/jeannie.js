@@ -140,7 +140,7 @@ The game runs for 32 days from the start date set by the administrator. The star
 
 **Key Links:**
 - Submission page: topkpop.io/pages/submit-trove-01
-- Practice Oracle (use BEFORE official submission): https://chatgpt.com/g/g-6924d3bc86388191a51b043fc7adeb42-oracle-of-the-rubric-for-k-pop-poster-avatar
+- Practice Oracle (use BEFORE official submission): https://www.topkpop.io/pages/evaluation-room/judge/?j=visual
 - Full Step-by-Step Directions (Google Doc): https://docs.google.com/document/d/1xuXlX3oZFekotOCsg5UMBYBLE7DjQpqEj3eM9Nwm4dM/edit
 - Mission 01 Activity Directions Video: https://vimeo.com/1140433843
 
@@ -163,8 +163,8 @@ The game runs for 32 days from the start date set by the administrator. The star
 
 **Key Links:**
 - Submission page: topkpop.io/pages/submit-trove-02
-- Multilingual Karaoke Song Rewriter GPT: https://chatgpt.com/g/g-6935c65742f48191914cf8084e6c6900-multilingual-karaoke-song-rewriter
-- Practice Oracle / Evidence Song Rubric Evaluator: https://chatgpt.com/g/g-69382a5d36208191b5903ea55b5c0c70-lyric-multilingual-remix-rubric-evaluator
+- Multilingual Karaoke Song Rewriter (the Songwriting Studio): https://www.topkpop.io/pages/evaluation-room/studio/
+- Practice Oracle / Evidence Song Rubric Evaluator: https://www.topkpop.io/pages/evaluation-room/judge/?j=lyric
 - Full Step-by-Step Directions (Google Doc): https://docs.google.com/document/d/1YceRYiY8vWWP73xtutCsdMJnNMsaHeasZstNNxDLiig/edit
 - Suno AI (make your song): https://suno.com
 - MyKaraoke.Video (make your music video): https://www.mykaraoke.video
@@ -188,7 +188,7 @@ The game runs for 32 days from the start date set by the administrator. The star
 
 **Key Links:**
 - Submission page: topkpop.io/pages/submit-trove-03
-- Practice Oracle for Trove 03 (Lesson Design): https://chatgpt.com/g/g-6942aad9bafc819199753438ff8eebd7-oracle-of-the-lesson-design-rubric
+- Practice Oracle for Trove 03 (Lesson Design): https://www.topkpop.io/pages/evaluation-room/judge/?j=lesson
 - Full Step-by-Step Directions (Google Doc): https://docs.google.com/document/d/1h1y8hfCWXDd4UML4tMo6JwhR_7kotmzux94vbBZSUS4/edit
 - Runway AI (AI dance video): https://runwayml.com
 - Kling AI (AI dance video): https://klingai.com
@@ -200,7 +200,7 @@ The game runs for 32 days from the start date set by the administrator. The star
 
 ## SECTION 7: THE ORACLE OF THE RUBRIC
 
-The Oracle of the Rubric is the scoring system for TopKpop.io. It is a Custom GPT trained on the official TopKpop.io scoring rubric. It is not just a score generator — it is a model for formative assessment and AI evaluation literacy.
+The Oracle of the Rubric is the scoring system for TopKpop.io. It lives in The Evaluation Room on this website (https://www.topkpop.io/pages/evaluation-room/) and follows the official TopKpop.io scoring rubric. Teams sign in there with their team name and captain email. It is not just a score generator — it is a model for formative assessment and AI evaluation literacy.
 
 **Practice Oracle vs. Official Submission:** Before locking in your official submission, use the Practice Oracle to get formative feedback and revise your work. The Practice Oracle is linked on each Trove page. Once you submit officially, your score is locked and the Trove cannot be changed.
 
@@ -289,19 +289,20 @@ Every Detective Recruit begins with the same seven suspects. Each has a motive. 
 - **Canva:** https://www.canva.com — Used in Trove 01 to design the K-Pop promotional poster.
 
 ### Trove 01 Tools
-- **Oracle of the Rubric — Trove 01 (Avatar + Poster):** https://chatgpt.com/g/g-6924d3bc86388191a51b043fc7adeb42-oracle-of-the-rubric-for-k-pop-poster-avatar
+- **Oracle of the Rubric — Trove 01 (Avatar + Poster):** https://www.topkpop.io/pages/evaluation-room/judge/?j=visual
 - **Full Directions (Google Doc):** https://docs.google.com/document/d/1xuXlX3oZFekotOCsg5UMBYBLE7DjQpqEj3eM9Nwm4dM/edit
 
 ### Trove 02 Tools
-- **Multilingual Karaoke Song Rewriter GPT:** https://chatgpt.com/g/g-6935c65742f48191914cf8084e6c6900-multilingual-karaoke-song-rewriter
-- **Evidence Song Rubric Evaluator / Practice Oracle:** https://chatgpt.com/g/g-69382a5d36208191b5903ea55b5c0c70-lyric-multilingual-remix-rubric-evaluator
+- **Multilingual Karaoke Song Rewriter (the Songwriting Studio):** https://www.topkpop.io/pages/evaluation-room/studio/
+- **Evidence Song Rubric Evaluator / Practice Oracle:** https://www.topkpop.io/pages/evaluation-room/judge/?j=lyric
+- **Song Maker (karaoke track, karaoke video, and hear your lyrics sung):** https://www.topkpop.io/pages/evaluation-room/karaoke/
 - **Suno AI:** https://suno.com
 - **MyKaraoke.Video:** https://www.mykaraoke.video
 - **AZLyrics:** https://www.azlyrics.com
 - **Full Directions (Google Doc):** https://docs.google.com/document/d/1YceRYiY8vWWP73xtutCsdMJnNMsaHeasZstNNxDLiig/edit
 
 ### Trove 03 Tools
-- **Oracle of the Lesson Design Rubric:** https://chatgpt.com/g/g-6942aad9bafc819199753438ff8eebd7-oracle-of-the-lesson-design-rubric
+- **Oracle of the Lesson Design Rubric:** https://www.topkpop.io/pages/evaluation-room/judge/?j=lesson
 - **Runway AI:** https://runwayml.com
 - **Kling AI:** https://klingai.com
 - **Pika Art:** https://pika.art
@@ -375,7 +376,7 @@ The tiebreaker criteria will be announced at game launch.
 No — the game is completely free. Every AI tool used has a free tier. No subscriptions, no purchases, no school budget required.
 
 **Q: What AI tools do I need?**
-ChatGPT (or Gemini) for Trove 01. The Multilingual Song Rewriter GPT and Suno for Trove 02. ChatGPT and Runway/Kling/Pika for Trove 03. All have free tiers. Activate ChatGPT for Teachers at chatgpt.com/edu for free educator access.
+ChatGPT (or Gemini) for Trove 01. The Songwriting Studio in The Evaluation Room and Suno for Trove 02. ChatGPT and Runway/Kling/Pika for Trove 03. All have free tiers. Activate ChatGPT for Teachers at chatgpt.com/edu for free educator access.
 
 **Q: Where do I find the clues?**
 The clues are embedded within each Treasure Trove mission. Read carefully. The clues reward educators who engage deeply with the AI tools rather than rushing through the missions.
