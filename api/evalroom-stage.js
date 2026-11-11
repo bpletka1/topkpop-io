@@ -14,6 +14,7 @@ const path = require('path');
 const { checkSong, normalizeSongUrl, lyricMatch } = require('./evalroom-song');
 const ROOM_MATCH_PCT = Number(process.env.EVALROOM_SONG_MATCH_PCT || 50);
 
+const plusReason = (lock, tag) => String(lock.bonus_reason || '').split('+').filter(Boolean).concat(tag).join('+');
 const SONG_BONUS = 10;       // Trove 02: a verified song made from the locked lyrics
 const DANCE_BONUS = 10;      // Trove 03: a dance video link (same rule as the current submit page)
 const TROVE_OF = { visual: 1, lyric: 2, lesson: 3 };
@@ -245,13 +246,13 @@ module.exports = function attachStage(router, deps) {
       const v = await verifySong(req.body && req.body.song_url, r && r.input_text, lock.id);
       if (!v.ok) return res.status(400).json({ error: v.message, song: v.verdict });
       const { data: saved, error } = await supabase.from(LOCKS)
-        .update({ song_url: v.canonical, song_check: v.check, bonus: SONG_BONUS, bonus_reason: 'auto-song-link' }).eq('id', lock.id).is('song_url', null).select('*').single();
+        .update({ song_url: v.canonical, song_check: v.check, bonus: (lock.bonus || 0) + SONG_BONUS, bonus_reason: plusReason(lock, 'auto-song-link') }).eq('id', lock.id).is('song_url', null).select('*').single();
       if (error) return res.status(409).json({ error: error.code === '23505' ? SONG_MESSAGES.reused : 'The song could not be added. Please try again.' });
       if (!PREVIEW_MODE && lock.submission_id) {
         const { data: cur } = await supabase.from('submissions').select('bonus_score').eq('id', lock.submission_id).single();
         const { error: subErr } = await supabase.from('submissions').update({ bonus_score: ((cur && cur.bonus_score) || 0) + SONG_BONUS, bonus_awarded_at: new Date().toISOString(), bonus_awarded_by: 'auto-song-link' }).eq('id', lock.submission_id);
         if (subErr) {
-          await supabase.from(LOCKS).update({ song_url: null, song_check: null, bonus: 0, bonus_reason: null }).eq('id', lock.id);
+          await supabase.from(LOCKS).update({ song_url: null, song_check: null, bonus: lock.bonus || 0, bonus_reason: lock.bonus_reason || null }).eq('id', lock.id);
           console.error('evalroom song bonus save error:', subErr.message);
           return res.status(502).json({ error: 'The song points could not be saved. Your link has not been used. Please try again.' });
         }
@@ -285,13 +286,13 @@ module.exports = function attachStage(router, deps) {
       const url = `room:${kind}:${song.id}`;
       const check = { verdict: 'verified', room: kind, title: song.title, match: m, canonical: url };
       const { data: saved, error } = await supabase.from(LOCKS)
-        .update({ song_url: url, song_check: check, bonus: SONG_BONUS, bonus_reason: 'auto-room-song' }).eq('id', lock.id).is('song_url', null).select('*').single();
+        .update({ song_url: url, song_check: check, bonus: (lock.bonus || 0) + SONG_BONUS, bonus_reason: plusReason(lock, 'auto-room-song') }).eq('id', lock.id).is('song_url', null).select('*').single();
       if (error || !saved) return res.status(409).json({ error: 'The song could not be added. Please try again.' });
       if (!PREVIEW_MODE && lock.submission_id) {
         const { data: cur } = await supabase.from('submissions').select('bonus_score').eq('id', lock.submission_id).single();
         const { error: subErr } = await supabase.from('submissions').update({ bonus_score: ((cur && cur.bonus_score) || 0) + SONG_BONUS, bonus_awarded_at: new Date().toISOString(), bonus_awarded_by: 'auto-room-song' }).eq('id', lock.submission_id);
         if (subErr) {
-          await supabase.from(LOCKS).update({ song_url: null, song_check: null, bonus: 0, bonus_reason: null }).eq('id', lock.id);
+          await supabase.from(LOCKS).update({ song_url: null, song_check: null, bonus: lock.bonus || 0, bonus_reason: lock.bonus_reason || null }).eq('id', lock.id);
           console.error('evalroom room-song bonus save error:', subErr.message);
           return res.status(502).json({ error: 'The song points could not be saved. Your song has not been used. Please try again.' });
         }
@@ -316,7 +317,7 @@ module.exports = function attachStage(router, deps) {
     next();
   }
 
-  require('./evalroom-wall')(router, { supabase, requireTeam, requireOrganizer, limited, loadPictures, activeLock, LOCKS, PREVIEW_MODE });
+  const wall = require('./evalroom-wall')(router, { supabase, requireTeam, requireOrganizer, limited, loadPictures, activeLock, LOCKS, PREVIEW_MODE, lyricMatch, matchPct: ROOM_MATCH_PCT });
 
   router.get('/organizer/locks', requireOrganizer, async (req, res) => {
     const { data, error } = await supabase.from(LOCKS).select('*').order('locked_at', { ascending: false }).limit(500);
@@ -342,6 +343,8 @@ module.exports = function attachStage(router, deps) {
           return res.status(502).json({ error: 'The reset did not go through. Nothing was changed. Please try again.' });
         }
       }
+      // Whatever the team shared from this entry comes off the wall with it.
+      await wall.retireForLock(id, 'reset', note || 'The locked entry was reset.').catch((e) => console.error('evalroom reset: wall retire error:', e.message));
       res.json({ ok: true });
     } catch (err) { console.error('evalroom reset error:', err.message); res.status(500).json({ error: 'The reset did not go through. Please try again.' }); }
   });

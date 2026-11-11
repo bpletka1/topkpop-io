@@ -533,12 +533,23 @@ async function runCase(row, port) {
     if (process.env.ADMIN_PASSWORD) {
       const ol = await call('GET', '/organizer/wall', null, null, null, { 'x-organizer-password': process.env.ADMIN_PASSWORD }); step('organizer sees the item and the public approval', !!(ol.d.items || []).find((x) => x.id === sh.d.item.id && x.publicOk === true), true);
       const or = await call('POST', '/organizer/wall/remove', null, { id: sh.d.item.id, note: 'selftest' }, null, { 'x-organizer-password': process.env.ADMIN_PASSWORD }); step('organizer removes it', or.status, 200);
+      const or2 = await call('POST', '/organizer/wall/remove', null, { id: sh.d.item.id, note: 'selftest' }, null, { 'x-organizer-password': process.env.ADMIN_PASSWORD }); step('removing it a second time is refused', or2.status, 404);
     } else step('team takes it down', (await call('POST', '/wall/' + sh.d.item.id + '/remove', A, {})).status, 200);
     const s2 = await call('GET', '/stage', A); step('the 25 points come off again', s2.d.locks.visual && s2.d.locks.visual.bonus, 0);
     step('it is gone from the wall', !((await call('GET', '/wall', B)).d.items || []).find((x) => x.id === sh.d.item.id), true);
-    const { data: left } = await R.supabase.storage.from('evalroom-private').list(`preview_${run}-a/wall/${sh.d.item && sh.d.item.id}`); step('its pictures are removed from storage', (left || []).length, 0);
+    const { data: left } = await R.supabase.storage.from('evalroom-private').list(`wall/${sh.d.item && sh.d.item.id}`); step('its pictures are removed from storage', (left || []).length, 0);
     const again = await call('POST', '/wall/share', A, { kind: 'pictures', confirm: 'true' }); step('after removal the team may share again', again.status, 200);
-    if (again.d.item) await call('POST', '/wall/' + again.d.item.id + '/remove', A, {});
+    if (again.d.item) {
+      const both = await Promise.all([call('POST', '/wall/' + again.d.item.id + '/remove', A, {}), call('POST', '/wall/' + again.d.item.id + '/remove', A, {})]);
+      step('two removals at the same moment: only one goes through', both.map((x) => x.status).sort().join(','), '200,404');
+      const s3 = await call('GET', '/stage', A); step('points come off once, never below zero', s3.d.locks.visual && s3.d.locks.visual.bonus, 0);
+    }
+    if (process.env.ADMIN_PASSWORD) {
+      const third = await call('POST', '/wall/share', A, { kind: 'pictures', confirm: 'true' }); step('share once more', third.status, 200);
+      const rs = await call('POST', '/organizer/reset', null, { lock_id: s1.d.locks.visual && s1.d.locks.visual.id, note: 'selftest' }, null, { 'x-organizer-password': process.env.ADMIN_PASSWORD }); step('organizer resets the locked entry', rs.status, 200);
+      step('the shared item leaves the wall with the reset', !((await call('GET', '/wall', B)).d.items || []).find((x) => third.d.item && x.id === third.d.item.id), true);
+      const wr = await call('GET', '/wall', A); step('after a reset the team is not shown as sharing', wr.d.can && wr.d.can.pictures.locked === false && !wr.d.can.pictures.shared, true);
+    }
     await R.supabase.from('evalroom_practice_locks').update({ reset_at: new Date().toISOString(), reset_note: 'selftest tidy-up' }).like('team_key', 'preview:' + run + '-%').is('reset_at', null);
     return { passed: steps.filter((x) => x.startsWith('PASS')).length, total: steps.length, steps };
   }

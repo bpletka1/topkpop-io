@@ -29,11 +29,12 @@
       $('#grid').innerHTML = d.items.map(card).join(''); $('#empty').hidden = d.items.length > 0;
       var p = d.can.pictures, k = d.can.karaoke;
       $('#picsForm').hidden = !(p.locked && !p.shared);
-      $('#picsState').innerHTML = p.shared ? 'Your team\'s avatar and poster are on the wall.' : p.locked ? 'Your team locked its avatar and poster. Ready to share.' : 'First take the stage with your avatar and poster in the <a href="/pages/evaluation-room/judge/?j=visual">Visual Judge</a>. Then you can share them here.';
-      var canSong = k.locked && !k.shared && d.videoReady && k.songs.length > 0;
+      $('#picsState').innerHTML = p.shared === 'processing' ? 'Your team\'s avatar and poster are being put on the wall. Press Refresh in a minute.' : p.shared ? 'Your team\'s avatar and poster are on the wall.' : p.locked ? 'Your team locked its avatar and poster. Ready to share.' : 'First take the stage with your avatar and poster in the <a href="/pages/evaluation-room/judge/?j=visual">Visual Judge</a>. Then you can share them here.';
+      var withVideo = k.songs.filter(function (s) { return s.hasVideo; });
+      var canSong = k.locked && !k.shared && d.videoReady && withVideo.length > 0;
       $('#songForm').hidden = !canSong;
-      $('#songPick').innerHTML = k.songs.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.title || 'Our song') + '</option>'; }).join('');
-      $('#songState').innerHTML = k.shared ? 'Your team\'s karaoke video is on the wall.' : !k.locked ? 'First take the stage with your lyrics in the <a href="/pages/evaluation-room/judge/?j=lyric">Lyric Judge</a>.' : !d.videoReady ? 'Sharing videos is not switched on yet.' : !k.songs.length ? 'Make a karaoke song and its video in the <a href="/pages/evaluation-room/karaoke/">Song Maker</a> first.' : 'Choose your song. It needs its karaoke video made in the Song Maker first.';
+      $('#songPick').innerHTML = withVideo.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.title || 'Our song') + '</option>'; }).join('');
+      $('#songState').innerHTML = k.shared === 'processing' ? 'Your team\'s karaoke video is being put on the wall. Press Refresh in a minute.' : k.shared ? 'Your team\'s karaoke video is on the wall. A new video can take a few minutes before it plays.' : !k.locked ? 'First take the stage with your lyrics in the <a href="/pages/evaluation-room/judge/?j=lyric">Lyric Judge</a>.' : !d.videoReady ? 'Sharing videos is not switched on yet.' : !k.songs.length ? 'Make a karaoke song and its video in the <a href="/pages/evaluation-room/karaoke/">Song Maker</a> first.' : !withVideo.length ? 'Your song still needs its karaoke video. Open it in the <a href="/pages/evaluation-room/karaoke/">Song Maker</a>, press Make the karaoke video, then come back.' : 'Choose your song. Only songs that have their karaoke video are listed.';
       return d;
     });
   }
@@ -45,6 +46,7 @@
     if (pubBox.checked && !window.confirm('You ticked the public Instagram box. That means anyone, not only teams in the game, may see this. Is your whole team happy with that?')) return;
     var label = btn.textContent; busy = true; btn.disabled = true; btn.textContent = kind === 'karaoke' ? 'Sharing… this can take a minute' : 'Sharing…';
     ER.api('/wall/share', { json: Object.assign({ kind: kind, confirm: 'true', public_ok: pubBox.checked ? 'true' : 'false' }, extra || {}) }).then(function (d) {
+      okBox.checked = false; pubBox.checked = false;
       return load().then(function () { ER.showMsg(msg, 'Shared. ' + d.bonus + ' points were added to your team\'s score for this Trove.', 'info'); });
     }).catch(function (e) { ER.showMsg(msg, e.message); }).then(function () { busy = false; btn.disabled = false; btn.textContent = label; });
   }
@@ -53,8 +55,9 @@
   $('#refresh').addEventListener('click', function () { load().catch(function (e) { ER.showMsg($('#wallMsg'), e.message); }); });
   $('#grid').addEventListener('click', function (ev) {
     var id = ev.target.getAttribute('data-remove'); if (!id) return;
-    if (!window.confirm('Take your team\'s work off the wall? The sharing points for this Trove will come off too.')) return;
-    ER.api('/wall/' + id + '/remove', { method: 'POST', json: {} }).then(load).catch(function (e) { ER.showMsg($('#wallMsg'), e.message); });
+    if (busy || !window.confirm('Take your team\'s work off the wall? The sharing points for this Trove will come off too.')) return;
+    busy = true; ev.target.disabled = true;
+    ER.api('/wall/' + id + '/remove', { method: 'POST', json: {} }).then(load).catch(function (e) { ER.showMsg($('#wallMsg'), e.message); }).then(function () { busy = false; });
   });
   load().catch(function (e) { ER.showMsg($('#wallMsg'), e.message); });
 })();
