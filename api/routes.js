@@ -1337,21 +1337,23 @@ async function sendWeeklyScoreSummary() {
 
     const { data: submissions } = await supabase
       .from('submissions')
-      .select('team_id, trove_number, final_score, oracle_score')
+      .select('team_id, trove_number, final_score, oracle_score, bonus_score')
       .not('team_id', 'is', null);
 
     // Build score map keyed by team_id
     const scoreMap = {};
     (submissions || []).forEach(s => {
-      if (!scoreMap[s.team_id]) scoreMap[s.team_id] = { trove1: 0, trove2: 0, trove3: 0 };
+      if (!scoreMap[s.team_id]) scoreMap[s.team_id] = { trove1: 0, trove2: 0, trove3: 0, bonus: 0 };
       const score = s.final_score || s.oracle_score || 0;
-      if (score > 0) scoreMap[s.team_id][`trove${s.trove_number}`] = score;
+      if (score > 0 && s.trove_number >= 1 && s.trove_number <= 3) scoreMap[s.team_id][`trove${s.trove_number}`] = score;
+      // Bonus points count in the total exactly as they do on the leaderboard.
+      scoreMap[s.team_id].bonus += s.bonus_score || 0;
     });
 
     // Build ranked list for leaderboard position
     const ranked = teams.map(team => {
-      const scores = scoreMap[team.id] || { trove1: 0, trove2: 0, trove3: 0 };
-      const total = scores.trove1 + scores.trove2 + scores.trove3;
+      const scores = scoreMap[team.id] || { trove1: 0, trove2: 0, trove3: 0, bonus: 0 };
+      const total = scores.trove1 + scores.trove2 + scores.trove3 + scores.bonus;
       return { ...team, ...scores, total };
     }).sort((a, b) => b.total - a.total).map((t, i) => ({ ...t, rank: i + 1 }));
 
@@ -1363,10 +1365,10 @@ async function sendWeeklyScoreSummary() {
     const annaMsg = annaSummaryMessages[Math.floor(Math.random() * annaSummaryMessages.length)];
 
     for (const team of ranked) {
-      const trove1Str = team.trove1 > 0 ? `${team.trove1}/100` : 'Not yet submitted';
-      const trove2Str = team.trove2 > 0 ? `${team.trove2}/100` : 'Not yet submitted';
-      const trove3Str = team.trove3 > 0 ? `${team.trove3}/100` : 'Not yet submitted';
-      const totalStr = team.total > 0 ? `${team.total} points` : '0 points';
+      const trove1Str = team.trove1 > 0 ? `${team.trove1}/100` : 'Not yet locked';
+      const trove2Str = team.trove2 > 0 ? `${team.trove2}/90` : 'Not yet locked';
+      const trove3Str = team.trove3 > 0 ? `${team.trove3}/100` : 'Not yet locked';
+      const totalStr = team.total > 0 ? `${team.total} points` + (team.bonus ? ` (includes ${team.bonus} bonus)` : '') : '0 points';
       const firstName = (team.captain_name || '').split(' ')[0] || 'Detective';
 
       // Build weekly summary HTML inline (no separate template file needed)
@@ -1428,7 +1430,7 @@ async function sendWeeklyScoreSummary() {
 function startScheduler() {
   // ── Sunday 7:00 PM Pacific — Trove / Accusation unlock checks ──────────────
   // Runs every Sunday at 19:00 PT (03:00 UTC Monday)
-  cron.schedule('0 3 * * 1', async () => {
+  cron.schedule('0 19 * * 0', async () => {   // Sunday 7:00 PM in Los Angeles (the timezone option below does the conversion)
     console.log('Scheduler running — Sunday 7pm PT drop check...');
     try {
       const { data: settings } = await supabase
@@ -1472,7 +1474,7 @@ function startScheduler() {
 
   // ── Wednesday midnight Pacific — Final Reveal drop ───────────────────────
   // Runs every Wednesday/Thursday at 00:00 PT (08:00 UTC)
-  cron.schedule('0 8 * * 3', async () => {
+  cron.schedule('0 0 * * 3', async () => {   // Wednesday 12:00 AM in Los Angeles
     console.log('Scheduler running — Final Reveal midnight check...');
     try {
       const { data: settings } = await supabase
@@ -1499,14 +1501,14 @@ function startScheduler() {
   }, { timezone: 'America/Los_Angeles' });
 
   // ── Weekly score summary — every Friday at 5 PM Pacific ───────────────────
-  cron.schedule('0 1 * * 6', async () => {
+  cron.schedule('0 17 * * 5', async () => {   // Friday 5:00 PM in Los Angeles
     console.log('Sending weekly score summary emails...');
     await sendWeeklyScoreSummary();
   }, { timezone: 'America/Los_Angeles' });
 
   // ── Daily 9 AM Pacific — Winner approval reminder ────────────────────────
   // Sends admin a reminder every day at 9 AM PT if a winner is pending approval
-  cron.schedule('0 17 * * *', async () => {
+  cron.schedule('0 9 * * *', async () => {   // 9:00 AM in Los Angeles
     try {
       const { data: settings } = await supabase
         .from('game_settings')
@@ -1530,7 +1532,7 @@ function startScheduler() {
     await pollGmailForScores();
   });
 
-  console.log('TopKpop.io scheduler started — Trove drops Sundays 7PM PT | Reveal Wednesdays midnight PT | Summaries Fridays 5PM PT | Winner reminders daily 9AM PT | Gmail score polling every 30 min');
+  console.log('TopKpop.io scheduler started — Trove drops Sundays 7PM PT | Reveal Wednesdays midnight PT | Summaries Fridays 5PM PT | Winner reminders daily 9AM PT');
 }
 
 // ── Helper: Send admin reminder email for pending winner approval ────────────
@@ -1539,12 +1541,14 @@ async function sendAdminReminderEmail(adminEmail) {
     // Get winner details for the reminder
     const { data: settings } = await supabase
       .from('game_settings')
-      .select('winner_team_name, winner_captain_email, winner_total_score, winner_accusation_correct')
+      .select('winner_data')
       .single();
 
-    const teamName = settings?.winner_team_name || 'Unknown Team';
-    const score = settings?.winner_total_score || 0;
-    const correct = settings?.winner_accusation_correct ? 'YES — correct accusation' : 'NO — incorrect accusation';
+    // The pending winner is stored as one record by checkAndAnnounceWinner.
+    let w = {}; try { w = JSON.parse(settings?.winner_data || '{}') || {}; } catch (_) {}
+    const teamName = w.team_name || 'Unknown Team';
+    const score = w.total_score || 0;
+    const correct = w.correct_accusation ? 'YES — named the saboteur correctly' : 'NO — no team named the saboteur correctly, so the top score wins';
 
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
       body{margin:0;padding:0;background:#0d0d1a;font-family:'Helvetica Neue',Arial,sans-serif;color:#e8e0f0;}
@@ -1606,13 +1610,16 @@ async function sendRevealEmail() {
   try {
     const { data: settings } = await supabase
       .from('game_settings')
-      .select('correct_saboteur, winner_team_name, winner_total_score')
+      .select('correct_saboteur, winner_data')
       .eq('id', 1)
       .single();
 
     const saboteur = settings?.correct_saboteur || 'The Saboteur';
-    const winnerName = settings?.winner_team_name || 'The Winning Team';
-    const winnerScore = settings?.winner_total_score || '—';
+    // The winner is stored as one record by checkAndAnnounceWinner.
+    let w = {}; try { w = JSON.parse(settings?.winner_data || '{}') || {}; } catch (_) {}
+    const winnerName = w.team_name || 'The Winning Team';
+    const winnerScore = w.total_score != null ? w.total_score : '—';
+    const accusationLine = w.correct_accusation ? 'Accusation: Correct &#10003;' : 'Top score &mdash; no team named the saboteur';
 
     const { data: teams } = await supabase
       .from('registrations')
@@ -1630,6 +1637,7 @@ async function sendRevealEmail() {
           '[SABOTEUR_NAME]': saboteur,
           '[WINNING_TEAM_NAME]': winnerName,
           '[SCORE]': String(winnerScore),
+          '[ACCUSATION_LINE]': accusationLine,
         }
       );
       await tagSubscriber(team.captain_email, 'final-reveal-live');
