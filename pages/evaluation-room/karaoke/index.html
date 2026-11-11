@@ -44,6 +44,21 @@
     <p class="er-msg" id="playMsg"></p>
 
     <div class="er-next">
+      <p class="er-label">Take it with you</p>
+      <p class="er-muted" style="margin-bottom:12px">Get a video of this song with your words lighting up in time. It plays on any phone, computer or classroom screen. If you fix the timing later, make the video again.</p>
+      <div class="er-row"><button class="er-btn ghost small" id="vidMake" type="button">Make the karaoke video</button><a class="er-btn small" id="vidSave" href="#" hidden download>Download the karaoke video</a></div>
+      <p class="er-muted" id="vidWait" hidden role="status" style="margin-top:10px"></p>
+      <p class="er-msg" id="vidMsg"></p>
+    </div>
+
+    <div class="er-next" id="turnInK" hidden>
+      <p class="er-label">Song points</p>
+      <p class="er-muted" style="margin-bottom:12px">Your team locked its lyrics. Turn in this song to add <b>10 points</b>. You can turn in one song, and it cannot be swapped later.</p>
+      <div class="er-row"><button class="er-btn amber small" id="turnInKBtn" type="button">Turn in this song for 10 points</button></div>
+      <p class="er-msg" id="turnInKMsg"></p>
+    </div>
+
+    <div class="er-next">
       <p class="er-label">Lyrics out of step?</p>
       <p class="er-muted" id="fixIntro" style="margin-bottom:12px">If a line lights up too early or too late, fix it by tapping along once. Tap the big button each time a new line should start.</p>
       <div class="er-row"><button class="er-btn ghost small" id="fixStart" type="button">Fix the timing</button><button class="er-btn ghost small" id="fixReset" type="button" hidden>Go back to automatic timing</button></div>
@@ -120,7 +135,8 @@
     <div id="sungPlayer" hidden style="margin-top:16px">
       <p class="er-label" id="sungName"></p>
       <audio id="sungAudio" controls preload="none" style="width:100%"></audio>
-      <div class="er-row" style="margin-top:12px"><a class="er-btn ghost small" id="sungSave" href="#" download>Download the recording</a></div>
+      <div class="er-row" style="margin-top:12px"><a class="er-btn ghost small" id="sungSave" href="#" download>Download the recording</a><button class="er-btn amber small" id="turnInS" type="button" hidden>Turn in this song for 10 points</button></div>
+      <p class="er-msg" id="turnInSMsg"></p>
     </div>
     <ul class="er-hist" id="sungList" style="margin-top:14px"></ul>
   </section>
@@ -135,5 +151,6 @@
 <script src="/js/evalroom.js"></script>
 <script src="/js/evalroom-karaoke.js"></script>
 <script src="/js/evalroom-sung.js"></script>
+<script src="/js/evalroom-songextras.js"></script>
 </body>
 </html>

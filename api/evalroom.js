@@ -620,6 +620,7 @@ require('./evalroom-stage')(router, { supabase, JUDGES, PREVIEW_MODE, requireTea
 // ── Song Maker (karaoke) ─────────────────────────────────────────────────────
 require('./evalroom-karaoke')(router, { supabase, requireTeam, limited, multer, CFG });
 require('./evalroom-cover')(router, { supabase, requireTeam, limited, multer, CFG });
+require('./evalroom-video')(router, { supabase, requireTeam, limited });
 
 // Anything else under /api/evalroom
 router.use((req, res) => res.status(404).json({ error: 'Not found.' }));

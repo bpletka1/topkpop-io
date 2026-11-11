@@ -240,7 +240,10 @@
     $('#offLine').textContent = parts.join(' + ') + '. Locked ' + when + '. ' + (L.practice ? 'This is a practice lock on the preview copy and does not reach the leaderboard.' : 'Your leaderboard score is updated. You can keep rehearsing for fun, but this score is final.');
     var hasSong = key === 'lyric' && !!L.song_url;
     $('#offSong').hidden = !hasSong;
-    if (hasSong) { if (L.embed_url && $('#offPlayer').src !== L.embed_url) $('#offPlayer').src = L.embed_url; $('#offSongLink').href = L.song_url; $('#offSongLink').textContent = 'Open \u201c' + (L.song_title || 'your song') + '\u201d on Suno'; }
+    var roomSong = hasSong && /^room:/.test(L.song_url);
+    $('#offPlayer').hidden = !!roomSong;
+    if (roomSong) { $('#offSongLink').href = '/pages/evaluation-room/karaoke/'; $('#offSongLink').textContent = 'Your song \u201c' + (L.song_title || 'our song') + '\u201d was made in the Song Maker. Open the Song Maker'; }
+    else if (hasSong) { if (L.embed_url && $('#offPlayer').src !== L.embed_url) $('#offPlayer').src = L.embed_url; $('#offSongLink').href = L.song_url; $('#offSongLink').textContent = 'Open \u201c' + (L.song_title || 'your song') + '\u201d on Suno'; }
     $('#addSong').hidden = !(key === 'lyric' && !L.song_url);
     $('#offLyrics').hidden = !(key === 'lyric' && L.locked_text);
     if (L.locked_text) $('#offLyricsText').textContent = L.locked_text;

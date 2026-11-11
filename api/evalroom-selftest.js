@@ -338,6 +338,37 @@ async function runCase(row, port) {
       const bad = await post('/karaoke', E, form({ ...good, title: 'Wrong lyrics', original_lyrics: wrongLyrics }, { buf: song, type: 'audio/mpeg', name: 's.mp3' }));
       const bs = await wait(bad.d.song && bad.d.song.id, E); const bq = (bs && bs.d.song && bs.d.song.quality) || {};
       step('wrong lyrics in box 2: the room goes by ear instead and says so', bq.mode, 'heard-instead', JSON.stringify({ sung: bq.sungLines, matched: bq.matchedHeardPct, shown: bq.linesShown, lines: ((bs && bs.d.lines) || []).map((l) => l.start) }));
+      // ── Karaoke video ──
+      step('another team cannot see the video', (await get('/karaoke/' + id + '/video', B)).status, 404);
+      step('another team cannot start a video', (await post('/karaoke/' + id + '/video', B, {}, true)).status, 404);
+      step('no video before one is asked for', (await get('/karaoke/' + id + '/video', A)).d.status, 'none');
+      const v0 = await post('/karaoke/' + id + '/video', A, {}, true); step('video starts', v0.d.status, 'working', v0.d.error);
+      let vv = null; const tv = Date.now();
+      for (let k = 0; k < 60; k++) { await new Promise((r2) => setTimeout(r2, 3000)); vv = await get('/karaoke/' + id + '/video', A); if (vv.d.status !== 'working') break; }
+      step('video becomes ready', vv && vv.d.status, 'ready', Math.round((Date.now() - tv) / 1000) + 's ' + ((vv && vv.d.error) || ''));
+      if (vv && vv.d.download_url) {
+        const dl = await fetch(vv.d.download_url); const vb = Buffer.from(await dl.arrayBuffer());
+        step('video downloads as an MP4', dl.status === 200 && vb.slice(4, 8).toString('latin1') === 'ftyp' && vb.length > 40000, true, vb.length + ' bytes, ' + (dl.headers.get('content-disposition') || ''));
+        step('asking again reuses the same video', (await post('/karaoke/' + id + '/video', A, {}, true)).d.status, 'ready');
+      }
+      // ── Song points for a song made in the room ──
+      step('song points need locked lyrics first', (await post('/stage/lyric/room-song', A, { kind: 'karaoke', id }, true)).status, 404);
+      const rr = await post('/rehearse/lyric', A, { text: rewrite + '\n' + rewrite.split('\n').reverse().join('\n') }, true);
+      const lk = await post('/stage/lyric', A, { rehearsal_id: rr.d.id, confirm: 'true' }, true); step('lyrics locked for the points test', lk.status, 200, 'score ' + (lk.d.lock && lk.d.lock.score));
+      step('another team cannot turn in this song', (await post('/stage/lyric/room-song', B, { kind: 'karaoke', id }, true)).status, 404);
+      step('a made-up song id is refused', (await post('/stage/lyric/room-song', A, { kind: 'karaoke', id: '00000000-0000-4000-8000-000000000000' }, true)).status, 404);
+      step('a wrong kind is refused', (await post('/stage/lyric/room-song', A, { kind: 'suno', id }, true)).status, 400);
+      const ti = await post('/stage/lyric/room-song', A, { kind: 'karaoke', id }, true);
+      step('turning in the room-made song adds 10', ti.d.lock && ti.d.lock.total - ti.d.lock.score, 10, ti.d.error);
+      step('a second turn-in is refused', (await post('/stage/lyric/room-song', A, { kind: 'karaoke', id }, true)).status, 409);
+      // A song whose words are not the locked lyrics earns nothing.
+      const F = R.signToken({ t: 'preview:' + run + '-f', n: 'Preview: other words', p: 1 });
+      const fr = await post('/rehearse/lyric', F, { text: 'Purple elephants are dancing on the ceiling\nSeventeen umbrellas float across the butter\nMy accountant plays the tuba every Wednesday\nNobody remembered where the ladder went' }, true);
+      await post('/stage/lyric', F, { rehearsal_id: fr.d.id, confirm: 'true' }, true);
+      const { data: mine } = await R.supabase.from('evalroom_karaoke').select('instrumental_path, timings, duration_s').eq('id', id).single();
+      const { data: fsong } = await R.supabase.from('evalroom_karaoke').insert({ team_key: 'preview:' + run + '-f', team_name: 'Preview: other words', title: 'Other words', original_lyrics: original, new_lyrics: rewrite, status: 'ready', instrumental_path: mine.instrumental_path, timings: mine.timings, duration_s: mine.duration_s }).select('id').single();
+      const mm = await post('/stage/lyric/room-song', F, { kind: 'karaoke', id: fsong.id }, true); step('a song with different words earns no points', mm.status, 400, mm.d.error);
+      await R.supabase.from('evalroom_karaoke').update({ status: 'deleted', instrumental_path: null }).eq('id', fsong.id);
       for (const [x, tk] of [[mc, C], [md, D], [bad, E]]) if (x.d.song) await post('/karaoke/' + x.d.song.id + '/delete', tk, {}, true);
       const del = await post('/karaoke/' + id + '/delete', A, {}, true); step('team can delete its song', del.status, 200);
       step('deleted song is gone', (await get('/karaoke/' + id, A)).status, 404);

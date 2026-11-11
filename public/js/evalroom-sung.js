@@ -40,6 +40,7 @@
         if (watching === id) { watching = null; wait.hidden = true; }
         $('#sungPlayer').hidden = false; $('#sungName').textContent = (s.title || 'Our song') + ' · ' + s.styleLabel;
         $('#sungAudio').src = d.audio_url; $('#sungSave').href = d.download_url || d.audio_url;
+        document.dispatchEvent(new CustomEvent('er:sung-open', { detail: { id: s.id } }));
         if (scroll) $('#sungPlayer').scrollIntoView({ behavior: 'smooth', block: 'center' });
         load(); return;
       }

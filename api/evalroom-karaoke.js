@@ -480,6 +480,7 @@ module.exports = function attachKaraoke(router, deps) {
     if (!r || r.status === 'deleted') return res.status(404).json({ error: 'Song not found.' });
     const paths = [r.instrumental_path, r.source_path].filter(Boolean);
     if (paths.length) await supabase.storage.from(BUCKET).remove(paths);
+    await require('./evalroom-video').removeVideos(supabase, req.team.key, r.id).catch(() => {});
     // The row stays (without audio or lyrics) so the daily limits still count it.
     const { error } = await supabase.from('evalroom_karaoke').update({ status: 'deleted', instrumental_path: null, source_path: null, timings: null, auto_timings: null, original_lyrics: '', new_lyrics: '' }).eq('id', r.id);
     if (error) return res.status(500).json({ error: 'That song could not be removed. Please try again.' });

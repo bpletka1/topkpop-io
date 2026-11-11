@@ -112,6 +112,7 @@
   function fmt(x) { x = Math.max(0, x || 0); return Math.floor(x / 60) + ':' + ('0' + Math.floor(x % 60)).slice(-2); }
   function showPlayer(d) {
     S.lines = d.lines || [];
+    document.dispatchEvent(new CustomEvent('er:karaoke-open', { detail: { id: d.song.id } }));
     $('#player').hidden = false; $('#playerTitle').textContent = d.song.title || 'Our song';
     if (audio.getAttribute('data-id') !== d.song.id || audio.getAttribute('data-stale')) { audio.src = d.audio_url; audio.setAttribute('data-id', d.song.id); audio.removeAttribute('data-stale'); $('#seek').value = 0; $('#seek').max = 100; }
     var q = d.song.quality || {}, w = $('#timingWarn'), parts = [];

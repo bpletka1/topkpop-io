@@ -11,7 +11,8 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { checkSong, normalizeSongUrl } = require('./evalroom-song');
+const { checkSong, normalizeSongUrl, lyricMatch } = require('./evalroom-song');
+const ROOM_MATCH_PCT = Number(process.env.EVALROOM_SONG_MATCH_PCT || 50);
 
 const SONG_BONUS = 10;       // Trove 02: a verified song made from the locked lyrics
 const DANCE_BONUS = 10;      // Trove 03: a dance video link (same rule as the current submit page)
@@ -257,6 +258,39 @@ module.exports = function attachStage(router, deps) {
       }
       res.json({ ok: true, lock: await withText(lockView(saved)) });
     } catch (err) { console.error('evalroom add-song error:', err.message); res.status(502).json({ error: SONG_MESSAGES.unreadable }); }
+  });
+
+  // A song made in the Song Maker (karaoke or sung) counts as the team's song, once, when it uses the locked lyrics.
+  router.post('/stage/lyric/room-song', requireTeam, async (req, res) => {
+    try {
+      if (limited('song:' + req.team.key, 8, 60000)) return res.status(429).json({ error: 'That is a lot of checks in one minute. Try again shortly.' });
+      const kind = String((req.body && req.body.kind) || ''); const id = String((req.body && req.body.id) || '');
+      const table = kind === 'karaoke' ? 'evalroom_karaoke' : kind === 'sung' ? 'evalroom_covers' : null;
+      if (!table || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return res.status(400).json({ error: 'Choose one of your team\'s finished songs.' });
+      const lock = await activeLock(req.team.key, 2);
+      if (!lock) return res.status(404).json({ error: 'Lock your lyrics with the Lyric Judge first (Take the Stage), then turn in your song.' });
+      if (lock.song_url) return res.status(409).json({ error: 'Your team already turned in its song.', lock: await withText(lockView(lock)) });
+      const { data: song } = await supabase.from(table).select(kind === 'karaoke' ? 'id, title, status, new_lyrics' : 'id, title, status, lyrics').eq('id', id).eq('team_key', req.team.key).single();
+      if (!song || song.status !== 'ready') return res.status(404).json({ error: 'That song is not finished yet, or it was removed.' });
+      const { data: r } = await supabase.from('evalroom_rehearsals').select('input_text').eq('id', lock.rehearsal_id).single();
+      const m = lyricMatch(r && r.input_text, kind === 'karaoke' ? song.new_lyrics : song.lyrics);
+      if (!(m.pct >= ROOM_MATCH_PCT && m.enough)) return res.status(400).json({ error: 'This song does not use your locked lyrics. Make the song again with the exact lyrics your team locked, then turn that one in.', match: m.pct });
+      const url = `room:${kind}:${song.id}`;
+      const check = { verdict: 'verified', room: kind, title: song.title, match: m, canonical: url };
+      const { data: saved, error } = await supabase.from(LOCKS)
+        .update({ song_url: url, song_check: check, bonus: SONG_BONUS, bonus_reason: 'auto-room-song' }).eq('id', lock.id).is('song_url', null).select('*').single();
+      if (error || !saved) return res.status(409).json({ error: 'The song could not be added. Please try again.' });
+      if (!PREVIEW_MODE && lock.submission_id) {
+        const { data: cur } = await supabase.from('submissions').select('bonus_score').eq('id', lock.submission_id).single();
+        const { error: subErr } = await supabase.from('submissions').update({ bonus_score: ((cur && cur.bonus_score) || 0) + SONG_BONUS, bonus_awarded_at: new Date().toISOString(), bonus_awarded_by: 'auto-room-song' }).eq('id', lock.submission_id);
+        if (subErr) {
+          await supabase.from(LOCKS).update({ song_url: null, song_check: null, bonus: 0, bonus_reason: null }).eq('id', lock.id);
+          console.error('evalroom room-song bonus save error:', subErr.message);
+          return res.status(502).json({ error: 'The song points could not be saved. Your song has not been used. Please try again.' });
+        }
+      }
+      res.json({ ok: true, bonus: SONG_BONUS, lock: await withText(lockView(saved)) });
+    } catch (err) { console.error('evalroom room-song error:', err.message); res.status(502).json({ error: 'The song could not be added just now. Please try again.' }); }
   });
 
   // ── Organizer routes ───────────────────────────────────────────────────────
