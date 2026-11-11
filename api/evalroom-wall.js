@@ -112,6 +112,46 @@ module.exports = function attachWall(router, deps) {
       const { data: upd } = await q.select('id'); if (upd && upd.length) return;
     }
   }
+  /**
+   * The outside judge's points for a dance video (0 to 10), entered by the organizer. Unlike the other
+   * bonuses this one is a number the organizer can change, so it is kept as one tag, outside-judge-<n>.
+   * Returns { was, now }.
+   */
+  async function setJudgePoints(lockId, points) {
+    let lock = null; let was = 0; let done = false;
+    for (let i = 0; i < 6 && !done; i++) {
+      const got = await supabase.from(LOCKS).select('id, bonus, bonus_reason, submission_id').eq('id', lockId).is('reset_at', null).single();
+      lock = got.data; if (!lock) return null;
+      const had = String(lock.bonus_reason || '').split('+').filter(Boolean);
+      was = had.reduce((n, t) => { const m = /^outside-judge-(\d+)$/.exec(t); return m ? Number(m[1]) : n; }, 0);
+      if (was === points) return { was, now: points };
+      const reasons = had.filter((t) => !/^outside-judge-\d+$/.test(t)); if (points > 0) reasons.push('outside-judge-' + points);
+      let q = supabase.from(LOCKS).update({ bonus: Math.max(0, (lock.bonus || 0) + points - was), bonus_reason: reasons.join('+') || null }).eq('id', lock.id).eq('bonus', lock.bonus || 0);
+      q = lock.bonus_reason == null ? q.is('bonus_reason', null) : q.eq('bonus_reason', lock.bonus_reason);
+      const { data: upd, error } = await q.select('id');
+      if (error) throw new Error(error.message);
+      done = !!(upd && upd.length);
+    }
+    if (!done) throw new Error('the entry was busy; points not changed');
+    if (!PREVIEW_MODE && lock.submission_id) {
+      try { await changeLeaderboard(lock.submission_id, points - was, 'outside-judge'); }
+      catch (e) {
+        // Put the entry back the way it was so the two never disagree.
+        await setJudgePointsBack(lockId, points, was).catch((x) => console.error('evalroom judge points put-back error:', x.message));
+        throw e;
+      }
+    }
+    return { was, now: points };
+  }
+  async function setJudgePointsBack(lockId, points, was) {
+    for (let i = 0; i < 6; i++) {
+      const { data: lock } = await supabase.from(LOCKS).select('id, bonus, bonus_reason').eq('id', lockId).single(); if (!lock) return;
+      const reasons = String(lock.bonus_reason || '').split('+').filter(Boolean).filter((t) => !/^outside-judge-\d+$/.test(t)); if (was > 0) reasons.push('outside-judge-' + was);
+      let q = supabase.from(LOCKS).update({ bonus: Math.max(0, (lock.bonus || 0) - points + was), bonus_reason: reasons.join('+') || null }).eq('id', lock.id).eq('bonus', lock.bonus || 0);
+      q = lock.bonus_reason == null ? q.is('bonus_reason', null) : q.eq('bonus_reason', lock.bonus_reason);
+      const { data: upd } = await q.select('id'); if (upd && upd.length) return;
+    }
+  }
   /** The leaderboard record. A failed read stops the change; it is never treated as zero. */
   async function changeLeaderboard(submissionId, delta, tag) {
     for (let i = 0; i < 6; i++) {
@@ -393,6 +433,6 @@ module.exports = function attachWall(router, deps) {
       res.json({ ok: true });
     } catch (e) { console.error('evalroom organizer wall remove error:', e.message); res.status(502).json({ error: 'That could not be removed. Please try again.' }); }
   });
-  return { retireForLock, retireSongForLock, changeBonus, tellOrganizer };
+  return { retireForLock, retireSongForLock, changeBonus, setJudgePoints, tellOrganizer };
 };
 module.exports._internal = { toJpeg, vimeoUpload, wallDomains };

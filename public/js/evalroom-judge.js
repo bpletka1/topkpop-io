@@ -238,7 +238,7 @@
     var b = $('#offBadge'); b.textContent = L.practice ? 'Practice lock (preview)' : 'Locked'; b.className = 'er-badge' + (L.practice ? ' practice' : '');
     var when = new Date(L.locked_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     var parts = [L.score + ' from the ' + (J ? J.name : 'judge')];
-    if (L.bonus) parts.push(L.bonus + ' bonus');
+    if (L.bonus) parts.push(L.bonus + ' bonus' + (L.judge_points ? ' (' + L.judge_points + ' of it from the outside judge)' : ''));
     $('#offLine').textContent = parts.join(' + ') + '. Locked ' + when + '. ' + (L.practice ? 'This is a practice lock on the preview copy and does not reach the leaderboard.' : 'Your leaderboard score is updated. You can still rehearse with any rehearsals your team has left, but this score is final.');
     var hasSong = key === 'lyric' && !!L.song_url;
     $('#offSong').hidden = !hasSong;

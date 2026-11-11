@@ -631,6 +631,27 @@ async function runCase(row, port) {
     const two = await Promise.all([call('POST', '/extras/lore', A, { text: story }), call('POST', '/wall/share', B, { kind: 'pictures', confirm: 'true' })]); step('story turned in again after removal', two[0].status, process.env.ADMIN_PASSWORD ? 200 : 409);
     const dn = await call('POST', '/wall/share', A, { kind: 'dance', confirm: 'true' }); step('dance video shared on the wall, 25 points', dn.d.bonus, 25, dn.d.error);
     step('lesson lock shows 10 + 25', await bonusOf('lesson'), 35);
+    if (process.env.ADMIN_PASSWORD) {
+      const l3id = (await lockOf('lesson')).id; const l1id = (await lockOf('visual')).id;
+      const jp = (id, points, hdr) => call('POST', '/organizer/judge-points', null, { lock_id: id, points }, null, hdr === undefined ? org : hdr);
+      step('outside judge points need the organizer password', (await jp(l3id, 5, {})).status, 401);
+      step('a team cannot give itself outside judge points', (await call('POST', '/organizer/judge-points', A, { lock_id: l3id, points: 10 })).status, 401);
+      step('11 points is refused', (await jp(l3id, 11)).status, 400);
+      step('a negative number is refused', (await jp(l3id, -3)).status, 400);
+      step('half points are refused', (await jp(l3id, 7.5)).status, 400);
+      step('words are refused', (await jp(l3id, 'ten')).status, 400);
+      step('a Trove 01 entry is refused', (await jp(l1id, 5)).status, 400);
+      step('a made-up entry is refused', (await jp('00000000-0000-4000-8000-000000000000', 5)).status, 404);
+      const j7 = await jp(l3id, 7); step('outside judge gives 7', j7.status === 200 && j7.d.points === 7 && j7.d.was === 0, true, j7.d.error);
+      step('lesson lock shows 10 + 25 + 7', await bonusOf('lesson'), 42);
+      step('the team sees 7 from the outside judge', ((await lockOf('lesson')) || {}).judge_points, 7);
+      const j9 = await Promise.all([jp(l3id, 9), jp(l3id, 9)]); step('saving 9 twice at once counts once', j9.every((x) => x.status === 200) && (await bonusOf('lesson')), 44);
+      const j4 = await jp(l3id, 4); step('changed down to 4', j4.d.was === 9 && (await bonusOf('lesson')), 39, j4.d.error);
+      const ol3 = await call('GET', '/organizer/locks', null, null, null, org); step('organizer list shows the 4', ((ol3.d.locks || []).find((x) => x.id === l3id) || {}).judge_points, 4);
+      step('set back to 0', (await jp(l3id, 0)).status === 200 && (await bonusOf('lesson')), 35);
+      step('no outside judge tag is left behind', /outside-judge/.test(((await lockOf('lesson')) || {}).bonus_reason || ''), false);
+      step('set to 10 for the reset check', (await jp(l3id, 10)).status === 200 && (await bonusOf('lesson')), 45);
+    }
     step('team without a lesson lock cannot share a dance video', (await call('POST', '/wall/share', B, { kind: 'dance', confirm: 'true' })).status, 404);
 
     // Reset clears what hangs off the entry

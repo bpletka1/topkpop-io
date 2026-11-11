@@ -14,9 +14,11 @@ const path = require('path');
 const { checkSong, normalizeSongUrl, lyricMatch } = require('./evalroom-song');
 const ROOM_MATCH_PCT = Number(process.env.EVALROOM_SONG_MATCH_PCT || 50);
 
+const judgePoints = (l) => String((l && l.bonus_reason) || '').split('+').reduce((n, t) => { const m = /^outside-judge-(\d+)$/.exec(t); return m ? Number(m[1]) : n; }, 0);
 const plusReason = (lock, tag) => String(lock.bonus_reason || '').split('+').filter(Boolean).concat(tag).join('+');
 const SONG_BONUS = 10;       // Trove 02: a verified song made from the locked lyrics
 const DANCE_BONUS = 10;      // Trove 03: a dance video link (same rule as the current submit page)
+const JUDGE_MAX = 10;        // Trove 03: the outside judge's extra points for the dance video, entered by the organizer
 const TROVE_OF = { visual: 1, lyric: 2, lesson: 3 };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -42,7 +44,7 @@ module.exports = function attachStage(router, deps) {
 
   const lockView = (l) => l && ({
     id: l.id, trove: l.trove, judge: l.judge, score: l.score, max: l.max_score, bonus: l.bonus, total: l.score + l.bonus,
-    bonus_reason: l.bonus_reason, song_url: l.song_url, song_title: l.song_check && l.song_check.title, embed_url: l.song_check && l.song_check.embedUrl,
+    bonus_reason: l.bonus_reason, judge_points: judgePoints(l), song_url: l.song_url, song_title: l.song_check && l.song_check.title, embed_url: l.song_check && l.song_check.embedUrl,
     dance_video_url: l.dance_video_url, locked_at: l.locked_at, practice: l.is_preview, rehearsal_id: l.rehearsal_id,
   });
   async function withText(view) {
@@ -145,7 +147,7 @@ module.exports = function attachStage(router, deps) {
       if (error) throw new Error(error.message);
       const locks = {};
       for (const l of data || []) locks[l.judge] = await withText(lockView(l));
-      res.json({ locks, practice: isPractice(), songBonus: SONG_BONUS, danceBonus: DANCE_BONUS });
+      res.json({ locks, practice: isPractice(), songBonus: SONG_BONUS, danceBonus: DANCE_BONUS, judgeMax: JUDGE_MAX });
     } catch (err) { console.error('evalroom stage error:', err.message); res.status(500).json({ error: 'Could not load your official scores. Please try again.' }); }
   });
 
@@ -363,6 +365,25 @@ module.exports = function attachStage(router, deps) {
     const { data, error } = await supabase.from(LOCKS).select('*').order('locked_at', { ascending: false }).limit(500);
     if (error) return res.status(500).json({ error: 'Could not load the locks.' });
     res.json({ preview: PREVIEW_MODE, locks: (data || []).map((l) => ({ ...lockView(l), team_name: l.team_name, reset_at: l.reset_at, reset_note: l.reset_note })) });
+  });
+
+  // The outside judge's points for a Trove 03 dance video: 0 to 10, on top of the automatic points. Can be changed.
+  router.post('/organizer/judge-points', requireOrganizer, async (req, res) => {
+    try {
+      const id = String((req.body && req.body.lock_id) || '');
+      if (!UUID.test(id)) return res.status(400).json({ error: 'Choose a team first.' });
+      const raw = req.body && req.body.points;
+      const pts = typeof raw === 'number' ? raw : /^\d{1,2}$/.test(String(raw == null ? '' : raw).trim()) ? Number(String(raw).trim()) : NaN;
+      if (!Number.isInteger(pts) || pts < 0 || pts > JUDGE_MAX) return res.status(400).json({ error: `The outside judge's points must be a whole number from 0 to ${JUDGE_MAX}.` });
+      const { data: lock } = await supabase.from(LOCKS).select('id, trove, dance_video_url').eq('id', id).is('reset_at', null).single();
+      if (!lock) return res.status(404).json({ error: 'That entry was not found or has been reset.' });
+      if (lock.trove !== 3) return res.status(400).json({ error: "The outside judge's points are for Trove 03 dance videos only." });
+      if (!lock.dance_video_url) return res.status(400).json({ error: 'This team has not added a dance video yet.' });
+      const out = await wall.setJudgePoints(id, pts);
+      if (!out) return res.status(404).json({ error: 'That entry was not found or has been reset.' });
+      const { data: saved } = await supabase.from(LOCKS).select('*').eq('id', id).single();
+      res.json({ ok: true, was: out.was, points: out.now, lock: lockView(saved) });
+    } catch (err) { console.error('evalroom judge-points error:', err.message); res.status(502).json({ error: 'The points could not be saved. Nothing was changed. Please try again.' }); }
   });
 
   router.post('/organizer/reset', requireOrganizer, async (req, res) => {

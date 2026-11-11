@@ -180,6 +180,7 @@ The game runs for 32 days from the start date set by the administrator. The star
 **Scoring:**
 - Lesson Plan: up to 100 points, scored by the Lesson Judge and locked when you Take the Stage
 - Dance Video Bonus: +10 points, added automatically when you add your dance video link at Take the Stage (or later on the Lesson Judge page)
+- Outside Judge: up to 10 more points for the dance video, given by the outside judge after the link is added
 - Share on the Wall bonus: +25 points (share your dance video on the Wall in The Evaluation Room — points are added automatically)
 - Live Team Performance: qualifies school for a special bonus prize (scored separately by the outside judge)
 
@@ -214,7 +215,7 @@ The three judges in The Evaluation Room are the scoring system for TopKpop.io: t
 |----------|--------|
 | Treasure Trove 01 (Avatar + Poster) | up to 100 pts |
 | Treasure Trove 02 (Evidence Song) | up to 100 pts |
-| Treasure Trove 03 (AI Lesson Plan + Dance) | up to 100 pts + 10 video bonus |
+| Treasure Trove 03 (AI Lesson Plan + Dance) | up to 100 pts + 10 video bonus + up to 10 from the outside judge |
 | Share on the Wall (per Trove) | +25 pts each, added automatically |
 | Welcome Post on Instagram (at registration, or turned in later in The Evaluation Room) | +25 pts (one-time), added automatically |
 | Team Name Lore (Trove 01) | +25 pts, added automatically when turned in |
