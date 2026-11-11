@@ -19,6 +19,8 @@
     .wall-meta { padding: 12px 14px; }
     .wall-meta b { display: block; font-size: 0.98rem; }
     .wall-meta span { font-size: 0.8rem; color: rgba(224,224,224,0.6); }
+    .wall-audio { padding: 14px 14px 0; } .wall-audio audio { width: 100%; }
+    .wall-link { padding: 14px 14px 0; }
     .wall-share { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; margin-top: 16px; }
     .wall-share:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
   </style>
@@ -51,15 +53,26 @@
     </div>
 
     <div class="wall-share" id="shareSong">
-      <p class="er-label">Trove 02 &middot; Karaoke video</p>
+      <p class="er-label">Trove 02 &middot; Your song</p>
       <p class="er-muted" id="songState"></p>
       <div id="songForm" hidden>
         <div class="er-field"><label for="songPick">Which song?</label><select class="er-input" id="songPick"></select></div>
-        <label class="er-check"><input type="checkbox" id="songOk" /><span>Our team agrees to show our karaoke video to the other teams playing the game.</span></label>
-        <label class="er-check"><input type="checkbox" id="songPublic" /><span><b>Optional:</b> the game may also post our karaoke video on its <b>public</b> Instagram page, where anyone can see it.</span></label>
-        <div class="er-row"><button class="er-btn" id="songBtn" type="button">Share our karaoke video</button></div>
+        <label class="er-check"><input type="checkbox" id="songOk" /><span>Our team agrees to show our song to the other teams playing the game.</span></label>
+        <label class="er-check"><input type="checkbox" id="songPublic" /><span><b>Optional:</b> the game may also post our song on its <b>public</b> Instagram page, where anyone can see it.</span></label>
+        <div class="er-row"><button class="er-btn" id="songBtn" type="button">Share our song</button></div>
       </div>
       <p class="er-msg" id="songMsg"></p>
+    </div>
+
+    <div class="wall-share" id="shareDance">
+      <p class="er-label">Trove 03 &middot; Dance video</p>
+      <p class="er-muted" id="danceState"></p>
+      <div id="danceForm" hidden>
+        <label class="er-check"><input type="checkbox" id="danceOk" /><span>Our team agrees to show our dance video link to the other teams playing the game.</span></label>
+        <label class="er-check"><input type="checkbox" id="dancePublic" /><span><b>Optional:</b> the game may also post our dance video on its <b>public</b> Instagram page, where anyone can see it.</span></label>
+        <div class="er-row"><button class="er-btn" id="danceBtn" type="button">Share our dance video</button></div>
+      </div>
+      <p class="er-msg" id="danceMsg"></p>
     </div>
   </section>
 

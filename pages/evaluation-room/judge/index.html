@@ -48,6 +48,41 @@
     </div>
   </section>
 
+  <!-- Extra tasks, once locked -->
+  <section class="er-card" id="extraCard" hidden aria-live="polite">
+    <p class="er-label">Extra points</p>
+    <div id="xLore" hidden>
+      <h2 class="er-h2">Team Name Lore</h2>
+      <p class="er-muted" id="xLoreState" style="margin:8px 0 12px"></p>
+      <div id="xLoreForm" hidden>
+        <div class="er-field"><label for="xLoreText">The story behind your team name (2 to 4 sentences)</label>
+          <textarea class="er-input" id="xLoreText" rows="4" maxlength="900" placeholder="Where did your team name come from? What does it say about your group?"></textarea></div>
+        <button class="er-btn amber small" id="xLoreBtn" type="button">Turn in our story</button>
+      </div>
+      <p class="er-msg" id="xLoreMsg"></p>
+    </div>
+    <div id="xKara" hidden>
+      <h2 class="er-h2">Made your karaoke video somewhere else?</h2>
+      <p class="er-muted" id="xKaraState" style="margin:8px 0 12px"></p>
+      <div id="xKaraForm" hidden>
+        <div class="er-field"><label for="xKaraFile">Your karaoke video file</label><input class="er-input" id="xKaraFile" type="file" accept="video/*,.mp4,.mov,.m4v,.webm" /><p class="hint">Up to <span class="xMax">80</span> MB. Larger? Put it on YouTube or Google Drive and paste the link below instead.</p></div>
+        <div class="er-field"><label for="xKaraLink">Or a link to it</label><input class="er-input" id="xKaraLink" inputmode="url" autocapitalize="off" placeholder="https://..." /></div>
+        <button class="er-btn amber small" id="xKaraBtn" type="button">Turn in our karaoke video</button>
+      </div>
+      <p class="er-msg" id="xKaraMsg"></p>
+    </div>
+    <div id="xPerf" hidden style="margin-top:22px">
+      <h2 class="er-h2">Avatar Performance</h2>
+      <p class="er-muted" id="xPerfState" style="margin:8px 0 12px"></p>
+      <div id="xPerfForm" hidden>
+        <div class="er-field"><label for="xPerfFile">Your avatar performance video file</label><input class="er-input" id="xPerfFile" type="file" accept="video/*,.mp4,.mov,.m4v,.webm" /><p class="hint">Up to <span class="xMax">80</span> MB. Larger? Put it on YouTube or Google Drive and paste the link below instead.</p></div>
+        <div class="er-field"><label for="xPerfLink">Or a link to it</label><input class="er-input" id="xPerfLink" inputmode="url" autocapitalize="off" placeholder="https://..." /></div>
+        <button class="er-btn amber small" id="xPerfBtn" type="button">Turn in our avatar performance</button>
+      </div>
+      <p class="er-msg" id="xPerfMsg"></p>
+    </div>
+  </section>
+
   <section id="dir"></section>
 
   <!-- Entry -->
@@ -155,5 +190,6 @@
 
 <script src="/js/evalroom.js"></script>
 <script src="/js/evalroom-judge.js"></script>
+<script src="/js/evalroom-extras.js"></script>
 </body>
 </html>

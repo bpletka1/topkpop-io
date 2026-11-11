@@ -231,18 +231,20 @@
   function showOfficial() {
     var L = S.lock, box = $('#official');
     box.hidden = !L;
+    document.dispatchEvent(new CustomEvent('er:stage', { detail: { key: key, locked: !!L } }));
     if (!L) return;
     $('#offTotal').textContent = L.total; $('#offMax').textContent = L.max + (key === 'lyric' ? S.songBonus : 0);
     var b = $('#offBadge'); b.textContent = L.practice ? 'Practice lock (preview)' : 'Locked'; b.className = 'er-badge' + (L.practice ? ' practice' : '');
     var when = new Date(L.locked_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     var parts = [L.score + ' from the ' + (J ? J.name : 'judge')];
-    if (L.bonus) parts.push(L.bonus + (key === 'lyric' ? ' for your song' : ' bonus'));
+    if (L.bonus) parts.push(L.bonus + ' bonus');
     $('#offLine').textContent = parts.join(' + ') + '. Locked ' + when + '. ' + (L.practice ? 'This is a practice lock on the preview copy and does not reach the leaderboard.' : 'Your leaderboard score is updated. You can keep rehearsing for fun, but this score is final.');
     var hasSong = key === 'lyric' && !!L.song_url;
     $('#offSong').hidden = !hasSong;
     var roomSong = hasSong && /^room:/.test(L.song_url);
     $('#offPlayer').hidden = !!roomSong;
-    if (roomSong) { $('#offSongLink').href = '/pages/evaluation-room/karaoke/'; $('#offSongLink').textContent = 'Your song \u201c' + (L.song_title || 'our song') + '\u201d was made in the Song Maker. Open the Song Maker'; }
+    if (roomSong && /^room:upload/.test(L.song_url)) { $('#offSongLink').removeAttribute('href'); $('#offSongLink').textContent = 'Your karaoke video was turned in as your team\u2019s song.'; }
+    else if (roomSong) { $('#offSongLink').href = '/pages/evaluation-room/karaoke/'; $('#offSongLink').textContent = 'Your song \u201c' + (L.song_title || 'our song') + '\u201d was made in the Song Maker. Open the Song Maker'; }
     else if (hasSong) { if (L.embed_url && $('#offPlayer').src !== L.embed_url) $('#offPlayer').src = L.embed_url; $('#offSongLink').href = L.song_url; $('#offSongLink').textContent = 'Open \u201c' + (L.song_title || 'your song') + '\u201d on Suno'; }
     $('#addSong').hidden = !(key === 'lyric' && !L.song_url);
     $('#offLyrics').hidden = !(key === 'lyric' && L.locked_text);
@@ -302,6 +304,9 @@
       .catch(function (e) { if (e.data && e.data.lock) { S.lock = e.data.lock; showOfficial(); } ER.showMsg(m, e.message); })
       .then(function () { btn.disabled = false; btn.textContent = 'Turn in my song'; });
   });
+
+  // An extra task was turned in: show the new total.
+  document.addEventListener('er:extras-changed', function () { loadStage().catch(function () {}); });
 
   // ── Earlier rehearsals ──
   var rows = [];

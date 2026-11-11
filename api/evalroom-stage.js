@@ -319,6 +319,8 @@ module.exports = function attachStage(router, deps) {
 
   const wall = require('./evalroom-wall')(router, { supabase, requireTeam, requireOrganizer, limited, loadPictures, activeLock, LOCKS, PREVIEW_MODE, lyricMatch, matchPct: ROOM_MATCH_PCT });
 
+  const extras = require('./evalroom-extras')(router, { supabase, requireTeam, requireOrganizer, limited, activeLock, LOCKS, PREVIEW_MODE, multer: require('multer'), changeBonus: wall.changeBonus, tellOrganizer: wall.tellOrganizer });
+
   router.get('/organizer/locks', requireOrganizer, async (req, res) => {
     const { data, error } = await supabase.from(LOCKS).select('*').order('locked_at', { ascending: false }).limit(500);
     if (error) return res.status(500).json({ error: 'Could not load the locks.' });
@@ -345,6 +347,7 @@ module.exports = function attachStage(router, deps) {
       }
       // Whatever the team shared from this entry comes off the wall with it.
       await wall.retireForLock(id, 'reset', note || 'The locked entry was reset.').catch((e) => console.error('evalroom reset: wall retire error:', e.message));
+      await extras.retireForLock(id, 'reset', note || 'The locked entry was reset.').catch((e) => console.error('evalroom reset: extras retire error:', e.message));
       res.json({ ok: true });
     } catch (err) { console.error('evalroom reset error:', err.message); res.status(500).json({ error: 'The reset did not go through. Please try again.' }); }
   });

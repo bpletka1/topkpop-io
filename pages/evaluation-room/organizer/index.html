@@ -32,6 +32,13 @@
     <div class="er-scroll"><table class="er-table"><thead><tr><th>Team</th><th>Trove</th><th>Score</th><th>Locked</th><th>Extras</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
     <p class="er-msg" id="listMsg"></p>
   </section>
+  <section class="er-card" id="extras" hidden>
+    <div><p class="er-label">Extra tasks</p><h2 class="er-h2" id="extraCount"></h2></div>
+    <p class="er-muted" style="margin:8px 0 12px">Team name stories, avatar performance videos and karaoke videos made outside the room. The points were added by themselves. The room only checked that something was turned in, so look and remove anything that should not count. Removing takes the points back.</p>
+    <div class="er-scroll"><table class="er-table"><thead><tr><th>Team</th><th>What</th><th>Turned in</th><th>Look</th><th></th></tr></thead><tbody id="extraRows"></tbody></table></div>
+    <p class="er-msg" id="extraMsg"></p>
+  </section>
+
   <section class="er-card" id="wall" hidden>
     <div class="er-row" style="justify-content:space-between;margin-bottom:12px">
       <div><p class="er-label">The Wall</p><h2 class="er-h2" id="wallCount"></h2></div>
@@ -58,7 +65,7 @@
       $('#count').textContent = live.length + ' active lock' + (live.length === 1 ? '' : 's');
       $('#rows').innerHTML = d.locks.map(function (l) {
         var when = new Date(l.locked_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-        var extras = [l.practice ? '<span class="er-badge practice">Practice</span>' : '', l.song_url ? (/^room:/.test(l.song_url) ? '<span class="er-small">Song made in the Song Maker (' + (/^room:sung/.test(l.song_url) ? 'AI-sung' : 'karaoke') + ')</span>' : '<a href="' + esc(l.song_url) + '" target="_blank" rel="noopener">Song</a>') : '', l.dance_video_url ? '<a href="' + esc(l.dance_video_url) + '" target="_blank" rel="noopener">Dance video</a>' : ''].filter(Boolean).join(' ');
+        var extras = [l.practice ? '<span class="er-badge practice">Practice</span>' : '', l.song_url ? (/^room:/.test(l.song_url) ? '<span class="er-small">Song made in the Song Maker (' + (/^room:sung/.test(l.song_url) ? 'AI-sung' : /^room:upload/.test(l.song_url) ? 'karaoke video turned in, see Extra tasks' : 'karaoke') + ')</span>' : '<a href="' + esc(l.song_url) + '" target="_blank" rel="noopener">Song</a>') : '', l.dance_video_url ? '<a href="' + esc(l.dance_video_url) + '" target="_blank" rel="noopener">Dance video</a>' : ''].filter(Boolean).join(' ');
         return '<tr><td><b>' + esc(l.team_name || '') + '</b></td><td>0' + l.trove + '</td><td>' + l.score + (l.bonus ? ' + ' + l.bonus : '') + ' = <b>' + l.total + '</b></td><td>' + esc(when) + '</td><td>' + extras + '</td><td>' +
           (l.reset_at ? '<span class="er-small">Reset' + (l.reset_note ? ': ' + esc(l.reset_note) : '') + '</span>' : '<button class="er-btn ghost small" data-id="' + esc(l.id) + '" data-team="' + esc(l.team_name || '') + '" data-trove="' + l.trove + '">Reset</button>') + '</td></tr>';
       }).join('') || '<tr><td colspan="6" class="er-muted">No team has locked a score yet.</td></tr>';
@@ -72,13 +79,34 @@
       $('#wallCount').textContent = live.length + ' item' + (live.length === 1 ? '' : 's') + ' on the wall';
       $('#wallRows').innerHTML = d.items.map(function (i) {
         var when = new Date(i.when).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-        var look = i.kind === 'pictures' && i.images ? ['avatar', 'poster'].map(function (s) { return i.images[s] && i.images[s].full ? '<a href="' + esc(i.images[s].full) + '" target="_blank" rel="noopener">' + s + '</a>' : ''; }).join(' ') : i.embed && /^https:\/\/player\.vimeo\.com\//.test(i.embed) ? '<button class="er-linkbtn" data-play="' + esc(i.embed) + '">play video</button>' : '';
-        return '<tr' + (want === i.id ? ' style="outline:2px solid #ffbf00"' : '') + '><td><b>' + esc(i.team || '') + '</b>' + (i.practice ? ' <span class="er-badge practice">Practice</span>' : '') + '</td><td>Trove 0' + i.trove + ' · ' + (i.kind === 'pictures' ? 'avatar and poster' : esc(i.title || 'karaoke video')) + '</td><td>' + esc(when) + '</td><td>' + (i.publicOk ? '<b>Yes, approved</b>' : 'No') + '</td><td>' + look + '</td><td>' +
+        var look = i.kind === 'pictures' && i.images ? ['avatar', 'poster'].map(function (s) { return i.images[s] && i.images[s].full ? '<a href="' + esc(i.images[s].full) + '" target="_blank" rel="noopener">' + s + '</a>' : ''; }).join(' ') : i.embed && /^https:\/\/player\.vimeo\.com\//.test(i.embed) ? '<button class="er-linkbtn" data-play="' + esc(i.embed) + '">play video</button>' : i.audio ? '<a href="' + esc(i.audio) + '" target="_blank" rel="noopener">play song</a>' : i.link && /^https:\/\//.test(i.link) ? '<a href="' + esc(i.link) + '" target="_blank" rel="noopener">open link</a>' : '';
+        return '<tr' + (want === i.id ? ' style="outline:2px solid #ffbf00"' : '') + '><td><b>' + esc(i.team || '') + '</b>' + (i.practice ? ' <span class="er-badge practice">Practice</span>' : '') + '</td><td>Trove 0' + i.trove + ' · ' + (i.kind === 'pictures' ? 'avatar and poster' : i.kind === 'dance' ? 'dance video' : esc(i.title || 'song')) + '</td><td>' + esc(when) + '</td><td>' + (i.publicOk ? '<b>Yes, approved</b>' : 'No') + '</td><td>' + look + '</td><td>' +
           (i.removedAt ? '<span class="er-small">Removed by ' + esc(i.removedBy || '') + (i.note ? ': ' + esc(i.note) : '') + '</span>' : '<button class="er-btn ghost small" data-wall="' + esc(i.id) + '" data-team="' + esc(i.team || '') + '">Remove</button>') + '</td></tr>';
       }).join('') || '<tr><td colspan="6" class="er-muted">Nothing has been shared yet.</td></tr>';
       if (want) { var hl = document.querySelector('#wallRows tr[style]'); if (hl) hl.scrollIntoView({ block: 'center' }); }
     });
   }
+  function loadExtras() {
+    return call('/organizer/extras').then(function (d) {
+      $('#extras').hidden = false;
+      var want = new URLSearchParams(location.search).get('extra');
+      var live = d.items.filter(function (i) { return !i.removedAt; });
+      $('#extraCount').textContent = live.length + ' extra task' + (live.length === 1 ? '' : 's') + ' turned in';
+      $('#extraRows').innerHTML = d.items.map(function (i) {
+        var when = new Date(i.when).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        var look = [i.text ? '<span class="er-small">' + esc(i.text) + '</span>' : '', i.fileUrl ? '<a href="' + esc(i.fileUrl) + '" target="_blank" rel="noopener">play video</a>' : '', i.link && /^https:\/\//.test(i.link) ? '<a href="' + esc(i.link) + '" target="_blank" rel="noopener">open link</a>' : ''].filter(Boolean).join('<br>');
+        return '<tr' + (want === i.id ? ' style="outline:2px solid #ffbf00"' : '') + '><td><b>' + esc(i.team || '') + '</b>' + (i.practice ? ' <span class="er-badge practice">Practice</span>' : '') + '</td><td>Trove 0' + i.trove + ' · ' + esc(i.name) + (i.bonus ? ' (+' + i.bonus + ')' : '') + '</td><td>' + esc(when) + '</td><td>' + look + '</td><td>' +
+          (i.removedAt ? '<span class="er-small">Removed by ' + esc(i.removedBy || '') + (i.note ? ': ' + esc(i.note) : '') + '</span>' : '<button class="er-btn ghost small" data-extra="' + esc(i.id) + '" data-team="' + esc(i.team || '') + '">Remove</button>') + '</td></tr>';
+      }).join('') || '<tr><td colspan="5" class="er-muted">Nothing has been turned in yet.</td></tr>';
+      if (want) { var hl = document.querySelector('#extraRows tr[style]'); if (hl) hl.scrollIntoView({ block: 'center' }); }
+    });
+  }
+  $('#extraRows').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-extra]'); if (!b) return;
+    var note = window.prompt('Remove what "' + b.getAttribute('data-team') + '" turned in?\n\nTheir points for it are taken back. Type a short reason and press OK, or Cancel to leave it.');
+    if (note === null) return;
+    call('/organizer/extras/remove', { id: b.getAttribute('data-extra'), note: note }).then(loadExtras).then(load).catch(function (e) { ER.showMsg($('#extraMsg'), e.message); });
+  });
   $('#wallRows').addEventListener('click', function (ev) {
     var play = ev.target.getAttribute('data-play');
     if (play) { var td = ev.target.parentNode; td.innerHTML = '<iframe src="' + esc(play) + '" style="width:260px;height:146px;border:0" allow="autoplay; fullscreen" allowfullscreen></iframe>'; return; }
@@ -89,9 +117,9 @@
   });
   $('#gateForm').addEventListener('submit', function (ev) {
     ev.preventDefault(); pw = $('#pw').value; ER.hideMsg($('#gateMsg'));
-    load().then(loadWall).catch(function (e) { ER.showMsg($('#gateMsg'), e.message); });
+    load().then(loadWall).then(loadExtras).catch(function (e) { ER.showMsg($('#gateMsg'), e.message); });
   });
-  $('#refresh').addEventListener('click', function () { load().then(loadWall).catch(function (e) { ER.showMsg($('#listMsg'), e.message); }); });
+  $('#refresh').addEventListener('click', function () { load().then(loadWall).then(loadExtras).catch(function (e) { ER.showMsg($('#listMsg'), e.message); }); });
   $('#rows').addEventListener('click', function (ev) {
     var b = ev.target.closest('button[data-id]'); if (!b) return;
     var note = window.prompt('Reset the Trove 0' + b.getAttribute('data-trove') + ' lock for "' + b.getAttribute('data-team') + '"?\n\nTheir official score for this Trove is removed and they can lock again. Type a short reason and press OK, or Cancel to leave it.');

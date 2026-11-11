@@ -497,6 +497,85 @@ async function runCase(row, port) {
     return out;
   }
 
+  if (row.kind === 'extrasflow') {
+    // Extra tasks and the wider wall, through the web routes.
+    const base = `http://127.0.0.1:${port}/api/evalroom`;
+    const run = 'x' + Date.now().toString(36);
+    const tok = (k) => R.signToken({ t: 'preview:' + run + '-' + k, n: 'Preview: extras ' + k, p: 1 });
+    const A = tok('a'); const B = tok('b');
+    const org = { 'x-organizer-password': process.env.ADMIN_PASSWORD || '' };
+    const call = async (method, pth, token, json, form, extra) => { const headers = { ...(extra || {}) }; if (token) headers['x-evalroom-token'] = token; let body; if (form) body = form; else if (json) { headers['content-type'] = 'application/json'; body = JSON.stringify(json); } const r = await fetch(base + pth, { method, headers, body }); let d = {}; try { d = await r.json(); } catch (_) {} return { status: r.status, d }; };
+    const steps = []; const step = (name, got, want, note) => steps.push((got === want ? 'PASS ' : 'FAIL ') + name + (got === want ? '' : ' (got ' + JSON.stringify(got) + ')') + (note ? ' [' + note + ']' : ''));
+    const pics = () => { const f = new FormData(); for (const [k, n] of [['avatar', 'avatar_good.png'], ['poster', 'poster_good.png']]) f.append(k, new Blob([fs.readFileSync(path.join(FIXTURES, n))], { type: 'image/png' }), n); return f; };
+    const bonusOf = async (j) => { const s = await call('GET', '/stage', A); return s.d.locks && s.d.locks[j] ? s.d.locks[j].bonus : null; };
+    const lockOf = async (j) => { const s = await call('GET', '/stage', A); return s.d.locks && s.d.locks[j]; };
+    const story = 'Our name comes from the lighthouse beside our school. Every morning its beam reminds us to guide each other. We chose it the day our team first met.';
+    // A two-second test video made on the spot.
+    const vdir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'erx-'));
+    await new Promise((res, rej) => { const p = require('child_process').spawn(require('ffmpeg-static'), ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc=size=320x180:rate=10:duration=2', '-pix_fmt', 'yuv420p', 'v.mp4'], { cwd: vdir, stdio: 'ignore' }); p.on('close', (c) => (c === 0 ? res() : rej(new Error('ffmpeg ' + c)))); p.on('error', rej); });
+    const vbuf = fs.readFileSync(path.join(vdir, 'v.mp4')); fs.rmSync(vdir, { recursive: true, force: true });
+    const vform = (kind, buf, name, link) => { const f = new FormData(); f.append('kind', kind); if (buf) f.append('file', new Blob([buf], { type: 'video/mp4' }), name); if (link) f.append('link', link); return f; };
+
+    step('signed-out visitor cannot see extra tasks', (await call('GET', '/extras')).status, 401);
+    step('organizer extras list needs the password', (await call('GET', '/organizer/extras')).status, 401);
+    step('story before taking the stage is refused', (await call('POST', '/extras/lore', A, { text: story })).status, 404);
+
+    // Trove 01
+    const r1 = await call('POST', '/rehearse/visual', A, null, pics()); const l1 = await call('POST', '/stage/visual', A, { rehearsal_id: r1.d.id, confirm: 'true' }); step('lock pictures', l1.status, 200);
+    const e0 = await call('GET', '/extras', A); step('room offers the team name story', e0.d.lore && e0.d.lore.locked === true && e0.d.lore.item === null, true);
+    step('one short line is refused', (await call('POST', '/extras/lore', A, { text: 'We like music.' })).status, 400);
+    const lo = await call('POST', '/extras/lore', A, { text: story }); step('story turned in, 25 points', lo.d.bonus, 25, lo.d.error);
+    step('locked score shows the 25', await bonusOf('visual'), 25);
+    step('story a second time is refused', (await call('POST', '/extras/lore', A, { text: story })).status, 409);
+    const ws = await call('POST', '/wall/share', A, { kind: 'pictures', confirm: 'true' }); step('sharing pictures adds on top (50)', ws.status === 200 && (await bonusOf('visual')), 50, ws.d.error);
+    if (process.env.ADMIN_PASSWORD) {
+      const ol = await call('GET', '/organizer/extras', null, null, null, org); step('organizer sees the story', !!(ol.d.items || []).find((x) => lo.d.item && x.id === lo.d.item.id && x.text === story), true);
+      step('organizer removes the story', (await call('POST', '/organizer/extras/remove', null, { id: lo.d.item && lo.d.item.id, note: 'selftest' }, null, org)).status, 200);
+      step('removing it again is refused', (await call('POST', '/organizer/extras/remove', null, { id: lo.d.item && lo.d.item.id }, null, org)).status, 404);
+      step('only the story points come off (25 left)', await bonusOf('visual'), 25);
+    }
+
+    // Trove 02
+    const r2 = await call('POST', '/rehearse/lyric', A, { text: SUITES.lyric[0].payload.text }); const l2 = await call('POST', '/stage/lyric', A, { rehearsal_id: r2.d.id, confirm: 'true' }); step('lock lyrics', l2.status, 200, l2.d.error);
+    step('video with no file and no link is refused', (await call('POST', '/extras/video', A, null, vform('avatar-performance'))).status, 400);
+    step('a link that is not https is refused', (await call('POST', '/extras/video', A, null, vform('avatar-performance', null, null, 'http://example.com/v'))).status, 400);
+    step('a file that is not a video is refused', (await call('POST', '/extras/video', A, null, vform('avatar-performance', Buffer.from('this is not a video at all'), 'v.mp4'))).status, 400);
+    step('a made-up kind is refused', (await call('POST', '/extras/video', A, null, vform('everything', vbuf, 'v.mp4'))).status, 400);
+    const pf = await call('POST', '/extras/video', A, null, vform('avatar-performance', vbuf, 'perf.mp4')); step('avatar performance video turned in, 25 points', pf.d.bonus, 25, pf.d.error);
+    const kv = await call('POST', '/extras/video', A, null, vform('karaoke-video', null, null, 'https://youtu.be/example-karaoke')); step('outside karaoke video turned in as the song, 10 points', kv.d.bonus, 10, kv.d.error);
+    const lk = await lockOf('lyric'); step('lyric lock shows 35 and the song place is taken', lk && lk.bonus === 35 && /^room:upload:/.test(lk.song_url || ''), true, JSON.stringify(lk && [lk.bonus, lk.song_url]));
+    step('a second song is refused', (await call('POST', '/extras/video', A, null, vform('karaoke-video', null, null, 'https://youtu.be/another'))).status, 409);
+    step('a Suno link after that is refused', (await call('POST', '/stage/lyric/song', A, { song_url: 'https://suno.com/s/abcdEFGH1234' })).status, 409);
+    const w0 = await call('GET', '/wall', A); step('wall offers the turned-in song', !!(w0.d.can && w0.d.can.karaoke.turnedIn && !w0.d.can.karaoke.turnedIn.karaokeId), true);
+    const sg = await call('POST', '/wall/share', A, { kind: 'song', confirm: 'true' }); step('song shared on the wall, 25 points', sg.d.bonus, 25, sg.d.error);
+    step('lyric lock now shows 60', await bonusOf('lyric'), 60);
+    const wb = await call('GET', '/wall', B); const it = (wb.d.items || []).find((x) => sg.d.item && x.id === sg.d.item.id); step('another team sees the song with its link', !!it && it.link === 'https://youtu.be/example-karaoke', true);
+    if (process.env.ADMIN_PASSWORD) {
+      const ol = await call('GET', '/organizer/extras', null, null, null, org); const pv = (ol.d.items || []).find((x) => pf.d.item && x.id === pf.d.item.id);
+      const g = pv && pv.fileUrl ? await fetch(pv.fileUrl) : { status: 0 }; step('organizer can play the performance video', g.status, 200);
+      step('organizer removes the karaoke video', (await call('POST', '/organizer/extras/remove', null, { id: kv.d.item && kv.d.item.id, note: 'selftest' }, null, org)).status, 200);
+      const lk2 = await lockOf('lyric'); step('its 10 points come off and the song place is free again', lk2 && lk2.bonus === 50 && !lk2.song_url, true, JSON.stringify(lk2 && [lk2.bonus, lk2.song_url]));
+    }
+
+    // Trove 03
+    const r3 = await call('POST', '/rehearse/lesson', A, { text: SUITES.lesson[2].payload.text }); const l3 = await call('POST', '/stage/lesson', A, { rehearsal_id: r3.d.id, confirm: 'true', dance_video_url: 'https://youtu.be/example-dance' }); step('lock lesson with a dance video', l3.status, 200, l3.d.error);
+    const dn = await call('POST', '/wall/share', A, { kind: 'dance', confirm: 'true' }); step('dance video shared on the wall, 25 points', dn.d.bonus, 25, dn.d.error);
+    step('lesson lock shows 10 + 25', await bonusOf('lesson'), 35);
+    step('team without a lesson lock cannot share a dance video', (await call('POST', '/wall/share', B, { kind: 'dance', confirm: 'true' })).status, 404);
+
+    // Reset clears what hangs off the entry
+    if (process.env.ADMIN_PASSWORD) {
+      const lkid = (await lockOf('lyric')).id;
+      step('organizer resets the lyric entry', (await call('POST', '/organizer/reset', null, { lock_id: lkid, note: 'selftest' }, null, org)).status, 200);
+      const { data: left } = await R.supabase.from('evalroom_extras').select('id, status, file_path').eq('lock_id', lkid).is('removed_at', null); step('its extra tasks are retired', (left || []).length, 0);
+      const { data: files } = await R.supabase.storage.from('evalroom-private').list(`extras/${pf.d.item && pf.d.item.id}`); step('the performance video file is deleted', (files || []).length, 0);
+      step('its song leaves the wall', !((await call('GET', '/wall', B)).d.items || []).find((x) => sg.d.item && x.id === sg.d.item.id), true);
+      for (const j of ['visual', 'lesson']) { const l = await lockOf(j); if (l) await call('POST', '/organizer/reset', null, { lock_id: l.id, note: 'selftest tidy-up' }, null, org); }
+      step('after the resets nothing of this team is on the wall', ((await call('GET', '/wall', B)).d.items || []).filter((x) => /extras a$/.test(x.team || '')).length, 0);
+    }
+    await R.supabase.from('evalroom_practice_locks').update({ reset_at: new Date().toISOString(), reset_note: 'selftest tidy-up' }).like('team_key', 'preview:' + run + '-%').is('reset_at', null);
+    return { passed: steps.filter((x) => x.startsWith('PASS')).length, total: steps.length, steps };
+  }
   if (row.kind === 'wallflow') {
     // The wall, through the web routes: lock pictures, share, see, remove.
     const base = `http://127.0.0.1:${port}/api/evalroom`;

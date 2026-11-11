@@ -89,31 +89,39 @@ module.exports = function attachWall(router, deps) {
     return true;
   }
 
-  // Tell the organizer about every share, with a link to look at it and take it down.
-  async function notify(row) {
+  /** One plain email to the organizer with a button to look at the item or remove it. Live site only. */
+  async function tellOrganizer({ subject, lead, detail, link }) {
     const to = process.env.EVALROOM_ORGANIZER_EMAIL;
     if (PREVIEW_MODE || !process.env.RESEND_API_KEY || !to) return false;
     try {
-      const esc = (x) => String(x || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-      const what = row.kind === 'pictures' ? 'their avatar and poster (Trove 01)' : 'their karaoke video (Trove 02)';
-      const link = `${SITE}/pages/evaluation-room/organizer/?wall=${row.id}`;
-      const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#222"><p><b>${esc(row.team_name)}</b> shared ${what} on the game wall.</p>` +
-        `<p>${row.public_ok ? '<b>They also approved posting it on the public Instagram page.</b>' : 'They did not approve public Instagram posting.'}</p>` +
-        `<p>${row.bonus} sharing points were added by themselves.</p>` +
-        `<p><a href="${link}" style="display:inline-block;padding:10px 18px;background:#e6005c;color:#fff;text-decoration:none;border-radius:6px">Look at it or remove it</a></p>` +
-        `<p style="color:#666;font-size:13px">Removing it also takes the sharing points back. You will be asked for the organizer password.</p></div>`;
+      const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#222"><p>${lead}</p>${detail || ''}` +
+        `<p><a href="${SITE}${link}" style="display:inline-block;padding:10px 18px;background:#e6005c;color:#fff;text-decoration:none;border-radius:6px">Look at it or remove it</a></p>` +
+        `<p style="color:#666;font-size:13px">Removing it also takes the points back. You will be asked for the organizer password.</p></div>`;
       const { Resend } = require('resend');
-      const { error } = await new Resend(process.env.RESEND_API_KEY).emails.send({ from: 'TopKpop.io Game Wall <anna@topkpop.io>', to: to.split(',').map((x) => x.trim()).filter(Boolean), subject: `Game wall: ${row.team_name} shared ${row.kind === 'pictures' ? 'an avatar and poster' : 'a karaoke video'}`, html });
-      if (error) { console.error('evalroom wall notice error:', error.message || error); return false; }
+      const { error } = await new Resend(process.env.RESEND_API_KEY).emails.send({ from: 'TopKpop.io Evaluation Room <anna@topkpop.io>', to: to.split(',').map((x) => x.trim()).filter(Boolean), subject, html });
+      if (error) { console.error('evalroom organizer notice error:', error.message || error); return false; }
       return true;
-    } catch (e) { console.error('evalroom wall notice error:', e.message); return false; }
+    } catch (e) { console.error('evalroom organizer notice error:', e.message); return false; }
+  }
+  const WHAT = { pictures: ['their avatar and poster (Trove 01)', 'an avatar and poster'], karaoke: ['their karaoke video (Trove 02)', 'a karaoke video'], song: ['their song (Trove 02)', 'a song'], dance: ['their dance video (Trove 03)', 'a dance video'] };
+  async function notify(row) {
+    const esc = (x) => String(x || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    return tellOrganizer({
+      subject: `Game wall: ${row.team_name} shared ${WHAT[row.kind][1]}`,
+      lead: `<b>${esc(row.team_name)}</b> shared ${WHAT[row.kind][0]} on the game wall.`,
+      detail: `<p>${row.public_ok ? '<b>They also approved posting it on the public Instagram page.</b>' : 'They did not approve public Instagram posting.'}</p><p>${row.bonus} sharing points were added by themselves.</p>`,
+      link: `/pages/evaluation-room/organizer/?wall=${row.id}`,
+    });
   }
 
   const EMBED_OK = /^https:\/\/player\.vimeo\.com\/video\/\d+/;
   /** One request for all the picture links a list needs. */
   async function linksFor(rows) {
     const paths = [];
-    for (const r of rows) if (r.kind === 'pictures' && r.images) for (const im of Object.values(r.images)) { if (im && im.small) paths.push(im.small); if (im && im.full) paths.push(im.full); }
+    for (const r of rows) {
+      if (r.kind === 'pictures' && r.images) for (const im of Object.values(r.images)) { if (im && im.small) paths.push(im.small); if (im && im.full) paths.push(im.full); }
+      if (r.audio_path) paths.push(r.audio_path);
+    }
     const map = {}; if (!paths.length) return map;
     for (let i = 0; i < paths.length; i += 200) {
       const { data } = await supabase.storage.from(BUCKET).createSignedUrls(paths.slice(i, i + 200), 3600);
@@ -128,7 +136,9 @@ module.exports = function attachWall(router, deps) {
       out.images = {};
       for (const slot of ['avatar', 'poster']) { const im = r.images[slot]; if (im) out.images[slot] = { small: links[im.small] || null, full: links[im.full] || null }; }
     }
-    if (r.kind === 'karaoke' && EMBED_OK.test(String(r.vimeo_embed || ''))) out.embed = r.vimeo_embed;
+    if (EMBED_OK.test(String(r.vimeo_embed || ''))) out.embed = r.vimeo_embed;
+    if (r.audio_path && links[r.audio_path]) out.audio = links[r.audio_path];
+    if (/^https:\/\//.test(String(r.link || ''))) out.link = r.link;
     if (full) { out.status = r.status; out.bonus = r.bonus; out.removedAt = r.removed_at; out.removedBy = r.removed_by; out.note = r.removed_note; out.practice = r.is_preview; out.ig = r.ig_status; }
     return out;
   }
@@ -154,10 +164,11 @@ module.exports = function attachWall(router, deps) {
     }
     const paths = [];
     if (row.images) for (const slot of Object.values(row.images)) { if (slot && slot.small) paths.push(slot.small); if (slot && slot.full) paths.push(slot.full); }
+    if (row.audio_path) paths.push(row.audio_path);
     if (paths.length) { const rm = await supabase.storage.from(BUCKET).remove(paths); if (rm.error) console.error('evalroom wall file delete:', rm.error.message); }
     let vimeoGone = true;
     if (row.vimeo_id && vimeoOn()) await vimeo('DELETE', '/videos/' + row.vimeo_id).catch((e) => { if (e.status !== 404) { vimeoGone = false; console.error('evalroom wall vimeo delete (video ' + row.vimeo_id + ' still on Vimeo):', e.message); } });
-    await supabase.from('evalroom_wall').update({ images: null, vimeo_embed: null, bonus: 0, ...(vimeoGone ? { vimeo_id: null } : {}) }).eq('id', r.id);
+    await supabase.from('evalroom_wall').update({ images: null, vimeo_embed: null, audio_path: null, link: null, bonus: 0, ...(vimeoGone ? { vimeo_id: null } : {}) }).eq('id', r.id);
     return true;
   }
   /** When a locked entry is reset, what was shared from it comes off the wall too. */
@@ -186,14 +197,16 @@ module.exports = function attachWall(router, deps) {
       const items = (data || []).map((r) => view(r, req.team, false, links));
       const { data: own } = await mine(supabase.from('evalroom_wall').select('trove, status')).eq('team_key', req.team.key).is('removed_at', null).neq('status', 'failed');
       const shared = Object.fromEntries((own || []).map((x) => [x.trove, x.status]));
-      const [l1, l2] = await Promise.all([activeLock(req.team.key, 1), activeLock(req.team.key, 2)]);
+      const [l1, l2, l3] = await Promise.all([activeLock(req.team.key, 1), activeLock(req.team.key, 2), activeLock(req.team.key, 3)]);
       let songs = [];
       if (l2 && shared[2] == null) {
         const { data: ks } = await supabase.from('evalroom_karaoke').select('id, title, created_at').eq('team_key', req.team.key).eq('status', 'ready').order('created_at', { ascending: false }).limit(10);
         songs = await Promise.all((ks || []).map(async (k) => ({ id: k.id, title: k.title, hasVideo: !!(await videoOf(req.team.key, k.id).catch(() => null)) })));
       }
       res.json({ items, bonus: WALL_BONUS, practice: PREVIEW_MODE, videoReady: vimeoOn(),
-        can: { pictures: { locked: !!l1, shared: shared[1] || null }, karaoke: { locked: !!l2, shared: shared[2] || null, songs } } });
+        can: { pictures: { locked: !!l1, shared: shared[1] || null },
+          karaoke: { locked: !!l2, shared: shared[2] || null, songs, turnedIn: l2 && l2.song_url ? { title: (l2.song_check && l2.song_check.title) || 'Our song', karaokeId: (/^room:karaoke:(.+)$/.exec(l2.song_url) || [])[1] || null } : null },
+          dance: { locked: !!l3, shared: shared[3] || null, hasVideo: !!(l3 && l3.dance_video_url) } } });
     } catch (e) { console.error('evalroom wall list error:', e.message); res.status(500).json({ error: 'The wall could not be loaded. Please try again.' }); }
   });
 
@@ -202,12 +215,33 @@ module.exports = function attachWall(router, deps) {
     let row = null; const madeFiles = []; let madeVimeo = null; let pointsIn = false; let lockId = null;
     try {
       const b = req.body || {}; const kind = String(b.kind || '');
-      if (kind !== 'pictures' && kind !== 'karaoke') return res.status(400).json({ error: 'Choose what to share.' });
+      if (!['pictures', 'karaoke', 'song', 'dance'].includes(kind)) return res.status(400).json({ error: 'Choose what to share.' });
       if (String(b.confirm) !== 'true') return res.status(400).json({ error: 'Tick the box to say your team agrees to share this with the other teams.' });
-      const trove = kind === 'pictures' ? 1 : 2;
+      const trove = kind === 'pictures' ? 1 : kind === 'dance' ? 3 : 2;
       const lock = await activeLock(req.team.key, trove);
-      if (!lock) return res.status(404).json({ error: kind === 'pictures' ? 'Take the Stage with your avatar and poster first. Then you can share them.' : 'Take the Stage with your lyrics first. Then you can share your karaoke video.' });
-      let song = null; let videoPath = null;
+      if (!lock) return res.status(404).json({ error: kind === 'pictures' ? 'Take the Stage with your avatar and poster first. Then you can share them.' : kind === 'dance' ? 'Take the Stage with your lesson plan first. Then you can share your dance video.' : 'Take the Stage with your lyrics first. Then you can share your song.' });
+      let song = null; let videoPath = null; let plan = null;   // plan: how a turned-in song or dance video goes up
+      if (kind === 'dance') {
+        if (!/^https:\/\//.test(String(lock.dance_video_url || ''))) return res.status(400).json({ error: 'Your team did not add a dance video link when it took the stage, so there is no video to share.' });
+        plan = { title: 'Dance video', link: lock.dance_video_url };
+      }
+      if (kind === 'song') {
+        const u = String(lock.song_url || ''); const title = (lock.song_check && lock.song_check.title) || 'Our song';
+        if (!u) return res.status(400).json({ error: 'Turn in your song first. Then you can share it here.' });
+        const room = /^room:(karaoke|sung|upload):([0-9a-f-]{36})$/i.exec(u);
+        if (room && room[1] === 'karaoke') return res.status(400).json({ error: 'Choose your karaoke song from the list to share its video.' });
+        if (room && room[1] === 'sung') {
+          const { data: c } = await supabase.from('evalroom_covers').select('id, audio_path, audio_type, status').eq('id', room[2]).eq('team_key', req.team.key).single();
+          if (!c || c.status !== 'ready' || !c.audio_path) return res.status(404).json({ error: 'The song your team turned in could not be found.' });
+          plan = { title, audioFrom: c.audio_path, audioType: c.audio_type || 'audio/mpeg' };
+        } else if (room && room[1] === 'upload') {
+          const { data: x } = await mine(supabase.from('evalroom_extras').select('id, link, file_path, status')).eq('id', room[2]).eq('team_key', req.team.key).single();
+          if (!x || x.status !== 'ready') return res.status(404).json({ error: 'The karaoke video your team turned in could not be found.' });
+          if (x.file_path) { if (!vimeoOn()) return res.status(503).json({ error: 'Sharing videos is not switched on yet.' }); plan = { title, videoFrom: x.file_path }; }
+          else plan = { title, link: x.link };
+        } else if (/^https:\/\//.test(u)) plan = { title, link: u };
+        else return res.status(400).json({ error: 'The song your team turned in cannot be shared here.' });
+      }
       if (kind === 'karaoke') {
         if (!vimeoOn()) return res.status(503).json({ error: 'Sharing videos is not switched on yet.' });
         if (!UUID.test(String(b.id || ''))) return res.status(400).json({ error: 'Choose one of your team\'s karaoke songs.' });
@@ -229,7 +263,7 @@ module.exports = function attachWall(router, deps) {
       if (limited('wall:' + req.team.key, 6, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of sharing in a few minutes. Please wait a little and try again.' });
       lockId = lock.id;
       const publicOk = String(b.public_ok) === 'true';
-      const ins = await supabase.from('evalroom_wall').insert({ team_key: req.team.key, team_name: req.team.name, trove, kind, title: song ? song.title : 'Avatar and poster', source_id: song ? song.id : null, lock_id: lock.id, status: 'processing', public_ok: publicOk, public_ok_at: publicOk ? new Date().toISOString() : null, ig_status: publicOk ? 'approved-waiting-for-setup' : null, is_preview: PREVIEW_MODE }).select('*').single();
+      const ins = await supabase.from('evalroom_wall').insert({ team_key: req.team.key, team_name: req.team.name, trove, kind, title: song ? song.title : plan ? plan.title : 'Avatar and poster', source_id: song ? song.id : null, lock_id: lock.id, status: 'processing', public_ok: publicOk, public_ok_at: publicOk ? new Date().toISOString() : null, ig_status: publicOk ? 'approved-waiting-for-setup' : null, is_preview: PREVIEW_MODE }).select('*').single();
       if (ins.error) return res.status(409).json({ error: ins.error.code === '23505' ? 'Your team already shared this Trove on the wall.' : 'That could not be shared. Please try again.' });
       row = ins.data;
       const patch = {};
@@ -245,10 +279,19 @@ module.exports = function attachWall(router, deps) {
           images[slot] = { full: base + '.jpg', small: base + '_s.jpg' };
         }
         patch.images = images;
-      } else {
-        const dl = await supabase.storage.from(BUCKET).download(videoPath);
+      } else if (plan && plan.link) {
+        patch.link = plan.link;
+      } else if (plan && plan.audioFrom) {
+        const dl = await supabase.storage.from(BUCKET).download(plan.audioFrom);
         if (dl.error) throw new Error('storage: ' + dl.error.message);
-        const v = await vimeoUpload(Buffer.from(await dl.data.arrayBuffer()), `${req.team.name} - ${song.title}`);
+        const name = `wall/${row.id}/song.${String(plan.audioFrom).split('.').pop() || 'mp3'}`; madeFiles.push(name);
+        const up = await supabase.storage.from(BUCKET).upload(name, Buffer.from(await dl.data.arrayBuffer()), { contentType: plan.audioType, upsert: true });
+        if (up.error) throw new Error('storage: ' + up.error.message);
+        patch.audio_path = name;
+      } else {
+        const dl = await supabase.storage.from(BUCKET).download(plan ? plan.videoFrom : videoPath);
+        if (dl.error) throw new Error('storage: ' + dl.error.message);
+        const v = await vimeoUpload(Buffer.from(await dl.data.arrayBuffer()), `${req.team.name} - ${song ? song.title : plan.title}`);
         madeVimeo = v.id; patch.vimeo_id = v.id; patch.vimeo_embed = v.embed;
       }
       pointsIn = await changeBonus(lock.id, WALL_BONUS, 'wall');
@@ -305,6 +348,6 @@ module.exports = function attachWall(router, deps) {
       res.json({ ok: true });
     } catch (e) { console.error('evalroom organizer wall remove error:', e.message); res.status(502).json({ error: 'That could not be removed. Please try again.' }); }
   });
-  return { retireForLock };
+  return { retireForLock, changeBonus, tellOrganizer };
 };
 module.exports._internal = { toJpeg, vimeoUpload, wallDomains };
