@@ -21,6 +21,40 @@ const { complete, completeStream } = require('./ai-complete');
 
 const router = express.Router();
 
+// ── Troves open on the organizer's schedule ──
+// Which Trove a request belongs to. Anything not listed is never held back.
+function troveForPath(p) {
+  let m = /^\/(?:rehearse|stage)\/(visual|lyric|lesson)(?:\/|$)/.exec(p);
+  if (m) return { visual: 1, lyric: 2, lesson: 3 }[m[1]];
+  if (/^\/(?:studio|karaoke|sung)(?:\/|$)/.test(p)) return 2;
+  if (p === '/extras/lore') return 1;
+  if (p === '/extras/video') return 2;
+  return null;
+}
+const OPENS = (iso) => new Date(iso).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' Pacific time';
+router.use(async (req, res, next) => {
+  if (req.method !== 'POST') return next();
+  const n = troveForPath(req.path);
+  if (!n) return next();
+  try {
+    const s = (await schedule.get())[n];
+    if (s.open) return next();
+    return res.status(423).json({ error: `Treasure Trove 0${n} is not open yet. It opens ${OPENS(s.opensAt)}.`, locked: true, trove: n, opensAt: s.opensAt });
+  } catch (e) { return next(); }
+});
+router.get('/schedule', async (req, res) => {
+  try { res.set('Cache-Control', 'no-store'); res.json({ troves: await schedule.get() }); }
+  catch (e) { res.json({ troves: { 1: { open: true, opensAt: null }, 2: { open: true, opensAt: null }, 3: { open: true, opensAt: null } } }); }
+});
+// Preview copy only: set a practice schedule to test locked Troves. Needs the organizer password.
+router.post('/organizer/practice-schedule', express.json(), (req, res) => {
+  const pw = process.env.ADMIN_PASSWORD;
+  if (!PREVIEW_MODE || !pw || req.headers['x-organizer-password'] !== pw) return res.status(404).json({ error: 'Not found.' });
+  const b = req.body || {};
+  schedule.setPractice(b.clear ? null : { 1: b.trove1 || null, 2: b.trove2 || null, 3: b.trove3 || null });
+  res.json({ ok: true });
+});
+
 // ── Settings (all can be changed with Railway variables) ─────────────────────
 const env = (k, d) => (process.env[k] !== undefined && process.env[k] !== '' ? process.env[k] : d);
 const list = (s) => String(s).split(',').map((x) => x.trim()).filter(Boolean);
@@ -52,6 +86,7 @@ const supabase = createClient(
   process.env.SUPABASE_SECRET_KEY || 'missing',
   { realtime: { transport: WebSocket }, global: { headers: { 'x-client-info': 'topkpop-evalroom' } } }
 );
+const schedule = require('./evalroom-schedule')({ supabase, PREVIEW_MODE });
 
 // ── The instructions, word for word ──────────────────────────────────────────
 const promptDir = path.join(__dirname, 'evalroom-prompts');
@@ -627,6 +662,7 @@ router.use((req, res) => res.status(404).json({ error: 'Not found.' }));
 
 module.exports = {
   router,
+  schedule,
   // Shared with the preview-only test runner and the unit checks.
   _internal: { JUDGES, STUDIO_INSTRUCTIONS, CFG, PREVIEW_MODE, openai, supabase, runJudge, parseJudgeAnswer, displayFormatNote, wrapSubmission, signToken, readToken, sniffImage, dataUrl, cleanStudioMessages, logUsage },
 };

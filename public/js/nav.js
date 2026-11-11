@@ -5,7 +5,33 @@
 (function () {
   'use strict';
 
+  // ── One sign-in for the whole site (the same one The Evaluation Room uses) ──
+  var SIGN_IN = '/pages/evaluation-room/';
+  function stored(k) { try { var v = localStorage.getItem('er:' + k); return v === null ? null : JSON.parse(v); } catch (e) { return null; } }
+  function signOut() {
+    try { var ks = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('er:') === 0) ks.push(k); } ks.forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+    location.href = '/';
+  }
+  function session() {
+    var token = stored('token'), team = stored('team');
+    var here = location.pathname + location.search;
+    // The Trove directions are for teams in the game: sign in once, then come straight back.
+    if (!token && /^\/pages\/trove-0[123](\/|$)/.test(location.pathname)) { location.replace(SIGN_IN + '?next=' + encodeURIComponent(here)); return; }
+    var list = document.querySelector('.nav-links');
+    if (!list) return;
+    function item(html) { var li = document.createElement('li'); li.innerHTML = html; list.appendChild(li); return li; }
+    if (token) {
+      item('<a href="' + SIGN_IN + '">Evaluation Room</a>');
+      var name = team && team.name ? String(team.name).replace(/[&<>"']/g, '') : 'your team';
+      var out = item('<a href="#" title="Signed in as ' + name + '">Sign Out</a>');
+      out.querySelector('a').addEventListener('click', function (e) { e.preventDefault(); signOut(); });
+    } else {
+      item('<a href="' + SIGN_IN + '?next=' + encodeURIComponent('/pages/missions') + '">Team Sign In</a>');
+    }
+  }
+
   function init() {
+    session();
     // ── Hamburger menu toggle (mobile) ──
     var hamburger = document.querySelector('.nav-hamburger');
     var navLinks  = document.querySelector('.nav-links');

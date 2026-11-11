@@ -8,7 +8,7 @@ const cors    = require('cors');
 const path    = require('path');
 const { router: apiRouter, startScheduler } = require('./api/routes');
 const jeannieRouter = require('./api/jeannie');
-const { router: evalroomRouter } = require('./api/evalroom');
+const { router: evalroomRouter, schedule: troveSchedule } = require('./api/evalroom');
 
 // Preview copy: set PREVIEW_MODE=1 on a test service. It shares the live
 // database, so it must never run the scheduler, send email or change game data.
@@ -49,6 +49,15 @@ app.use('/js',     express.static(path.join(__dirname, 'public/js')));
 app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
 
 // ── Inner pages ──────────────────────────────────────────────────────────────
+// A Trove's directions stay closed until the organizer's date for it. Until then the page shows a locked chest.
+app.get(/^\/pages\/trove-0([123])(?:\/|\/index\.html)?$/, async (req, res, next) => {
+  try {
+    const s = (await troveSchedule.get())[req.params[0]];
+    if (!s || s.open) return next();
+    res.set('Cache-Control', 'no-store');
+    res.sendFile(path.join(__dirname, 'pages/trove-locked/index.html'));
+  } catch (e) { next(); }
+});
 app.use('/pages',  express.static(path.join(__dirname, 'pages')));
 
 // ── SEO files ────────────────────────────────────────────────────────────────

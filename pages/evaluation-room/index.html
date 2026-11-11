@@ -24,7 +24,7 @@
   <section class="er-card glow" id="signIn" hidden aria-labelledby="signInTitle">
     <p class="er-label">Trainee check-in</p>
     <h2 class="er-h2" id="signInTitle">Sign in with your team</h2>
-    <p class="er-muted" style="margin:8px 0 18px">Use the team name and the captain's email exactly as you registered them. Anyone on your team can sign in with these.</p>
+    <p class="er-muted" style="margin:8px 0 18px">Use the team name and the captain's email exactly as you registered them. Anyone on your team can sign in with these. You sign in once: it covers the Missions, the Treasure Troves and The Evaluation Room.</p>
     <div class="er-tabs" id="tabs" hidden>
       <button type="button" class="er-tab on" data-tab="team">Registered team</button>
       <button type="button" class="er-tab" data-tab="preview">Preview code</button>
@@ -32,7 +32,7 @@
     <form id="teamForm" novalidate>
       <div class="er-field"><label for="teamName">Team name</label><input class="er-input" id="teamName" autocomplete="organization" maxlength="120" required /></div>
       <div class="er-field"><label for="captainEmail">Team captain's email</label><input class="er-input" id="captainEmail" type="email" inputmode="email" autocomplete="email" maxlength="200" required /></div>
-      <button class="er-btn" type="submit" id="teamBtn">Enter the room</button>
+      <button class="er-btn" type="submit" id="teamBtn">Sign in</button>
     </form>
     <form id="previewForm" novalidate hidden>
       <div class="er-field"><label for="pvName">Your name</label><input class="er-input" id="pvName" maxlength="40" placeholder="For example: Bob" /></div>
@@ -93,6 +93,8 @@
       </a>
     </div>
 
+    <p class="er-small" id="dirLinks" style="margin:14px 0 0">Mission directions: <a href="/pages/trove-01" data-trove="1">Treasure Trove 01</a> &middot; <a href="/pages/trove-02" data-trove="2">Treasure Trove 02</a> &middot; <a href="/pages/trove-03" data-trove="3">Treasure Trove 03</a> &middot; <a href="/pages/missions">All Missions</a></p>
+
     <section class="er-card" id="welcomeCard" hidden>
       <p class="er-label">Welcome Post &middot; +<span id="welcomePts">25</span> points</p>
       <h2 class="er-h2">Did your team post its welcome message?</h2>
@@ -119,7 +121,7 @@
   var $ = ER.$;
   ER.chrome();
   var next = new URLSearchParams(location.search).get('next');
-  if (next && (next.indexOf('/pages/evaluation-room/') !== 0 || next.indexOf('//') === 0)) next = null; // only ever return inside the room
+  if (next && (next.charAt(0) !== '/' || next.indexOf('//') === 0 || next.indexOf('\\') !== -1)) next = null; // only ever return to a page on this site
 
   function showRoom() { document.dispatchEvent(new CustomEvent('er:signed-in'));
     var t = ER.team() || {};
@@ -202,7 +204,7 @@
       btn.disabled = true; btn.textContent = 'Checking…';
       ER.hideMsg($('#signMsg'));
       ER.api(path, { json: body }).then(entered).catch(function (e) { ER.showMsg($('#signMsg'), e.message); })
-        .then(function () { btn.disabled = false; btn.textContent = 'Enter the room'; });
+        .then(function () { btn.disabled = false; btn.textContent = btnId === '#teamBtn' ? 'Sign in' : 'Enter the room'; });
     });
   }
   wire('#teamForm', '#teamBtn', function () {
@@ -237,6 +239,24 @@
   });
   load();
   document.addEventListener('er:signed-in', load);
+})();
+</script>
+<style>.er-door.locked { opacity: .5; filter: grayscale(.6); cursor: not-allowed; }</style>
+<script>
+(function () {
+  'use strict';
+  // A door stays shut until its Treasure Trove opens on the organizer's schedule.
+  var TROVE = function (href) { return /j=visual/.test(href) ? 1 : /j=lesson/.test(href) ? 3 : /j=lyric|\/studio\/|\/karaoke\//.test(href) ? 2 : null; };
+  fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+    document.querySelectorAll('a.er-door').forEach(function (a) {
+      var n = TROVE(a.getAttribute('href') || ''), s = n && d.troves && d.troves[n];
+      if (!s || s.open) return;
+      var when = new Date(s.opensAt).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      a.classList.add('locked'); a.setAttribute('aria-disabled', 'true');
+      var go = a.querySelector('.go'); if (go) go.textContent = 'Locked. Opens ' + when;
+      a.addEventListener('click', function (e) { e.preventDefault(); });
+    });
+  }).catch(function () {});
 })();
 </script>
 </body>

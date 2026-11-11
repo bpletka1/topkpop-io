@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>This Treasure Trove is still locked | TopKpop.io</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="/css/evalroom.css" />
+  <style>
+    .lock-wrap { max-width: 640px; margin: 0 auto; padding: 60px 22px 80px; text-align: center; }
+    .lock-chest { font-size: 4rem; line-height: 1; margin-bottom: 18px; }
+    .lock-count { display: flex; gap: 14px; justify-content: center; margin: 26px 0 8px; }
+    .lock-count div { min-width: 68px; padding: 14px 8px; border: 1px solid rgba(176,106,255,.35); border-radius: 10px; background: rgba(138,43,226,.12); }
+    .lock-count b { display: block; font-size: 1.7rem; color: #fff; }
+    .lock-count span { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(224,224,224,.6); }
+  </style>
+</head>
+<body class="er">
+<main class="lock-wrap">
+  <div class="lock-chest" aria-hidden="true">&#128274;</div>
+  <p class="er-label" id="lockLabel">Treasure Trove</p>
+  <h1 class="er-h2" id="lockTitle" style="font-size:1.6rem">This Treasure Trove is still locked</h1>
+  <p class="er-muted" id="lockWhen" style="margin-top:12px"></p>
+  <div class="lock-count" id="lockCount" hidden>
+    <div><b id="cd">0</b><span>Days</span></div><div><b id="ch">0</b><span>Hours</span></div><div><b id="cm">0</b><span>Minutes</span></div><div><b id="cs">0</b><span>Seconds</span></div>
+  </div>
+  <p class="er-muted" style="margin:22px 0">Each Treasure Trove opens on the schedule set for your game. Keep working on the Troves that are open, and come back when this one unlocks.</p>
+  <p><a class="er-btn" href="/pages/missions">Back to Missions</a></p>
+</main>
+<script src="/js/evalroom.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = ER.$; ER.chrome();
+  var n = (location.pathname.match(/trove-0([123])/) || [])[1];
+  if (n) { $('#lockLabel').textContent = 'Treasure Trove 0' + n; $('#lockTitle').textContent = 'Treasure Trove 0' + n + ' is still locked'; }
+  fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+    var s = d.troves && d.troves[n];
+    if (!s || s.open) { location.reload(); return; }
+    var at = new Date(s.opensAt);
+    $('#lockWhen').textContent = 'It opens ' + at.toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '.';
+    $('#lockCount').hidden = false;
+    function tick() {
+      var ms = at - new Date();
+      if (ms <= 0) { location.reload(); return; }
+      var sec = Math.floor(ms / 1000);
+      $('#cd').textContent = Math.floor(sec / 86400); $('#ch').textContent = Math.floor(sec % 86400 / 3600); $('#cm').textContent = Math.floor(sec % 3600 / 60); $('#cs').textContent = sec % 60;
+      setTimeout(tick, 1000);
+    }
+    tick();
+  }).catch(function () {});
+})();
+</script>
+</body>
+</html>

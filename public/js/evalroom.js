@@ -39,7 +39,7 @@
 
   function token() { return store.get('token'); }
   function team() { return store.get('team'); }
-  function signOut() { store.clear(); location.href = ROOM; }
+  function signOut() { store.clear(); location.href = '/'; }
 
   function api(path, opts) {
     opts = opts || {};
@@ -78,7 +78,7 @@
       '<div class="er-links" id="erLinks">' + NAV.map(function (n) { return '<a href="' + n[0] + '"' + (n[0] === ROOM ? ' class="active"' : '') + '>' + n[1] + '</a>'; }).join('') + '</div>';
     document.body.insertBefore(nav, document.body.firstChild);
     document.body.insertBefore(ribbon, nav);
-    var foot = el('footer', 'er-foot', '&copy; 2025&ndash;2026 Blockchain Spirits LLC &middot; Top K-Pop Entertainment &middot; <a href="/pages/legal/">Official Rules &middot; Privacy</a><br>The Evaluation Room is practice. Official scores are set when you submit your work.');
+    var foot = el('footer', 'er-foot', '&copy; 2025&ndash;2026 Blockchain Spirits LLC &middot; Top K-Pop Entertainment &middot; <a href="/pages/legal/">Official Rules &middot; Privacy</a><br>Rehearsals are practice. Official scores are set when you Take the Stage.');
     document.body.appendChild(foot);
     var links = $('#erLinks'), burger = $('#erBurger');
     burger.addEventListener('click', function () { var o = links.classList.toggle('open'); burger.setAttribute('aria-expanded', o ? 'true' : 'false'); });

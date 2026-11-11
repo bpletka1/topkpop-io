@@ -497,6 +497,40 @@ async function runCase(row, port) {
     return out;
   }
 
+  if (row.kind === 'scheduleflow') {
+    // Troves open on a schedule: the room and the Trove pages both hold a closed Trove shut.
+    const site = `http://127.0.0.1:${port}`; const base = site + '/api/evalroom';
+    const A = R.signToken({ t: 'preview:sched' + Date.now().toString(36), n: 'Preview: schedule', p: 1 });
+    const org = { 'x-organizer-password': process.env.ADMIN_PASSWORD || '', 'content-type': 'application/json' };
+    const call = async (method, pth, token, json) => { const headers = {}; if (token) headers['x-evalroom-token'] = token; let body; if (json) { headers['content-type'] = 'application/json'; body = JSON.stringify(json); } const r = await fetch(base + pth, { method, headers, body }); let d = {}; try { d = await r.json(); } catch (_) {} return { status: r.status, d }; };
+    const page = async (pth) => { const r = await fetch(site + pth); return { status: r.status, text: await r.text() }; };
+    const steps = []; const step = (name, got, want, note) => steps.push((got === want ? 'PASS ' : 'FAIL ') + name + (got === want ? '' : ' (got ' + JSON.stringify(got) + ')') + (note ? ' [' + note + ']' : ''));
+    const S = require('./evalroom-schedule')._internal;
+    step('a summer date opens at 6:00 AM Pacific', new Date(S.unlockInstant('2026-05-24')).toISOString(), '2026-05-24T13:00:00.000Z');
+    step('a winter date opens at 6:00 AM Pacific', new Date(S.unlockInstant('2026-12-06')).toISOString(), '2026-12-06T14:00:00.000Z');
+    step('a Trove with no date is open', S.build({ 1: null }, Date.now())[1].open, true);
+    const far = '2099-01-01';
+    try {
+      const s0 = await call('GET', '/schedule'); step('with no practice schedule every Trove is open', [1, 2, 3].every((n) => s0.d.troves && s0.d.troves[n].open), true);
+      step('setting a practice schedule needs the organizer password', (await fetch(base + '/organizer/practice-schedule', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ trove2: far }) })).status, 404);
+      const set = await fetch(base + '/organizer/practice-schedule', { method: 'POST', headers: org, body: JSON.stringify({ trove1: '2020-01-01', trove2: far, trove3: far }) }); step('organizer sets a practice schedule', set.status, 200);
+      const s1 = await call('GET', '/schedule'); step('Trove 01 open, 02 and 03 locked', [s1.d.troves[1].open, s1.d.troves[2].open, s1.d.troves[3].open].join(','), 'true,false,false');
+      const r2 = await call('POST', '/rehearse/lyric', A, { text: 'la la la' }); step('rehearsing a locked Trove is refused', r2.status, 423); step('the refusal says when it opens', /opens/.test(r2.d.error || '') && !!r2.d.opensAt, true);
+      step('the Songwriting Studio is held shut with Trove 02', (await call('POST', '/studio/chat', A, { messages: [{ role: 'user', content: 'hi' }] })).status, 423);
+      step('taking the stage for a locked Trove is refused', (await call('POST', '/stage/lesson', A, { rehearsal_id: 'x', confirm: 'true' })).status, 423);
+      step('turning in a Trove 02 extra is refused', (await call('POST', '/extras/video', A, { kind: 'avatar-performance' })).status, 423);
+      step('an open Trove is not held back', (await call('POST', '/rehearse/visual', A, {})).status !== 423, true);
+      const p2 = await page('/pages/trove-02'); step('a locked Trove page shows the locked chest, not the directions', p2.status === 200 && /is still locked|still locked/.test(p2.text) && !/Lyric Judge/.test(p2.text), true);
+      const p2b = await page('/pages/trove-02/index.html'); step('the direct file address is locked too', /still locked/.test(p2b.text) && !/Lyric Judge/.test(p2b.text), true);
+      const p1 = await page('/pages/trove-01/'); step('an open Trove page shows its directions', /Visual Judge/.test(p1.text), true);
+      step('reading the wall and the schedule still works while Troves are locked', (await call('GET', '/wall', A)).status, 200);
+    } finally {
+      await fetch(base + '/organizer/practice-schedule', { method: 'POST', headers: org, body: JSON.stringify({ clear: true }) }).catch(() => {});
+    }
+    const s2 = await call('GET', '/schedule'); step('after clearing, every Trove is open again', [1, 2, 3].every((n) => s2.d.troves && s2.d.troves[n].open), true);
+    const p3 = await page('/pages/trove-02/'); step('and the Trove 02 page shows its directions again', /Lyric Judge/.test(p3.text), true);
+    return { passed: steps.filter((x) => x.startsWith('PASS')).length, total: steps.length, steps };
+  }
   if (row.kind === 'extrasflow') {
     // Extra tasks and the wider wall, through the web routes.
     const base = `http://127.0.0.1:${port}/api/evalroom`;
