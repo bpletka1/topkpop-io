@@ -53,6 +53,9 @@ app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
 app.use('/pages', async (req, res, next) => {
   let p;
   try { p = path.posix.normalize(decodeURIComponent(req.path)).toLowerCase().replace(/\/+/g, '/'); } catch (e) { return next(); }
+  if (/^\/final-reveal(?:\/|$)/.test(p)) {
+    try { const g = await troveSchedule.game(); if (g.reveal.open) return next(); return res.redirect(302, '/pages/missions'); } catch (e) { return next(); }
+  }
   const m = /^\/trove-0([123])(?:\/|$)/.exec(p);
   if (!m) return next();
   try {

@@ -407,6 +407,14 @@
           successEl.insertBefore(bonusNote, successEl.querySelector('.success-body'));
         }
         successEl.style.display = 'block';
+        // One sign-in for the whole site: the new team is signed in right away.
+        var go = document.createElement('p'); go.style.cssText = 'margin-top:22px;text-align:center';
+        go.innerHTML = '<a href="/pages/evaluation-room/?next=%2Fpages%2Fmissions" style="display:inline-block;background:#FFBF00;color:#000;font-weight:700;padding:14px 30px;border-radius:4px;text-decoration:none;">Go to your Missions &rarr;</a>';
+        successEl.appendChild(go);
+        fetch('/api/evalroom/signin', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ team_name: data.team_name, captain_email: data.captain_email }) })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) { if (!d || !d.token) return; try { localStorage.setItem('er:owner', JSON.stringify(d.team.name)); localStorage.setItem('er:token', JSON.stringify(d.token)); localStorage.setItem('er:team', JSON.stringify(d.team)); go.querySelector('a').setAttribute('href', '/pages/missions'); } catch (e) {} })
+          .catch(function () {});
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         btn.disabled = false;

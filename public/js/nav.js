@@ -18,8 +18,14 @@
     var here = location.pathname + location.search;
     // The Trove directions are for teams in the game: sign in once, then come straight back.
     // (A browser that will not keep a sign-in is let through, so it can never go round in circles.)
-    if (!token && storageWorks() && /^\/pages\/trove-0[123](\/|$)/.test(location.pathname)) { location.replace(SIGN_IN + '?next=' + encodeURIComponent(here)); return; }
+    if (!token && storageWorks() && /^\/pages\/(trove-0[123]|final-accusation)(\/|$)/.test(location.pathname)) { location.replace(SIGN_IN + '?next=' + encodeURIComponent(here)); return; }
     if (/^\/pages\/(admin|emails)(\/|$)/.test(location.pathname)) return;
+    if (/^\/pages\/leaderboard(\/|$)/.test(location.pathname)) {
+      fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (g) {
+        var nav = document.querySelector('nav');
+        if (g.reveal && g.reveal.open && nav) nav.insertAdjacentHTML('afterend', '<p style="margin:0;padding:14px 20px;text-align:center;background:rgba(230,0,92,.18);font-size:.95rem;"><a href="/pages/final-reveal" style="color:#fff;font-weight:700;">The saboteur has been revealed. Watch the Final Reveal &rarr;</a></p>');
+      }).catch(function () {});
+    }
     var list = document.querySelector('.nav-links');
     if (!list) return;
     var asList = list.tagName === 'UL' || list.tagName === 'OL';

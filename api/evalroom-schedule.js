@@ -40,17 +40,24 @@ module.exports = function makeSchedule({ supabase, PREVIEW_MODE }) {
     if (PREVIEW_MODE) return practice || {};
     if (cache && Date.now() - cachedAt < 30000) return cache;
     try {
-      const { data, error } = await supabase.from('game_settings').select('game_start_date, trove1_unlock, trove2_unlock, trove3_unlock').eq('id', 1).single();
+      const { data, error } = await supabase.from('game_settings').select('game_start_date, trove1_unlock, trove2_unlock, trove3_unlock, accusation_open, accusation_close, winner_announced').eq('id', 1).single();
       if (error || !data) throw new Error((error && error.message) || 'no settings');
-      cache = { 1: data.game_start_date || data.trove1_unlock || null, 2: data.trove2_unlock || null, 3: data.trove3_unlock || null };
+      cache = { 1: data.game_start_date || data.trove1_unlock || null, 2: data.trove2_unlock || null, 3: data.trove3_unlock || null, accOpen: data.accusation_open || null, accClose: data.accusation_close || null, revealed: !!data.winner_announced };
       cachedAt = Date.now();
     } catch (e) { console.error('evalroom schedule read error:', e.message); if (!cache) return {}; }
     return cache;
   }
+  /** The Final Accusation window (opens and closes at the same hour as the Troves) and whether the saboteur has been revealed. */
+  function ending(d, now) {
+    const o = d && d.accOpen ? unlockInstant(d.accOpen) : null; const c = d && d.accClose ? unlockInstant(d.accClose) : null;
+    const notYet = o != null && o > now; const over = c != null && c <= now;
+    return { accusation: { open: !notYet && !over, notYet, closed: over, opensAt: o == null ? null : new Date(o).toISOString(), closesAt: c == null ? null : new Date(c).toISOString() }, reveal: { open: !!(d && d.revealed) } };
+  }
   return {
     get: async () => build(await dates(), Date.now()),
-    /** Preview only: { 1: date-or-null, 2: ..., 3: ... }, or null to open everything again. */
-    setPractice(p) { practice = p && typeof p === 'object' ? { 1: p[1] || null, 2: p[2] || null, 3: p[3] || null } : null; },
+    game: async () => { const d = await dates(); const now = Date.now(); return { troves: build(d, now), ...ending(d, now) }; },
+    /** Preview only: practice dates, or null to open everything again. */
+    setPractice(p) { practice = p && typeof p === 'object' ? { 1: p[1] || null, 2: p[2] || null, 3: p[3] || null, accOpen: p.accOpen || null, accClose: p.accClose || null, revealed: !!p.revealed } : null; },
   };
 };
 module.exports._internal = { unlockInstant, build };

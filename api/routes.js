@@ -379,7 +379,17 @@ function parseTrove(param) {
 router.post('/submit/final-accusation', upload.none(), async (req, res) => {
   // Parse body from either JSON or FormData
   const body = req.body || {};
-  const { team_name, captain_email, accused_suspect, evidence_summary, motive } = body;
+  let { team_name, captain_email, accused_suspect, evidence_summary, motive } = body;
+
+  // A team that is signed in is known from its sign-in, so it is not asked for its name and email again.
+  let signedInTeamId = null;
+  try {
+    const tok = require('./evalroom')._internal.readToken(req.headers['x-evalroom-token']);
+    if (tok && !tok.p) {
+      const { data: reg } = await supabase.from('registrations').select('id, team_name, captain_email').eq('id', tok.t).single();
+      if (reg) { signedInTeamId = reg.id; team_name = reg.team_name; captain_email = reg.captain_email; }
+    }
+  } catch (e) { /* fall back to the typed name and email */ }
 
   if (!team_name || !captain_email || !accused_suspect) {
     return res.status(400).json({ error: 'Missing required fields.' });
@@ -392,19 +402,20 @@ router.post('/submit/final-accusation', upload.none(), async (req, res) => {
     .eq('id', 1)
     .single();
 
-  const now = new Date();
-  if (settings?.accusation_open && new Date(settings.accusation_open) > now) {
+  // The window opens and closes at 7:00 PM Pacific on its dates, the time the site tells players.
+  const { unlockInstant } = require('./evalroom-schedule')._internal;
+  const now = Date.now();
+  const opensAt = settings?.accusation_open ? unlockInstant(settings.accusation_open) : null;
+  const closesAt = settings?.accusation_close ? unlockInstant(settings.accusation_close) : null;
+  if (opensAt != null && opensAt > now) {
     return res.status(403).json({ error: 'The Final Accusation window is not yet open.' });
   }
-  if (settings?.accusation_close && new Date(settings.accusation_close) < now) {
+  if (closesAt != null && closesAt <= now) {
     return res.status(403).json({ error: 'The Final Accusation window has closed.' });
   }
 
-  const { data: team } = await supabase
-    .from('registrations')
-    .select('id, status')
-    .eq('captain_email', captain_email.toLowerCase())
-    .single();
+  const teamQuery = supabase.from('registrations').select('id, status');
+  const { data: team } = await (signedInTeamId ? teamQuery.eq('id', signedInTeamId) : teamQuery.eq('captain_email', captain_email.toLowerCase())).single();
 
   if (!team) return res.status(404).json({ error: 'Team not found.' });
 

@@ -527,6 +527,16 @@ async function runCase(row, port) {
       const p2b = await page('/pages/trove-02/index.html'); step('the direct file address is locked too', /still locked/.test(p2b.text) && !/Lyric Judge/.test(p2b.text), true);
       const p1 = await page('/pages/trove-01/'); step('an open Trove page shows its directions', /Visual Judge/.test(p1.text), true);
       step('reading the wall and the schedule still works while Troves are locked', (await call('GET', '/wall', A)).status, 200);
+      step('with no accusation dates the window counts as open and nothing is revealed', s1.d.accusation && s1.d.accusation.open === true && s1.d.reveal && s1.d.reveal.open === false, true);
+      const rv0 = await fetch(site + '/pages/final-reveal/', { redirect: 'manual' }); step('the reveal page is shut before the saboteur is announced', rv0.status, 302);
+      const rv0b = await fetch(site + '/pages/Final-Reveal/index.html', { redirect: 'manual' }); step('however its address is spelled', rv0b.status === 302 || rv0b.status === 404, true);
+      await fetch(base + '/organizer/practice-schedule', { method: 'POST', headers: org, body: JSON.stringify({ trove1: '2020-01-01', accusation_open: far, accusation_close: '2099-01-03' }) });
+      const g1 = await call('GET', '/schedule'); step('a future accusation date shows as not yet open', g1.d.accusation.notYet === true && g1.d.accusation.open === false && !!g1.d.accusation.opensAt, true);
+      await fetch(base + '/organizer/practice-schedule', { method: 'POST', headers: org, body: JSON.stringify({ accusation_open: '2020-01-01', accusation_close: '2020-01-03', revealed: true }) });
+      const g2 = await call('GET', '/schedule'); step('a past close date shows as closed, and the reveal as out', g2.d.accusation.closed === true && g2.d.reveal.open === true, true);
+      const rv1 = await fetch(site + '/pages/final-reveal/', { redirect: 'manual' }); step('once announced the reveal page opens', rv1.status, 200);
+      const fa = await page('/pages/final-accusation/'); step('the accusation page links to the suspects and follows the schedule', /\/pages\/suspects/.test(fa.text) && /api\/evalroom\/schedule/.test(fa.text) && !/isOpen = true/.test(fa.text), true);
+      const ms = await page('/pages/missions/'); step('Missions ends with the Final Accusation step', /accusationCta/.test(ms.text) && /missions-status\.js/.test(ms.text), true);
     } finally {
       await fetch(base + '/organizer/practice-schedule', { method: 'POST', headers: org, body: JSON.stringify({ clear: true }) }).catch(() => {});
     }
