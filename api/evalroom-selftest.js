@@ -442,6 +442,48 @@ async function runCase(row, port) {
     return { bytes: audio.length, heardText: (heard.text || '').slice(0, 2500), lastWordEnd: words.length ? words[words.length - 1].end : null, lines };
   }
 
+  if (row.kind === 'vimeo') {
+    // Can this Vimeo account take a video from the site, keep it off vimeo.com, and play it only on our pages?
+    const tok = process.env.VIMEO_ACCESS_TOKEN; if (!tok) return { error: 'VIMEO_ACCESS_TOKEN is not set on this service' };
+    const H = { Authorization: 'bearer ' + tok.trim(), Accept: 'application/vnd.vimeo.*+json;version=3.4' };
+    const api = async (method, pth, body) => { const r = await fetch('https://api.vimeo.com' + pth, { method, headers: { ...H, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(60000) }); let d = null; const t = await r.text(); try { d = t ? JSON.parse(t) : null; } catch (_) { d = { raw: t.slice(0, 300) }; } return { s: r.status, d }; };
+    const out = { steps: [] }; const note = (name, r, extra) => out.steps.push(name + ': ' + r.s + (r.s >= 400 ? ' ' + JSON.stringify({ error: r.d && (r.d.error || r.d.raw), dev: r.d && r.d.developer_message, code: r.d && r.d.error_code }).slice(0, 400) : '') + (extra ? ' ' + extra : ''));
+    const me = await api('GET', '/me?fields=account,upload_quota,uri');
+    note('who am I', me, me.d && JSON.stringify({ plan: me.d.account, quota: me.d.upload_quota && { space: me.d.upload_quota.space && { free: me.d.upload_quota.space.free, max: me.d.upload_quota.space.max }, periodic: me.d.upload_quota.periodic && { free: me.d.upload_quota.periodic.free, max: me.d.upload_quota.periodic.max, reset: me.d.upload_quota.periodic.reset_date } } }));
+    const scopes = await api('GET', '/oauth/verify?fields=scope'); note('token permissions', scopes, scopes.d && String(scopes.d.scope));
+    if (me.s !== 200 || p.only === 'check') return out;
+    // A five-second test picture with a beep, made here.
+    const V = require('./evalroom-video')._internal; const os = require('os'); const { execFileSync } = require('child_process');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vim-')); const f = path.join(dir, 't.mp4');
+    execFileSync(V.ffmpegPath(), ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc=duration=5:size=640x360:rate=20', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=5', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', '-movflags', '+faststart', f]);
+    const buf = fs.readFileSync(f); fs.rmSync(dir, { recursive: true, force: true });
+    const made = await api('POST', '/me/videos', { upload: { approach: 'tus', size: String(buf.length) }, name: 'TopKpop upload test (safe to delete)', description: 'Made by the Evaluation Room test runner.', privacy: { view: 'disable', embed: 'whitelist', download: false } });
+    note('create video (hidden from vimeo.com, embed on listed sites only)', made, made.d && made.d.uri);
+    let v = made;
+    if (made.s >= 400) { // the privacy we want may not be on this plan: learn which part by trying plainer settings
+      const plain = await api('POST', '/me/videos', { upload: { approach: 'tus', size: String(buf.length) }, name: 'TopKpop upload test (safe to delete)', privacy: { view: 'unlisted' } });
+      note('create video (unlisted only)', plain, plain.d && plain.d.uri); v = plain;
+    }
+    if (v.s >= 400 || !v.d || !v.d.upload || !v.d.upload.upload_link) return out;
+    const up = await fetch(v.d.upload.upload_link, { method: 'PATCH', headers: { 'Tus-Resumable': '1.0.0', 'Upload-Offset': '0', 'Content-Type': 'application/offset+octet-stream' }, body: buf, signal: AbortSignal.timeout(120000) });
+    out.steps.push('send the file: ' + up.status + ' offset ' + up.headers.get('upload-offset') + ' of ' + buf.length);
+    const id = String(v.d.uri).split('/').pop(); out.videoId = id;
+    for (const dom of p.domains || ['topkpop.io', 'www.topkpop.io', 'evaluation-room-preview-production.up.railway.app']) note('allow ' + dom, await api('PUT', '/videos/' + id + '/privacy/domains/' + dom));
+    if (v === made) { /* already set at creation */ } else note('set embed to listed sites only', await api('PATCH', '/videos/' + id, { privacy: { view: 'disable', embed: 'whitelist' } }));
+    let st = null;
+    for (let k = 0; k < 30; k++) { await new Promise((r2) => setTimeout(r2, 5000)); st = await api('GET', '/videos/' + id + '?fields=uri,link,player_embed_url,status,transcode.status,upload.status,privacy.view,privacy.embed,duration'); if (st.d && st.d.transcode && st.d.transcode.status !== 'in_progress') break; }
+    note('ready to play', st, st.d && JSON.stringify({ status: st.d.status, transcode: st.d.transcode, privacy: st.d.privacy, duration: st.d.duration, embed: st.d.player_embed_url, link: st.d.link }));
+    const doms = await api('GET', '/videos/' + id + '/privacy/domains'); note('allowed sites', doms, doms.d && JSON.stringify((doms.d.data || []).map((x) => x.domain)));
+    if (st.d && st.d.player_embed_url) {
+      const tryEmbed = async (ref) => { const r = await fetch(st.d.player_embed_url, { headers: ref ? { Referer: ref } : {}, signal: AbortSignal.timeout(30000) }); const t = await r.text(); return r.status + (/isn.t available|private|not allowed|privacy/i.test(t) ? ' (blocked message)' : ' (player page)'); };
+      out.steps.push('player opened from topkpop.io: ' + await tryEmbed('https://www.topkpop.io/pages/evaluation-room/'));
+      out.steps.push('player opened from another site: ' + await tryEmbed('https://example.com/'));
+      out.steps.push('player opened with no site: ' + await tryEmbed(null));
+    }
+    if (!p.keep) note('delete the test video', await api('DELETE', '/videos/' + id));
+    return out;
+  }
+
   if (row.kind === 'refit') {
     // Re-run the syllable comparison on an answer that is already stored (no AI call).
     const { data, error } = await R.supabase.from('evalroom_selftest').select('payload, result').eq('id', p.id).single();
