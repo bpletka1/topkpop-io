@@ -506,8 +506,8 @@ async function runCase(row, port) {
     const page = async (pth) => { const r = await fetch(site + pth); return { status: r.status, text: await r.text() }; };
     const steps = []; const step = (name, got, want, note) => steps.push((got === want ? 'PASS ' : 'FAIL ') + name + (got === want ? '' : ' (got ' + JSON.stringify(got) + ')') + (note ? ' [' + note + ']' : ''));
     const S = require('./evalroom-schedule')._internal;
-    step('a summer date opens at 6:00 AM Pacific', new Date(S.unlockInstant('2026-05-24')).toISOString(), '2026-05-24T13:00:00.000Z');
-    step('a winter date opens at 6:00 AM Pacific', new Date(S.unlockInstant('2026-12-06')).toISOString(), '2026-12-06T14:00:00.000Z');
+    step('a summer date opens at 7:00 PM Pacific', new Date(S.unlockInstant('2026-05-24')).toISOString(), '2026-05-25T02:00:00.000Z');
+    step('a winter date opens at 7:00 PM Pacific', new Date(S.unlockInstant('2026-12-06')).toISOString(), '2026-12-07T03:00:00.000Z');
     step('a Trove with no date is open', S.build({ 1: null }, Date.now())[1].open, true);
     const far = '2099-01-01';
     try {
@@ -520,6 +520,9 @@ async function runCase(row, port) {
       step('taking the stage for a locked Trove is refused', (await call('POST', '/stage/lesson', A, { rehearsal_id: 'x', confirm: 'true' })).status, 423);
       step('turning in a Trove 02 extra is refused', (await call('POST', '/extras/video', A, { kind: 'avatar-performance' })).status, 423);
       step('an open Trove is not held back', (await call('POST', '/rehearse/visual', A, {})).status !== 423, true);
+      for (const v of ['/Rehearse/lyric', '/rehearse/lyric/', '/rehearse/%6Cyric', '/Studio/chat', '/KARAOKE', '/extras/video/', '/stage/check-song']) step('a closed Trove stays shut at ' + v, (await call('POST', v, A, {})).status, 423);
+      step('sharing closed-Trove work on the wall is refused', (await call('POST', '/wall/share', A, { kind: 'song', confirm: 'true' })).status, 423);
+      for (const v of ['/pages/trove-02//', '/pages//trove-02/', '/pages/trove-0%32/', '/pages/trove%2D02/', '/pages/trove-02/%69ndex.html', '/pages/missions/../trove-02/', '/pages/TROVE-02/']) { const pv = await page(v); step('a closed Trove page stays shut at ' + v, !/Lyric Judge/.test(pv.text), true); }
       const p2 = await page('/pages/trove-02'); step('a locked Trove page shows the locked chest, not the directions', p2.status === 200 && /is still locked|still locked/.test(p2.text) && !/Lyric Judge/.test(p2.text), true);
       const p2b = await page('/pages/trove-02/index.html'); step('the direct file address is locked too', /still locked/.test(p2b.text) && !/Lyric Judge/.test(p2b.text), true);
       const p1 = await page('/pages/trove-01/'); step('an open Trove page shows its directions', /Visual Judge/.test(p1.text), true);

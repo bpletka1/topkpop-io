@@ -81,6 +81,7 @@
     var foot = el('footer', 'er-foot', '&copy; 2025&ndash;2026 Blockchain Spirits LLC &middot; Top K-Pop Entertainment &middot; <a href="/pages/legal/">Official Rules &middot; Privacy</a><br>Rehearsals are practice. Official scores are set when you Take the Stage.');
     document.body.appendChild(foot);
     var links = $('#erLinks'), burger = $('#erBurger');
+    if (token()) { var out = el('a', '', 'Sign Out'); out.href = '/?signout=1'; out.addEventListener('click', function (e) { e.preventDefault(); signOut(); }); links.appendChild(out); }
     burger.addEventListener('click', function () { var o = links.classList.toggle('open'); burger.setAttribute('aria-expanded', o ? 'true' : 'false'); });
     if (cfg && cfg.preview) ribbon.classList.add('on');
   }

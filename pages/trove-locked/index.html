@@ -34,15 +34,21 @@
   var $ = ER.$; ER.chrome();
   var n = (location.pathname.match(/trove-0([123])/) || [])[1];
   if (n) { $('#lockLabel').textContent = 'Treasure Trove 0' + n; $('#lockTitle').textContent = 'Treasure Trove 0' + n + ' is still locked'; }
-  fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
-    var s = d.troves && d.troves[n];
-    if (!s || s.open) { location.reload(); return; }
-    var at = new Date(s.opensAt);
+  if (!n) { location.replace('/pages/missions'); return; }
+  function check(first) {
+    return fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+      var s = d.troves && d.troves[n];
+      if (!s || s.open) { if (first) location.replace('/pages/missions'); else location.reload(); return null; }
+      return new Date(s.opensAt);
+    });
+  }
+  check(true).then(function (at) {
+    if (!at) return;
     $('#lockWhen').textContent = 'It opens ' + at.toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '.';
     $('#lockCount').hidden = false;
     function tick() {
       var ms = at - new Date();
-      if (ms <= 0) { location.reload(); return; }
+      if (ms <= 0) { ['cd', 'ch', 'cm', 'cs'].forEach(function (i) { $('#' + i).textContent = 0; }); setTimeout(function () { check(false).then(function (a2) { if (a2) setTimeout(tick, 20000); }).catch(function () { setTimeout(tick, 20000); }); }, 3000); return; }
       var sec = Math.floor(ms / 1000);
       $('#cd').textContent = Math.floor(sec / 86400); $('#ch').textContent = Math.floor(sec % 86400 / 3600); $('#cm').textContent = Math.floor(sec % 3600 / 60); $('#cs').textContent = sec % 60;
       setTimeout(tick, 1000);

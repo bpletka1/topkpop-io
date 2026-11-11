@@ -12,19 +12,24 @@
     try { var ks = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('er:') === 0) ks.push(k); } ks.forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
     location.href = '/';
   }
+  function storageWorks() { try { localStorage.setItem('er:probe', '1'); localStorage.removeItem('er:probe'); return true; } catch (e) { return false; } }
   function session() {
     var token = stored('token'), team = stored('team');
     var here = location.pathname + location.search;
     // The Trove directions are for teams in the game: sign in once, then come straight back.
-    if (!token && /^\/pages\/trove-0[123](\/|$)/.test(location.pathname)) { location.replace(SIGN_IN + '?next=' + encodeURIComponent(here)); return; }
+    // (A browser that will not keep a sign-in is let through, so it can never go round in circles.)
+    if (!token && storageWorks() && /^\/pages\/trove-0[123](\/|$)/.test(location.pathname)) { location.replace(SIGN_IN + '?next=' + encodeURIComponent(here)); return; }
+    if (/^\/pages\/(admin|emails)(\/|$)/.test(location.pathname)) return;
     var list = document.querySelector('.nav-links');
     if (!list) return;
-    function item(html) { var li = document.createElement('li'); li.innerHTML = html; list.appendChild(li); return li; }
+    var asList = list.tagName === 'UL' || list.tagName === 'OL';
+    function item(html) { var holder = document.createElement(asList ? 'li' : 'span'); holder.innerHTML = html; var node = asList ? holder : holder.firstChild; list.appendChild(node); return asList ? holder.querySelector('a') : node; }
     if (token) {
       item('<a href="' + SIGN_IN + '">Evaluation Room</a>');
       var name = team && team.name ? String(team.name).replace(/[&<>"']/g, '') : 'your team';
-      var out = item('<a href="#" title="Signed in as ' + name + '">Sign Out</a>');
-      out.querySelector('a').addEventListener('click', function (e) { e.preventDefault(); signOut(); });
+      item('<a href="/?signout=1" title="Signed in as ' + name + '">Sign Out</a>').addEventListener('click', function (e) { e.preventDefault(); signOut(); });
+      var hero = document.querySelector('.hero-buttons a[href*="evaluation-room/?next="]');
+      if (hero) { hero.textContent = 'Continue to Missions'; hero.setAttribute('href', '/pages/missions'); }
     } else {
       item('<a href="' + SIGN_IN + '?next=' + encodeURIComponent('/pages/missions') + '">Team Sign In</a>');
     }

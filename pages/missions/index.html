@@ -297,7 +297,7 @@
   <p class="section-label">Teacher Trove Hub</p>
   <h2 class="section-title">Your Investigation <span class="accent">Assignments.</span></h2>
   <div class="section-divider"></div>
-  <p class="section-body">Each Treasure Trove unlocks on a schedule set by your game administrator. Trove 01 is active on Day 1. Trove 02 drops Sunday at 7pm of Week 2. Trove 03 drops Sunday at 7pm of Week 3. The Final Accusation opens Sunday at 7pm of Week 4, and the Reveal drops at midnight three days later. Click any open Trove to expand your full mission briefing, AI tools, and submission instructions. Locked Troves show a live countdown to their release.</p>
+  <p class="section-body">Each Treasure Trove unlocks on a schedule set by your game administrator. Trove 01 is active on Day 1. Trove 02 drops Sunday at 7pm of Week 2. Trove 03 drops Sunday at 7pm of Week 3. The Final Accusation opens Sunday at 7pm of Week 4, and the Reveal drops at midnight three days later. Click any open Trove to expand your full mission briefing, AI tools, and how to turn in your work. Locked Troves show a live countdown to their release.</p>
 
   <!-- 32-Day Arc -->
   <div class="portal-arc" id="portal-arc">
@@ -689,11 +689,13 @@ function initTrove(troveNum, unlockDate) {
 
 document.addEventListener('DOMContentLoaded', function() {
   // Try to load live dates from game_settings, then init
-  fetch('/api/game-settings')
+  // The same schedule the server enforces, so this page and the Troves always agree.
+  fetch('/api/evalroom/schedule', { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null)
-    .then(s => {
-      if (s && s.trove2_unlock) TROVE_02_UNLOCK = new Date(s.trove2_unlock + 'T06:00:00');
-      if (s && s.trove3_unlock) TROVE_03_UNLOCK = new Date(s.trove3_unlock + 'T06:00:00');
+    .then(d => {
+      const t = d && d.troves;
+      if (t && t[2]) TROVE_02_UNLOCK = t[2].opensAt ? new Date(t[2].opensAt) : new Date(0);
+      if (t && t[3]) TROVE_03_UNLOCK = t[3].opensAt ? new Date(t[3].opensAt) : new Date(0);
     })
     .catch(() => {})
     .finally(() => {

@@ -23,18 +23,23 @@ const router = express.Router();
 
 // ── Troves open on the organizer's schedule ──
 // Which Trove a request belongs to. Anything not listed is never held back.
-function troveForPath(p) {
-  let m = /^\/(?:rehearse|stage)\/(visual|lyric|lesson)(?:\/|$)/.exec(p);
+function troveForPath(raw, body) {
+  // The address is tidied the way the router reads it: decoded, lower case, single slashes, no trailing slash.
+  let p; try { p = decodeURIComponent(String(raw || '')); } catch (_) { p = String(raw || ''); }
+  p = p.toLowerCase().replace(/\/+/g, '/').replace(/\/$/, '');
+  if (p === '/stage/check-song') return 2;
+  const m = /^\/(?:rehearse|stage)\/(visual|lyric|lesson)(?:\/|$)/.exec(p);
   if (m) return { visual: 1, lyric: 2, lesson: 3 }[m[1]];
   if (/^\/(?:studio|karaoke|sung)(?:\/|$)/.test(p)) return 2;
   if (p === '/extras/lore') return 1;
   if (p === '/extras/video') return 2;
+  if (p === '/wall/share') { const k = body && body.kind; return k === 'pictures' ? 1 : k === 'dance' ? 3 : (k === 'song' || k === 'karaoke') ? 2 : null; }
   return null;
 }
 const OPENS = (iso) => new Date(iso).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' Pacific time';
 router.use(async (req, res, next) => {
   if (req.method !== 'POST') return next();
-  const n = troveForPath(req.path);
+  const n = troveForPath(req.path, req.body);
   if (!n) return next();
   try {
     const s = (await schedule.get())[n];
@@ -48,8 +53,11 @@ router.get('/schedule', async (req, res) => {
 });
 // Preview copy only: set a practice schedule to test locked Troves. Needs the organizer password.
 router.post('/organizer/practice-schedule', express.json(), (req, res) => {
-  const pw = process.env.ADMIN_PASSWORD;
-  if (!PREVIEW_MODE || !pw || req.headers['x-organizer-password'] !== pw) return res.status(404).json({ error: 'Not found.' });
+  const pw = process.env.ADMIN_PASSWORD; const got = String(req.headers['x-organizer-password'] || '');
+  if (!PREVIEW_MODE || !pw) return res.status(404).json({ error: 'Not found.' });
+  if (limited('practice-sched:' + (req.ip || ''), 10, 15 * 60000)) return res.status(429).json({ error: 'Too many tries. Wait a while.' });
+  const a = crypto.createHash('sha256').update(got).digest(), b2 = crypto.createHash('sha256').update(pw).digest();
+  if (!crypto.timingSafeEqual(a, b2)) return res.status(404).json({ error: 'Not found.' });
   const b = req.body || {};
   schedule.setPractice(b.clear ? null : { 1: b.trove1 || null, 2: b.trove2 || null, 3: b.trove3 || null });
   res.json({ ok: true });

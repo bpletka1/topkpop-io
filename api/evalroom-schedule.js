@@ -2,14 +2,14 @@
  * TopKpop.io — when each Treasure Trove opens.
  *
  * The dates come from the game settings the organizer sets in the admin dashboard
- * (trove1_unlock / game_start_date, trove2_unlock, trove3_unlock). A Trove opens at
- * 6:00 in the morning Pacific time on its date, the same moment the Missions page counts down to.
+ * (game_start_date / trove1_unlock, trove2_unlock, trove3_unlock). A Trove opens at
+ * 7:00 in the evening Pacific time on its date, the time the site and the emails tell players.
  * A Trove with no date is open. If the dates cannot be read, nothing is locked: a team is never
  * shut out by a hiccup.
  *
  * On the preview copy every Trove is open unless a practice schedule has been set for testing.
  */
-const HOUR_PT = Number(process.env.EVALROOM_UNLOCK_HOUR_PT || 6);
+const HOUR_PT = Number(process.env.EVALROOM_UNLOCK_HOUR_PT || 19);
 
 /** The moment (ms) when it is HOUR_PT o'clock in Los Angeles on the given YYYY-MM-DD date. */
 function unlockInstant(dateStr) {
@@ -42,7 +42,7 @@ module.exports = function makeSchedule({ supabase, PREVIEW_MODE }) {
     try {
       const { data, error } = await supabase.from('game_settings').select('game_start_date, trove1_unlock, trove2_unlock, trove3_unlock').eq('id', 1).single();
       if (error || !data) throw new Error((error && error.message) || 'no settings');
-      cache = { 1: data.trove1_unlock || data.game_start_date || null, 2: data.trove2_unlock || null, 3: data.trove3_unlock || null };
+      cache = { 1: data.game_start_date || data.trove1_unlock || null, 2: data.trove2_unlock || null, 3: data.trove3_unlock || null };
       cachedAt = Date.now();
     } catch (e) { console.error('evalroom schedule read error:', e.message); if (!cache) return {}; }
     return cache;

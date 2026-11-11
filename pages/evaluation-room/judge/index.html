@@ -19,7 +19,7 @@
 
 <main class="er-wrap">
   <p class="er-small" id="backTrove" style="margin:0 0 14px"></p>
-  <script>(function () { var j = new URLSearchParams(location.search).get('j'), n = { visual: '01', lyric: '02', lesson: '03' }[j]; if (n) document.getElementById('backTrove').innerHTML = '<a href="/pages/trove-' + n + '">&larr; Treasure Trove ' + n + ' directions</a> &middot; <a href="/pages/missions">Missions</a>'; })();</script>
+  <script>(function () { var j = new URLSearchParams(location.search).get('j'), n = { visual: '01', lyric: '02', lesson: '03' }[j]; if (n) document.getElementById('backTrove').innerHTML = '<a href="/pages/trove-' + n + '">&larr; Treasure Trove ' + n + ' directions</a> &middot; <a href="/pages/missions">Missions</a>'; if (n) fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) { var s = d.troves && d.troves[Number(n)]; if (s && !s.open) document.getElementById('backTrove').insertAdjacentHTML('afterend', '<p class="er-msg show" style="display:block">Treasure Trove ' + n + ' is not open yet. It opens ' + new Date(s.opensAt).toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '. You can look around, but rehearsals start then.</p>'); }).catch(function () {}); })();</script>
   <a class="er-back" href="/pages/evaluation-room/">&larr; Back to the room</a>
 
   <!-- Official score, once locked -->
@@ -57,6 +57,7 @@
       <button class="er-btn amber small" id="danceLaterBtn" type="button">Add our dance video</button>
       <p class="er-msg" id="danceLaterMsg"></p>
     </div>
+    <p class="er-small" style="margin-top:16px">Next: <a href="/pages/evaluation-room/wall/">share on the Wall</a> for bonus points, or go <a href="/pages/missions">back to Missions</a> for your next Treasure Trove.</p>
   </section>
 
   <!-- Extra tasks, once locked -->

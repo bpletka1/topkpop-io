@@ -21,18 +21,29 @@
   }
   function link(href, text) { return '<a href="' + href + '" style="color:#FFBF00;font-weight:700;white-space:nowrap">' + text + ' &rarr;</a>'; }
   var token = stored('token'), team = stored('team');
+  var sched = null;
   function draw(locks) {
     TROVES.forEach(function (t) {
       var room = '/pages/evaluation-room/judge/?j=' + t.key;
+      var sc = sched && sched[t.n];
+      if (sc && !sc.open) { box(t.n, 'Treasure Trove 0' + t.n + ' is not open yet. It opens ' + esc(new Date(sc.opensAt).toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })) + '.'); return; }
       if (!token) { box(t.n, 'Sign in once to rehearse, take the stage and see your team’s progress. ' + link('/pages/evaluation-room/?next=' + encodeURIComponent('/pages/missions'), 'Team Sign In')); return; }
       var L = locks && locks[t.key];
       if (L) box(t.n, '<strong style="color:#fff">' + esc(team && team.name || 'Your team') + ':</strong> official score locked at <strong style="color:#fff">' + esc(L.score) + '</strong>' + (L.bonus ? ' plus <strong style="color:#fff">' + esc(L.bonus) + '</strong> bonus' : '') + '. ' + link(room, 'Open the ' + t.judge) + ' &nbsp; ' + link('/pages/evaluation-room/wall/', 'Share on the Wall'));
       else box(t.n, '<strong style="color:#fff">' + esc(team && team.name || 'Your team') + ':</strong> not on stage yet for this Trove. Read the directions, then rehearse. ' + link(room, 'Open the ' + t.judge));
     });
   }
-  if (!token) { draw(null); return; }
-  fetch('/api/evalroom/stage', { headers: { 'x-evalroom-token': token }, cache: 'no-store' })
-    .then(function (r) { if (r.status === 401) { token = null; return {}; } return r.json(); })
-    .then(function (d) { draw(d.locks || {}); })
-    .catch(function () { draw({}); });
+  var failed = false;
+  fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) { sched = d.troves || null; }).catch(function () {}).then(function () {
+    if (!token) { draw(null); return; }
+    return fetch('/api/evalroom/stage', { headers: { 'x-evalroom-token': token }, cache: 'no-store' })
+      .then(function (r) {
+        // A sign-in that has run out is cleared, so Team Sign In shows the form again.
+        if (r.status === 401) { token = null; try { localStorage.removeItem('er:token'); localStorage.removeItem('er:team'); } catch (e) {} return {}; }
+        if (!r.ok) { failed = true; return {}; }
+        return r.json();
+      })
+      .then(function (d) { if (!failed) draw(d.locks || {}); })
+      .catch(function () {});
+  });
 })();

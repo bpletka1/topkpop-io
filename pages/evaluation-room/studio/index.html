@@ -19,6 +19,8 @@
 
 <main class="er-wrap">
   <p class="er-small" style="margin:0 0 14px"><a href="/pages/trove-02">&larr; Treasure Trove 02 directions</a> &middot; <a href="/pages/missions">Missions</a></p>
+  <p class="er-msg" id="closedNote"></p>
+  <script>fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) { var s = d.troves && d.troves[2]; if (s && !s.open) { var e = document.getElementById('closedNote'); e.textContent = 'Treasure Trove 02 is not open yet. It opens ' + new Date(s.opensAt).toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '. You can look around, but this tool starts working then.'; e.style.display = 'block'; } }).catch(function () {});</script>
   <a class="er-back" href="/pages/evaluation-room/">&larr; Back to the room</a>
 
   <section id="dir"></section>

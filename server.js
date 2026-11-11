@@ -50,9 +50,13 @@ app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
 
 // ── Inner pages ──────────────────────────────────────────────────────────────
 // A Trove's directions stay closed until the organizer's date for it. Until then the page shows a locked chest.
-app.get(/^\/pages\/trove-0([123])(?:\/|\/index\.html)?$/, async (req, res, next) => {
+app.use('/pages', async (req, res, next) => {
+  let p;
+  try { p = path.posix.normalize(decodeURIComponent(req.path)).toLowerCase().replace(/\/+/g, '/'); } catch (e) { return next(); }
+  const m = /^\/trove-0([123])(?:\/|$)/.exec(p);
+  if (!m) return next();
   try {
-    const s = (await troveSchedule.get())[req.params[0]];
+    const s = (await troveSchedule.get())[m[1]];
     if (!s || s.open) return next();
     res.set('Cache-Control', 'no-store');
     res.sendFile(path.join(__dirname, 'pages/trove-locked/index.html'));
