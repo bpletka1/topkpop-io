@@ -150,7 +150,7 @@ The game runs for 32 days from the start date set by the administrator. The star
 
 **What you create:** Rewritten multilingual song lyrics (Korean or Spanish woven into an existing song), optional AI song (made in Suno, or sung in the Song Maker in The Evaluation Room), optional karaoke video (made in the Song Maker, or in MyKaraoke.Video for songs that are not in English).
 
-**How to rewrite your song:** Use the Songwriting Studio in The Evaluation Room. Choose a cover song you enjoy. Choose a theme (identity, courage, belonging, etc.) and select 7–10 vocabulary words in Korean or Spanish that connect to your theme. Paste the original lyrics, your vocabulary list, and your theme into the Studio. It rewrites the song keeping the melody and rhythm while weaving in your vocabulary meaningfully. Then rehearse your lyrics with the Lyric Judge and Take the Stage to lock them.
+**How to rewrite your song:** Use the Songwriting Studio in The Evaluation Room. Choose a cover song you enjoy. Choose a theme (identity, courage, belonging, etc.) and select at least 10 vocabulary words in Korean or Spanish that connect to your theme. Paste the original lyrics, your vocabulary list, and your theme into the Studio. It rewrites the song keeping the melody and rhythm while weaving in your vocabulary meaningfully. Then rehearse your lyrics with the Lyric Judge and Take the Stage to lock them.
 
 **Scoring:**
 - Lyrics: up to 90 points, scored by the Lyric Judge and locked when you Take the Stage

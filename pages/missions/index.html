@@ -445,9 +445,8 @@
         <p class="trove-teaser">&ldquo;Before you can investigate the sabotage, you must become part of the world. Build your trainee identity. The industry is watching &mdash; and so is the saboteur.&rdquo;</p>
         <p style="font-size:0.9rem; line-height:1.7; color:rgba(224,224,224,0.72); margin:18px 0;">Use AI image tools to create your K-Pop idol avatar and a multilingual promotional poster. Watch Jeannie&rsquo;s KMZ briefing video for your full mission instructions and embedded clues. Rehearse with the Visual Judge in The Evaluation Room for a score and feedback, then Take the Stage to lock your official score.</p>
         <div class="trove-points" style="margin-bottom:24px;">
-          <span class="point-chip chip-crimson">Avatar &mdash; Up to 50 pts</span>
-          <span class="point-chip chip-amber">Poster &mdash; Up to 40 pts</span>
-          <span class="point-chip chip-purple">Early Submission Bonus: +10 pts</span>
+          <span class="point-chip chip-crimson">Avatar + Poster &mdash; Up to 100 pts</span>
+          <span class="point-chip chip-purple">Early Submission Prize: Take the Stage in Week 1</span>
           <span class="point-chip chip-green">Clue Fragment Unlocked</span>
         </div>
         <div style="display:flex; gap:14px; flex-wrap:wrap; margin-top:8px;">
@@ -478,7 +477,7 @@
       </div>
       <div>
         <p class="trove-teaser">&ldquo;The evidence is in the music. Rewrite the song. Translate the truth. Perform the clue.&rdquo;</p>
-        <p style="font-size:0.9rem; line-height:1.7; color:rgba(224,224,224,0.72); margin:18px 0;">Use the Multilingual Karaoke Song Rewriter to rewrite K-Pop lyrics embedding Korean or Spanish vocabulary as evidence. Choose from three options: Lyrics Rewrite, Suno AI original song, or MyKaraoke.Video production. Bonus: have your AI avatar perform it.</p>
+        <p style="font-size:0.9rem; line-height:1.7; color:rgba(224,224,224,0.72); margin:18px 0;">Use the Songwriting Studio to rewrite song lyrics embedding Korean or Spanish vocabulary as evidence. Lock your lyrics with the Lyric Judge, then turn in one song: a Suno song, a song made in the Song Maker, or a karaoke video. Bonus: have your AI avatar perform it.</p>
         <div class="trove-points" style="margin-bottom:24px;">
           <span class="point-chip chip-crimson">Lyrics Rewrite &mdash; 90 pts</span>
           <span class="point-chip chip-amber">Suno AI Song &mdash; 100 pts</span>
@@ -487,7 +486,7 @@
         </div>
         <div style="display:flex; gap:14px; flex-wrap:wrap; margin-top:8px;">
           <a href="/pages/trove-02" style="display:inline-block; padding:13px 28px; background:rgba(255,191,0,0.12); border:1px solid rgba(255,191,0,0.5); border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:var(--amber); text-transform:uppercase; text-decoration:none;">View Full Trove 02 Brief &rarr;</a>
-          <a href="/pages/evaluation-room/studio/" target="_blank" rel="noopener" style="display:inline-block; padding:13px 28px; background:rgba(138,43,226,0.08); border:1px solid rgba(138,43,226,0.35); border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:var(--purple); text-transform:uppercase; text-decoration:none;">Song Rewriter Tool &rarr;</a>
+          <a href="/pages/evaluation-room/studio/" target="_blank" rel="noopener" style="display:inline-block; padding:13px 28px; background:rgba(138,43,226,0.08); border:1px solid rgba(138,43,226,0.35); border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:var(--purple); text-transform:uppercase; text-decoration:none;">Songwriting Studio &rarr;</a>
           <a href="/pages/evaluation-room/judge/?j=lyric" target="_blank" rel="noopener" style="display:inline-block; padding:13px 28px; background:rgba(255,191,0,0.08); border:1px solid rgba(255,191,0,0.35); border-radius:4px; font-family:'Syncopate',sans-serif; font-size:0.55rem; letter-spacing:0.2em; color:var(--amber); text-transform:uppercase; text-decoration:none;">Rehearse &rarr;</a>
         </div>
         <p style="font-size:0.72rem; color:rgba(255,191,0,0.55); font-style:italic; margin-top:12px;">&#9888; Once you Take the Stage, Trove 02 is locked. Rehearse with the judge to refine your work first.</p>
@@ -535,8 +534,8 @@
         <p class="trove-teaser">&ldquo;The final truth lives in the lesson. Unpack the standard. Build the plan. The AI will show you what the eye cannot see.&rdquo;</p>
         <p style="font-size:0.9rem; line-height:1.7; color:rgba(224,224,224,0.72); margin:18px 0;">Use AI video tools to create a choreographed dance, then design an interdisciplinary lesson plan for students exploring ELA, Social Studies, or World Language / International Language standards through the context of cultural dance.</p>
         <div class="trove-points" style="margin-bottom:24px;">
-          <span class="point-chip chip-crimson">D01 Standard Unpack &mdash; Up to 100 pts</span>
-          <span class="point-chip chip-amber">D02 Lesson Plan &mdash; Up to 100 pts</span>
+          <span class="point-chip chip-crimson">Lesson Plan &mdash; Up to 100 pts</span>
+          <span class="point-chip chip-amber">Dance Video &mdash; +10 pts</span>
           <span class="point-chip chip-green">Dance Video Bonus &mdash; +10 pts (Auto)</span>
         </div>
         <div style="display:flex; gap:14px; flex-wrap:wrap; margin-top:8px;">
@@ -649,7 +648,7 @@ function unlockTrovePanel(troveNum) {
   const dot = document.getElementById('panel0' + troveNum + '-dot');
   if (dot) { dot.classList.remove('locked'); dot.classList.add('active'); }
   const badge = panel ? panel.querySelector('.panel-week-badge') : null;
-  if (badge) { badge.classList.remove('locked'); badge.classList.add('active'); badge.textContent = 'Week ' + (troveNum - 1) + ' — Active'; }
+  if (badge) { badge.classList.remove('locked'); badge.classList.add('active'); badge.textContent = 'Week ' + troveNum + ' — Active'; var ttl = document.getElementById('panel0' + troveNum + '-title'); if (ttl) ttl.textContent = ttl.textContent.replace(/\s*[—-]\s*Locked\s*$/, ''); }
   const arcW = document.getElementById('arc-w' + (troveNum - 1));
   if (arcW) { arcW.classList.remove('locked'); arcW.classList.add('active'); }
   // Mark previous week complete

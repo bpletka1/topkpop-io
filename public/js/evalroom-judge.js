@@ -239,7 +239,7 @@
     var when = new Date(L.locked_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     var parts = [L.score + ' from the ' + (J ? J.name : 'judge')];
     if (L.bonus) parts.push(L.bonus + ' bonus');
-    $('#offLine').textContent = parts.join(' + ') + '. Locked ' + when + '. ' + (L.practice ? 'This is a practice lock on the preview copy and does not reach the leaderboard.' : 'Your leaderboard score is updated. You can keep rehearsing for fun, but this score is final.');
+    $('#offLine').textContent = parts.join(' + ') + '. Locked ' + when + '. ' + (L.practice ? 'This is a practice lock on the preview copy and does not reach the leaderboard.' : 'Your leaderboard score is updated. You can still rehearse with any rehearsals your team has left, but this score is final.');
     var hasSong = key === 'lyric' && !!L.song_url;
     $('#offSong').hidden = !hasSong;
     var roomSong = hasSong && /^room:/.test(L.song_url);
