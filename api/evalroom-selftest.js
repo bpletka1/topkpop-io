@@ -370,6 +370,9 @@ async function runCase(row, port) {
       const mm = await post('/stage/lyric/room-song', F, { kind: 'karaoke', id: fsong.id }, true); step('a song with different words earns no points', mm.status, 400, mm.d.error);
       await R.supabase.from('evalroom_karaoke').update({ status: 'deleted', instrumental_path: null }).eq('id', fsong.id);
       for (const [x, tk] of [[mc, C], [md, D], [bad, E]]) if (x.d.song) await post('/karaoke/' + x.d.song.id + '/delete', tk, {}, true);
+      step('a song that was turned in for points cannot be deleted', (await post('/karaoke/' + id + '/delete', A, {}, true)).status, 409);
+      // Tidy up: release this run's practice locks so the test song can be removed.
+      await R.supabase.from('evalroom_practice_locks').update({ reset_at: new Date().toISOString(), reset_note: 'selftest tidy-up' }).like('team_key', 'preview:' + run + '-%').is('reset_at', null);
       const del = await post('/karaoke/' + id + '/delete', A, {}, true); step('team can delete its song', del.status, 200);
       step('deleted song is gone', (await get('/karaoke/' + id, A)).status, 404);
       const { data: left } = await R.supabase.storage.from('evalroom-private').list(`preview_${run}-a/karaoke/${id}`);
