@@ -233,7 +233,8 @@
     box.hidden = !L;
     document.dispatchEvent(new CustomEvent('er:stage', { detail: { key: key, locked: !!L } }));
     if (!L) return;
-    $('#offTotal').textContent = L.total; $('#offMax').textContent = L.max + (key === 'lyric' ? S.songBonus : 0);
+    $('#offTotal').textContent = L.total; $('#offMax').textContent = L.max + (L.bonus ? ' + ' + L.bonus + ' bonus' : '');
+    var canDance = key === 'lesson' && !L.dance_video_url; if ($('#addDance')) $('#addDance').hidden = !canDance;
     var b = $('#offBadge'); b.textContent = L.practice ? 'Practice lock (preview)' : 'Locked'; b.className = 'er-badge' + (L.practice ? ' practice' : '');
     var when = new Date(L.locked_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     var parts = [L.score + ' from the ' + (J ? J.name : 'judge')];
@@ -305,6 +306,16 @@
       .then(function () { btn.disabled = false; btn.textContent = 'Turn in my song'; });
   });
 
+  if ($('#danceLaterBtn')) $('#danceLaterBtn').addEventListener('click', function () {
+    var btn = this, m = $('#danceLaterMsg'), url = $('#danceLater').value.trim();
+    if (!url) { ER.showMsg(m, 'Paste your dance video link first.'); return; }
+    if (!window.confirm('Add this dance video? It can be added once.')) return;
+    btn.disabled = true; btn.textContent = 'Adding\u2026'; ER.hideMsg(m);
+    ER.api('/stage/lesson/dance', { json: { dance_video_url: url } })
+      .then(function (d) { S.lock = d.lock; showOfficial(); if (dir) dir.update(); })
+      .catch(function (e) { if (e.data && e.data.lock) { S.lock = e.data.lock; showOfficial(); } ER.showMsg(m, e.message); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Add our dance video'; });
+  });
   // An extra task was turned in: show the new total.
   document.addEventListener('er:extras-changed', function () { loadStage().catch(function () {}); });
 

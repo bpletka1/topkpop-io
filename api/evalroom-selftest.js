@@ -541,6 +541,7 @@ async function runCase(row, port) {
     step('a link that is not https is refused', (await call('POST', '/extras/video', A, null, vform('avatar-performance', null, null, 'http://example.com/v'))).status, 400);
     step('a file that is not a video is refused', (await call('POST', '/extras/video', A, null, vform('avatar-performance', Buffer.from('this is not a video at all'), 'v.mp4'))).status, 400);
     step('a made-up kind is refused', (await call('POST', '/extras/video', A, null, vform('everything', vbuf, 'v.mp4'))).status, 400);
+    step('a picture passed off as a video is refused', (await call('POST', '/extras/video', A, null, vform('avatar-performance', fs.readFileSync(path.join(FIXTURES, 'avatar_good.png')), 'v.mp4'))).status, 400);
     const pf = await call('POST', '/extras/video', A, null, vform('avatar-performance', vbuf, 'perf.mp4')); step('avatar performance video turned in, 25 points', pf.d.bonus, 25, pf.d.error);
     const kv = await call('POST', '/extras/video', A, null, vform('karaoke-video', null, null, 'https://youtu.be/example-karaoke')); step('outside karaoke video turned in as the song, 10 points', kv.d.bonus, 10, kv.d.error);
     const lk = await lockOf('lyric'); step('lyric lock shows 35 and the song place is taken', lk && lk.bonus === 35 && /^room:upload:/.test(lk.song_url || ''), true, JSON.stringify(lk && [lk.bonus, lk.song_url]));
@@ -554,11 +555,16 @@ async function runCase(row, port) {
       const ol = await call('GET', '/organizer/extras', null, null, null, org); const pv = (ol.d.items || []).find((x) => pf.d.item && x.id === pf.d.item.id);
       const g = pv && pv.fileUrl ? await fetch(pv.fileUrl) : { status: 0 }; step('organizer can play the performance video', g.status, 200);
       step('organizer removes the karaoke video', (await call('POST', '/organizer/extras/remove', null, { id: kv.d.item && kv.d.item.id, note: 'selftest' }, null, org)).status, 200);
-      const lk2 = await lockOf('lyric'); step('its 10 points come off and the song place is free again', lk2 && lk2.bonus === 50 && !lk2.song_url, true, JSON.stringify(lk2 && [lk2.bonus, lk2.song_url]));
+      const lk2 = await lockOf('lyric'); step('its 10 points and its wall share (25) come off, and the song place is free again', lk2 && lk2.bonus === 25 && !lk2.song_url, true, JSON.stringify(lk2 && [lk2.bonus, lk2.song_url]));
     }
 
     // Trove 03
-    const r3 = await call('POST', '/rehearse/lesson', A, { text: SUITES.lesson[2].payload.text }); const l3 = await call('POST', '/stage/lesson', A, { rehearsal_id: r3.d.id, confirm: 'true', dance_video_url: 'https://youtu.be/example-dance' }); step('lock lesson with a dance video', l3.status, 200, l3.d.error);
+    const r3 = await call('POST', '/rehearse/lesson', A, { text: SUITES.lesson[2].payload.text }); const l3 = await call('POST', '/stage/lesson', A, { rehearsal_id: r3.d.id, confirm: 'true' }); step('lock lesson without a dance video', l3.status, 200, l3.d.error);
+    step('no dance video yet, so nothing to share', (await call('POST', '/wall/share', A, { kind: 'dance', confirm: 'true' })).status, 400);
+    step('a dance link that is not a web address is refused', (await call('POST', '/stage/lesson/dance', A, { dance_video_url: 'not a link' })).status, 400);
+    const dl = await call('POST', '/stage/lesson/dance', A, { dance_video_url: 'https://youtu.be/example-dance' }); step('dance video added after the lock, 10 points', dl.d.bonus, 10, dl.d.error);
+    step('a second dance video is refused', (await call('POST', '/stage/lesson/dance', A, { dance_video_url: 'https://youtu.be/other' })).status, 409);
+    const two = await Promise.all([call('POST', '/extras/lore', A, { text: story }), call('POST', '/wall/share', B, { kind: 'pictures', confirm: 'true' })]); step('story turned in again after removal', two[0].status, process.env.ADMIN_PASSWORD ? 200 : 409);
     const dn = await call('POST', '/wall/share', A, { kind: 'dance', confirm: 'true' }); step('dance video shared on the wall, 25 points', dn.d.bonus, 25, dn.d.error);
     step('lesson lock shows 10 + 25', await bonusOf('lesson'), 35);
     step('team without a lesson lock cannot share a dance video', (await call('POST', '/wall/share', B, { kind: 'dance', confirm: 'true' })).status, 404);

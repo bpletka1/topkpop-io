@@ -28,13 +28,19 @@ const KINDS = {
 };
 
 function ffmpegPath() { try { return require('ffmpeg-static'); } catch (e) { return null; } }
+/** MP4, MOV and M4V files carry "ftyp" near the start; WebM starts with its own four bytes. A picture has neither. */
+function looksLikeVideoFile(buf) {
+  if (!buf || buf.length < 16) return false;
+  return buf.slice(4, 8).toString('latin1') === 'ftyp' || (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3);
+}
 /** True when the file really is a video that can be played. */
 function isVideo(buf) {
   return new Promise((resolve) => {
-    const bin = ffmpegPath(); if (!bin) return resolve(false);
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'erextra-'));
-    const done = (ok) => { fs.rmSync(dir, { recursive: true, force: true }); resolve(ok); };
+    const bin = ffmpegPath(); if (!bin || !looksLikeVideoFile(buf)) return resolve(false);
+    let dir = null;
+    const done = (ok) => { if (dir) fs.rmSync(dir, { recursive: true, force: true }); resolve(ok); };
     try {
+      dir = fs.mkdtempSync(path.join(os.tmpdir(), 'erextra-'));
       fs.writeFileSync(path.join(dir, 'in'), buf);
       const p = spawn(bin, ['-hide_banner', '-v', 'error', '-i', 'in', '-map', '0:v:0', '-frames:v', '1', '-f', 'null', '-'], { cwd: dir, stdio: 'ignore' });
       const t = setTimeout(() => { p.kill('SIGKILL'); }, 30000);
@@ -51,7 +57,7 @@ function cleanLink(v) {
 function sentences(text) { return String(text).split(/[.!?。！？]+(?:\s+|$)/).map((x) => x.trim()).filter((x) => x.split(/\s+/).length >= 2).length; }
 
 module.exports = function attachExtras(router, deps) {
-  const { supabase, requireTeam, requireOrganizer, limited, activeLock, LOCKS, PREVIEW_MODE, multer, changeBonus, tellOrganizer } = deps;
+  const { supabase, requireTeam, requireOrganizer, limited, activeLock, LOCKS, PREVIEW_MODE, multer, changeBonus, tellOrganizer, retireWallSong } = deps;
   const mine = (q) => q.eq('is_preview', PREVIEW_MODE);
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_MB * 1024 * 1024, files: 1, fields: 6, fieldSize: 4000 } });
   const oneFile = (req, res, next) => upload.single('file')(req, res, (err) => {
@@ -59,7 +65,7 @@ module.exports = function attachExtras(router, deps) {
     res.status(400).json({ error: err.code === 'LIMIT_FILE_SIZE' ? `That video is larger than ${MAX_MB} MB. Put it on YouTube or Google Drive and paste the link instead.` : 'That file could not be read. Please try again.' });
   });
 
-  const view = (r, full, fileUrl) => r && ({
+  const view = (r, full, fileUrl) => r && KINDS[r.kind] && ({
     id: r.id, kind: r.kind, trove: r.trove, name: KINDS[r.kind].name, bonus: r.bonus, when: r.created_at, text: r.body || null, link: r.link || null, hasFile: !!r.file_path,
     ...(full ? { team: r.team_name, fileUrl: fileUrl || null, removedAt: r.removed_at, removedBy: r.removed_by, note: r.removed_note, practice: r.is_preview } : {}),
   });
@@ -90,7 +96,11 @@ module.exports = function attachExtras(router, deps) {
     if (!keepBonus && row.lock_id) {
       try {
         if (row.bonus) await changeBonus(row.lock_id, -row.bonus, k.tag);
-        if (k.isSong) await supabase.from(LOCKS).update({ song_url: null, song_check: null }).eq('id', row.lock_id).eq('song_url', 'room:upload:' + row.id);
+        if (k.isSong) {
+          await supabase.from(LOCKS).update({ song_url: null, song_check: null }).eq('id', row.lock_id).eq('song_url', 'room:upload:' + row.id);
+          // If this video was also shared on the wall, that copy and its sharing points go too.
+          await retireWallSong(row.lock_id, by, note || 'The karaoke video was removed.').catch((e) => console.error('evalroom extras wall retire:', e.message));
+        }
       } catch (e) {
         await supabase.from('evalroom_extras').update({ status: 'ready', removed_at: null, removed_by: null, removed_note: null }).eq('id', r.id);
         throw new Error('bonus undo: ' + e.message);
@@ -168,7 +178,7 @@ module.exports = function attachExtras(router, deps) {
     const text = String((req.body && req.body.text) || '').replace(/\s+/g, ' ').trim();
     const n = sentences(text);
     if (text.length < 40 || n < 2) return res.status(400).json({ error: 'Write 2 to 4 sentences telling the story behind your team name.' });
-    if (text.length > 900 || n > 6) return res.status(400).json({ error: 'That is longer than a short story. Keep it to 2 to 4 sentences.' });
+    if (text.length > 900 || n > 5) return res.status(400).json({ error: 'That is longer than a short story. Keep it to 2 to 4 sentences.' });
     const lock = await activeLock(req.team.key, 1).catch(() => null);
     if (!lock) return res.status(404).json({ error: 'Take the Stage with your avatar and poster first. Then turn in your team name story.' });
     return turnIn(req, res, 'lore', lock, { body: text });
@@ -187,6 +197,7 @@ module.exports = function attachExtras(router, deps) {
     if (kind === 'karaoke-video' && lock.song_url) return res.status(409).json({ error: 'Your team already turned in its song.' });
     let file = null;
     if (req.file) {
+      if (limited('extracheck:' + req.team.key, 6, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of uploads for a few minutes. Please wait a little and try again.' });
       if (!(await isVideo(req.file.buffer))) return res.status(400).json({ error: 'That file is not a video the room can play. Save it as MP4 and try again.' });
       const ext = (String(req.file.originalname || '').toLowerCase().match(/\.(mp4|mov|m4v|webm)$/) || [null, 'mp4'])[1];
       file = { buffer: req.file.buffer, ext, mime: ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : 'video/mp4' };
@@ -196,7 +207,7 @@ module.exports = function attachExtras(router, deps) {
   });
 
   // ── Organizer ──
-  router.get('/organizer/extras', requireOrganizer, async (req, res) => {
+  router.get('/organizer/extras', requireOrganizer, async (req, res) => { try {
     const [up, down] = await Promise.all([
       mine(supabase.from('evalroom_extras').select('*')).is('removed_at', null).eq('status', 'ready').order('created_at', { ascending: false }).limit(400),
       mine(supabase.from('evalroom_extras').select('*')).not('removed_at', 'is', null).order('removed_at', { ascending: false }).limit(100),
@@ -205,8 +216,8 @@ module.exports = function attachExtras(router, deps) {
     const rows = (up.data || []).concat(down.data || []);
     const paths = rows.filter((r) => r.file_path).map((r) => r.file_path); const urls = {};
     if (paths.length) { const { data } = await supabase.storage.from(BUCKET).createSignedUrls(paths, 3600); for (const d of data || []) if (d && d.signedUrl) urls[d.path] = d.signedUrl; }
-    res.json({ items: rows.map((r) => view(r, true, urls[r.file_path])) });
-  });
+    res.json({ items: rows.map((r) => view(r, true, urls[r.file_path])).filter(Boolean) });
+  } catch (e) { console.error('evalroom organizer extras list error:', e.message); res.status(500).json({ error: 'Could not load the extra tasks.' }); } });
   router.post('/organizer/extras/remove', requireOrganizer, async (req, res) => {
     try {
       const id = String((req.body && req.body.id) || ''); if (!UUID.test(id)) return res.status(404).json({ error: 'Not found.' });

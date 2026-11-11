@@ -15,11 +15,11 @@
         var im = it.images[s]; if (!im || !im.small) return '';
         return '<a href="' + esc(im.full || im.small) + '" target="_blank" rel="noopener"><img loading="lazy" src="' + esc(im.small) + '" alt="' + esc(it.team) + ' ' + s + '" /></a>';
       }).join('') + '</div>';
-    } else if (it.kind === 'karaoke' && it.embed && /^https:\/\/player\.vimeo\.com\//.test(it.embed)) {
+    } else if (it.embed && /^https:\/\/player\.vimeo\.com\//.test(it.embed)) {
       media = '<div class="wall-video"><iframe loading="lazy" src="' + esc(it.embed) + '" title="' + esc(it.team) + ' karaoke video" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
     }
     if (!media && it.audio) media = '<div class="wall-audio"><audio controls preload="none" src="' + esc(it.audio) + '"></audio></div>';
-    if (!media && it.link && /^https:\/\//.test(it.link)) media = '<div class="wall-link"><a class="er-btn ghost small" href="' + esc(it.link) + '" target="_blank" rel="noopener">' + (it.kind === 'dance' ? 'Watch the dance video' : 'Listen to the song') + '</a></div>';
+    if (!media && it.link && /^https?:\/\//.test(it.link)) media = '<div class="wall-link"><a class="er-btn ghost small" href="' + esc(it.link) + '" target="_blank" rel="noopener">' + (it.kind === 'dance' ? 'Watch the dance video' : 'Listen to the song') + '</a></div>';
     return '<article class="wall-item">' + media + '<div class="wall-meta"><b>' + esc(it.team || 'A team') + '</b><span>' +
       (it.kind === 'pictures' ? 'Avatar and poster' : it.kind === 'dance' ? 'Dance video' : esc(it.title || 'Our song')) + ' · ' + esc(when) + '</span>' +
       (it.mine ? '<div class="er-row" style="margin-top:8px"><button class="er-linkbtn" data-remove="' + esc(it.id) + '">Take ours down</button></div>' : '') + '</div></article>';

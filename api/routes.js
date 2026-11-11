@@ -456,6 +456,8 @@ router.post('/submit/:trove', upload.fields([
   { name: 'file2', maxCount: 1 },
   { name: 'file3', maxCount: 1 },
 ]), async (req, res) => {
+  // Official work is turned in through Take the Stage in The Evaluation Room. This older route is closed.
+  if (process.env.OLD_SUBMIT_OPEN !== '1') return res.status(410).json({ error: 'Trove work is now turned in through Take the Stage in The Evaluation Room.', room: '/pages/evaluation-room/' });
   try {
     const troveNumber = parseTrove(req.params.trove);
     if (!troveNumber) {

@@ -87,6 +87,15 @@ module.exports = function attachStage(router, deps) {
     };
     if (lock.bonus) { payload.bonus_awarded_at = new Date().toISOString(); payload.bonus_awarded_by = lock.bonus_reason; }
     if (lock.instagram_post_url) payload.instagram_post_url = lock.instagram_post_url;
+    // Trove 01 locked before Trove 02 opens earns the early prize, the same rule the old submit page used.
+    let early = null;
+    if (lock.trove === 1) {
+      try {
+        const { data: gs } = await supabase.from('game_settings').select('trove2_unlock').eq('id', 1).single();
+        const deadline = gs && gs.trove2_unlock ? new Date(gs.trove2_unlock) : null;
+        if (deadline && new Date() < deadline) { payload.early_submission = true; early = deadline; }
+      } catch (e) { console.error('evalroom early check error:', e.message); }
+    }
     for (const [i, f] of (files || []).entries()) {
       const name = `trove-${lock.trove}/${team.key}/${Date.now()}_${String(f.originalname || 'file').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
       const { error } = await supabase.storage.from('submissions').upload(name, f.buffer, { contentType: f.mimetype, upsert: false });
@@ -96,6 +105,17 @@ module.exports = function attachStage(router, deps) {
     }
     const { data, error } = await supabase.from('submissions').upsert(payload, { onConflict: 'team_id,trove_number' }).select('id').single();
     if (error) throw new Error('submission: ' + error.message);
+    if (early) {
+      const to = process.env.ADMIN_EMAIL || process.env.EVALROOM_ORGANIZER_EMAIL;
+      if (to && process.env.RESEND_API_KEY) {
+        try {
+          const esc = (x) => String(x || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+          const { Resend } = require('resend');
+          await new Resend(process.env.RESEND_API_KEY).emails.send({ from: 'Anna Im — TopKpop.io <anna@topkpop.io>', to: to.split(',').map((x) => x.trim()).filter(Boolean), subject: 'Early Submission Prize: Trove 01 locked before the Week 1 deadline',
+            html: `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#222"><p><b>${esc(team.name)}</b> took the stage for Trove 01 before the Week 1 deadline (${esc(early.toLocaleString('en-US', { timeZone: 'America/Los_Angeles', dateStyle: 'full', timeStyle: 'short' }))}).</p><p>They qualify for the Early Submission Prize.</p></div>` });
+        } catch (e) { console.error('evalroom early notice error:', e.message); }
+      }
+    }
     return data.id;
   }
 
@@ -245,18 +265,17 @@ module.exports = function attachStage(router, deps) {
       const { data: r } = await supabase.from('evalroom_rehearsals').select('input_text').eq('id', lock.rehearsal_id).single();
       const v = await verifySong(req.body && req.body.song_url, r && r.input_text, lock.id);
       if (!v.ok) return res.status(400).json({ error: v.message, song: v.verdict });
-      const { data: saved, error } = await supabase.from(LOCKS)
-        .update({ song_url: v.canonical, song_check: v.check, bonus: (lock.bonus || 0) + SONG_BONUS, bonus_reason: plusReason(lock, 'auto-song-link') }).eq('id', lock.id).is('song_url', null).select('*').single();
+      // Claim the team's one song place first, then add the points on top of whatever the entry already has.
+      const { data: claimed, error } = await supabase.from(LOCKS).update({ song_url: v.canonical, song_check: v.check }).eq('id', lock.id).is('song_url', null).select('id');
       if (error) return res.status(409).json({ error: error.code === '23505' ? SONG_MESSAGES.reused : 'The song could not be added. Please try again.' });
-      if (!PREVIEW_MODE && lock.submission_id) {
-        const { data: cur } = await supabase.from('submissions').select('bonus_score').eq('id', lock.submission_id).single();
-        const { error: subErr } = await supabase.from('submissions').update({ bonus_score: ((cur && cur.bonus_score) || 0) + SONG_BONUS, bonus_awarded_at: new Date().toISOString(), bonus_awarded_by: 'auto-song-link' }).eq('id', lock.submission_id);
-        if (subErr) {
-          await supabase.from(LOCKS).update({ song_url: null, song_check: null, bonus: lock.bonus || 0, bonus_reason: lock.bonus_reason || null }).eq('id', lock.id);
-          console.error('evalroom song bonus save error:', subErr.message);
-          return res.status(502).json({ error: 'The song points could not be saved. Your link has not been used. Please try again.' });
-        }
+      if (!claimed || !claimed.length) return res.status(409).json({ error: 'Your team already turned in its song.' });
+      try { await wall.changeBonus(lock.id, SONG_BONUS, 'auto-song-link'); }
+      catch (e) {
+        await supabase.from(LOCKS).update({ song_url: null, song_check: null }).eq('id', lock.id).eq('song_url', v.canonical);
+        console.error('evalroom song bonus save error:', e.message);
+        return res.status(502).json({ error: 'The song points could not be saved. Your link has not been used. Please try again.' });
       }
+      const { data: saved } = await supabase.from(LOCKS).select('*').eq('id', lock.id).single();
       res.json({ ok: true, lock: await withText(lockView(saved)) });
     } catch (err) { console.error('evalroom add-song error:', err.message); res.status(502).json({ error: SONG_MESSAGES.unreadable }); }
   });
@@ -285,18 +304,15 @@ module.exports = function attachStage(router, deps) {
       if (!(m.pct >= ROOM_MATCH_PCT && m.enough)) return res.status(400).json({ error: 'This song does not use your locked lyrics. Make the song again with the exact lyrics your team locked, then turn that one in.', match: m.pct });
       const url = `room:${kind}:${song.id}`;
       const check = { verdict: 'verified', room: kind, title: song.title, match: m, canonical: url };
-      const { data: saved, error } = await supabase.from(LOCKS)
-        .update({ song_url: url, song_check: check, bonus: (lock.bonus || 0) + SONG_BONUS, bonus_reason: plusReason(lock, 'auto-room-song') }).eq('id', lock.id).is('song_url', null).select('*').single();
-      if (error || !saved) return res.status(409).json({ error: 'The song could not be added. Please try again.' });
-      if (!PREVIEW_MODE && lock.submission_id) {
-        const { data: cur } = await supabase.from('submissions').select('bonus_score').eq('id', lock.submission_id).single();
-        const { error: subErr } = await supabase.from('submissions').update({ bonus_score: ((cur && cur.bonus_score) || 0) + SONG_BONUS, bonus_awarded_at: new Date().toISOString(), bonus_awarded_by: 'auto-room-song' }).eq('id', lock.submission_id);
-        if (subErr) {
-          await supabase.from(LOCKS).update({ song_url: null, song_check: null, bonus: lock.bonus || 0, bonus_reason: lock.bonus_reason || null }).eq('id', lock.id);
-          console.error('evalroom room-song bonus save error:', subErr.message);
-          return res.status(502).json({ error: 'The song points could not be saved. Your song has not been used. Please try again.' });
-        }
+      const { data: claimed, error } = await supabase.from(LOCKS).update({ song_url: url, song_check: check }).eq('id', lock.id).is('song_url', null).select('id');
+      if (error || !claimed || !claimed.length) return res.status(409).json({ error: claimed && !claimed.length ? 'Your team already turned in its song.' : 'The song could not be added. Please try again.' });
+      try { await wall.changeBonus(lock.id, SONG_BONUS, 'auto-room-song'); }
+      catch (e) {
+        await supabase.from(LOCKS).update({ song_url: null, song_check: null }).eq('id', lock.id).eq('song_url', url);
+        console.error('evalroom room-song bonus save error:', e.message);
+        return res.status(502).json({ error: 'The song points could not be saved. Your song has not been used. Please try again.' });
       }
+      const { data: saved } = await supabase.from(LOCKS).select('*').eq('id', lock.id).single();
       res.json({ ok: true, bonus: SONG_BONUS, lock: await withText(lockView(saved)) });
     } catch (err) { console.error('evalroom room-song error:', err.message); res.status(502).json({ error: 'The song could not be added just now. Please try again.' }); }
   });
@@ -317,9 +333,31 @@ module.exports = function attachStage(router, deps) {
     next();
   }
 
+  // Trove 03: add the dance video link after the lesson is locked (once).
+  router.post('/stage/lesson/dance', requireTeam, async (req, res) => {
+    try {
+      if (limited('dance:' + req.team.key, 8, 60000)) return res.status(429).json({ error: 'That is a lot of tries in one minute. Try again shortly.' });
+      const lock = await activeLock(req.team.key, 3);
+      if (!lock) return res.status(404).json({ error: 'Lock your lesson plan first (Take the Stage), then add your dance video.' });
+      if (lock.dance_video_url) return res.status(409).json({ error: 'Your team already added its dance video.', lock: lockView(lock) });
+      const d = cleanUrl(req.body && req.body.dance_video_url);
+      if (!d) return res.status(400).json({ error: 'The dance video link does not look like a web address. Check it and try again.' });
+      const { data: claimed, error } = await supabase.from(LOCKS).update({ dance_video_url: d }).eq('id', lock.id).is('dance_video_url', null).select('id');
+      if (error || !claimed || !claimed.length) return res.status(409).json({ error: 'Your team already added its dance video.' });
+      try { await wall.changeBonus(lock.id, DANCE_BONUS, 'auto-dance-video'); }
+      catch (e) {
+        await supabase.from(LOCKS).update({ dance_video_url: null }).eq('id', lock.id).eq('dance_video_url', d);
+        console.error('evalroom dance bonus save error:', e.message);
+        return res.status(502).json({ error: 'The dance video points could not be saved. Please try again.' });
+      }
+      const { data: saved } = await supabase.from(LOCKS).select('*').eq('id', lock.id).single();
+      res.json({ ok: true, bonus: DANCE_BONUS, lock: lockView(saved) });
+    } catch (err) { console.error('evalroom add-dance error:', err.message); res.status(502).json({ error: 'The dance video could not be added just now. Please try again.' }); }
+  });
+
   const wall = require('./evalroom-wall')(router, { supabase, requireTeam, requireOrganizer, limited, loadPictures, activeLock, LOCKS, PREVIEW_MODE, lyricMatch, matchPct: ROOM_MATCH_PCT });
 
-  const extras = require('./evalroom-extras')(router, { supabase, requireTeam, requireOrganizer, limited, activeLock, LOCKS, PREVIEW_MODE, multer: require('multer'), changeBonus: wall.changeBonus, tellOrganizer: wall.tellOrganizer });
+  const extras = require('./evalroom-extras')(router, { supabase, requireTeam, requireOrganizer, limited, activeLock, LOCKS, PREVIEW_MODE, multer: require('multer'), changeBonus: wall.changeBonus, tellOrganizer: wall.tellOrganizer, retireWallSong: wall.retireSongForLock });
 
   router.get('/organizer/locks', requireOrganizer, async (req, res) => {
     const { data, error } = await supabase.from(LOCKS).select('*').order('locked_at', { ascending: false }).limit(500);

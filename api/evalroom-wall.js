@@ -71,22 +71,62 @@ module.exports = function attachWall(router, deps) {
   const mine = (q) => q.eq('is_preview', PREVIEW_MODE);
 
   // Points for sharing go on the team's locked entry (and, on the live site, on the leaderboard record).
+  /**
+   * Add or take back one kind of bonus on a locked entry. Safe when two things happen at once:
+   * each write only goes through if nobody changed the entry since it was read; otherwise it reads again.
+   * Returns false when there is nothing to do (already added, or nothing of this kind to take back).
+   */
   async function changeBonus(lockId, delta, tag) {
-    const { data: lock } = await supabase.from(LOCKS).select('id, bonus, bonus_reason, submission_id').eq('id', lockId).single();
-    if (!lock) return false;
-    const had = String(lock.bonus_reason || '').split('+').filter(Boolean);
-    if (delta > 0 && had.includes(tag)) return false;   // already added
-    if (delta < 0 && !had.includes(tag)) return false;  // nothing of ours to take back
-    const reasons = had.filter((x) => x !== tag);
-    if (delta > 0) reasons.push(tag);
-    const { error } = await supabase.from(LOCKS).update({ bonus: Math.max(0, (lock.bonus || 0) + delta), bonus_reason: reasons.join('+') || null }).eq('id', lock.id);
-    if (error) throw new Error(error.message);
+    let lock = null; let done = false;
+    for (let i = 0; i < 6 && !done; i++) {
+      const got = await supabase.from(LOCKS).select('id, bonus, bonus_reason, submission_id').eq('id', lockId).single();
+      lock = got.data; if (!lock) return false;
+      const had = String(lock.bonus_reason || '').split('+').filter(Boolean);
+      if (delta > 0 && had.includes(tag)) return false;
+      if (delta < 0 && !had.includes(tag)) return false;
+      const reasons = had.filter((x) => x !== tag); if (delta > 0) reasons.push(tag);
+      let q = supabase.from(LOCKS).update({ bonus: Math.max(0, (lock.bonus || 0) + delta), bonus_reason: reasons.join('+') || null }).eq('id', lock.id).eq('bonus', lock.bonus || 0);
+      q = lock.bonus_reason == null ? q.is('bonus_reason', null) : q.eq('bonus_reason', lock.bonus_reason);
+      const { data: upd, error } = await q.select('id');
+      if (error) throw new Error(error.message);
+      done = !!(upd && upd.length);
+    }
+    if (!done) throw new Error('the entry was busy; points not changed');
     if (!PREVIEW_MODE && lock.submission_id) {
-      const { data: cur } = await supabase.from('submissions').select('bonus_score').eq('id', lock.submission_id).single();
-      const { error: e2 } = await supabase.from('submissions').update({ bonus_score: Math.max(0, ((cur && cur.bonus_score) || 0) + delta), bonus_awarded_at: new Date().toISOString(), bonus_awarded_by: 'auto-wall' }).eq('id', lock.submission_id);
-      if (e2) { await supabase.from(LOCKS).update({ bonus: lock.bonus || 0, bonus_reason: lock.bonus_reason }).eq('id', lock.id); throw new Error(e2.message); }
+      try { await changeLeaderboard(lock.submission_id, delta, tag); }
+      catch (e) {
+        // Put the entry back the way it was so the two never disagree.
+        await changeBonusBack(lockId, delta, tag).catch((x) => console.error('evalroom bonus put-back error:', x.message));
+        throw e;
+      }
     }
     return true;
+  }
+  async function changeBonusBack(lockId, delta, tag) {
+    for (let i = 0; i < 6; i++) {
+      const { data: lock } = await supabase.from(LOCKS).select('id, bonus, bonus_reason').eq('id', lockId).single(); if (!lock) return;
+      const had = String(lock.bonus_reason || '').split('+').filter(Boolean);
+      const reasons = had.filter((x) => x !== tag); if (delta < 0) reasons.push(tag);
+      let q = supabase.from(LOCKS).update({ bonus: Math.max(0, (lock.bonus || 0) - delta), bonus_reason: reasons.join('+') || null }).eq('id', lock.id).eq('bonus', lock.bonus || 0);
+      q = lock.bonus_reason == null ? q.is('bonus_reason', null) : q.eq('bonus_reason', lock.bonus_reason);
+      const { data: upd } = await q.select('id'); if (upd && upd.length) return;
+    }
+  }
+  /** The leaderboard record. A failed read stops the change; it is never treated as zero. */
+  async function changeLeaderboard(submissionId, delta, tag) {
+    for (let i = 0; i < 6; i++) {
+      const { data: cur, error } = await supabase.from('submissions').select('bonus_score, bonus_awarded_by').eq('id', submissionId).single();
+      if (error || !cur) throw new Error('leaderboard read: ' + ((error && error.message) || 'not found'));
+      const patch = { bonus_score: Math.max(0, (cur.bonus_score || 0) + delta) };
+      // Only stamp who gave the bonus when no person has reviewed it; a person's review is never overwritten.
+      if (!cur.bonus_awarded_by || /^auto-/.test(String(cur.bonus_awarded_by))) { patch.bonus_awarded_at = new Date().toISOString(); patch.bonus_awarded_by = /^auto-/.test(tag) ? tag : 'auto-' + tag; }
+      let q = supabase.from('submissions').update(patch).eq('id', submissionId);
+      q = cur.bonus_score == null ? q.is('bonus_score', null) : q.eq('bonus_score', cur.bonus_score);
+      const { data: upd, error: e2 } = await q.select('id');
+      if (e2) throw new Error('leaderboard write: ' + e2.message);
+      if (upd && upd.length) return;
+    }
+    throw new Error('leaderboard was busy; points not changed');
   }
 
   /** One plain email to the organizer with a button to look at the item or remove it. Live site only. */
@@ -138,7 +178,7 @@ module.exports = function attachWall(router, deps) {
     }
     if (EMBED_OK.test(String(r.vimeo_embed || ''))) out.embed = r.vimeo_embed;
     if (r.audio_path && links[r.audio_path]) out.audio = links[r.audio_path];
-    if (/^https:\/\//.test(String(r.link || ''))) out.link = r.link;
+    if (/^https?:\/\//.test(String(r.link || ''))) out.link = r.link;
     if (full) { out.status = r.status; out.bonus = r.bonus; out.removedAt = r.removed_at; out.removedBy = r.removed_by; out.note = r.removed_note; out.practice = r.is_preview; out.ig = r.ig_status; }
     return out;
   }
@@ -175,6 +215,11 @@ module.exports = function attachWall(router, deps) {
   async function retireForLock(lockId, by, note) {
     const { data } = await supabase.from('evalroom_wall').select('*').eq('lock_id', lockId).is('removed_at', null);
     for (const r of data || []) await takeDown(r, by, note, true).catch((e) => console.error('evalroom wall retire:', e.message));
+  }
+  /** When the organizer removes a team's turned-in karaoke video, its copy on the wall goes too (and its sharing points). */
+  async function retireSongForLock(lockId, by, note) {
+    const { data } = await supabase.from('evalroom_wall').select('*').eq('lock_id', lockId).eq('kind', 'song').is('removed_at', null);
+    for (const r of data || []) await takeDown(r, by, note, false);
   }
   /** A share that never finished stops blocking the team after ten minutes. */
   async function tidy(teamKey) {
@@ -222,7 +267,7 @@ module.exports = function attachWall(router, deps) {
       if (!lock) return res.status(404).json({ error: kind === 'pictures' ? 'Take the Stage with your avatar and poster first. Then you can share them.' : kind === 'dance' ? 'Take the Stage with your lesson plan first. Then you can share your dance video.' : 'Take the Stage with your lyrics first. Then you can share your song.' });
       let song = null; let videoPath = null; let plan = null;   // plan: how a turned-in song or dance video goes up
       if (kind === 'dance') {
-        if (!/^https:\/\//.test(String(lock.dance_video_url || ''))) return res.status(400).json({ error: 'Your team did not add a dance video link when it took the stage, so there is no video to share.' });
+        if (!/^https?:\/\//.test(String(lock.dance_video_url || ''))) return res.status(400).json({ error: 'Your team did not add a dance video link when it took the stage, so there is no video to share.' });
         plan = { title: 'Dance video', link: lock.dance_video_url };
       }
       if (kind === 'song') {
@@ -239,7 +284,7 @@ module.exports = function attachWall(router, deps) {
           if (!x || x.status !== 'ready') return res.status(404).json({ error: 'The karaoke video your team turned in could not be found.' });
           if (x.file_path) { if (!vimeoOn()) return res.status(503).json({ error: 'Sharing videos is not switched on yet.' }); plan = { title, videoFrom: x.file_path }; }
           else plan = { title, link: x.link };
-        } else if (/^https:\/\//.test(u)) plan = { title, link: u };
+        } else if (/^https?:\/\//.test(u)) plan = { title, link: u };
         else return res.status(400).json({ error: 'The song your team turned in cannot be shared here.' });
       }
       if (kind === 'karaoke') {
@@ -328,7 +373,7 @@ module.exports = function attachWall(router, deps) {
   });
 
   // ── Organizer ──
-  router.get('/organizer/wall', requireOrganizer, async (req, res) => {
+  router.get('/organizer/wall', requireOrganizer, async (req, res) => { try {
     // What is still up comes first; removed items stay listed below as a record.
     const [up, down] = await Promise.all([
       mine(supabase.from('evalroom_wall').select('*')).is('removed_at', null).in('status', ['ready', 'processing']).order('created_at', { ascending: false }).limit(400),
@@ -338,7 +383,7 @@ module.exports = function attachWall(router, deps) {
     const rows = (up.data || []).concat(down.data || []);
     const links = await linksFor(rows).catch(() => ({}));
     res.json({ items: rows.map((r) => view(r, null, true, links)) });
-  });
+  } catch (e) { console.error('evalroom organizer wall list error:', e.message); res.status(500).json({ error: 'Could not load the wall.' }); } });
   router.post('/organizer/wall/remove', requireOrganizer, async (req, res) => {
     try {
       const id = String((req.body && req.body.id) || ''); if (!UUID.test(id)) return res.status(404).json({ error: 'Not found.' });
@@ -348,6 +393,6 @@ module.exports = function attachWall(router, deps) {
       res.json({ ok: true });
     } catch (e) { console.error('evalroom organizer wall remove error:', e.message); res.status(502).json({ error: 'That could not be removed. Please try again.' }); }
   });
-  return { retireForLock, changeBonus, tellOrganizer };
+  return { retireForLock, retireSongForLock, changeBonus, tellOrganizer };
 };
 module.exports._internal = { toJpeg, vimeoUpload, wallDomains };
