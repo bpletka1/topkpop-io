@@ -406,7 +406,9 @@ module.exports = function attachKaraoke(router, deps) {
       const made = (today || []).filter((x) => x.status !== 'failed').length;
       if (made >= MAX_PER_DAY) return res.status(429).json({ error: `Your team has made ${MAX_PER_DAY} songs today. The song maker opens again tomorrow.` });
       if ((today || []).length >= MAX_TRIES_PER_DAY) return res.status(429).json({ error: 'Your team has reached today\'s limit of tries with the song maker. It opens again tomorrow.' });
-      const { count: everyone } = await supabase.from('evalroom_karaoke').select('id', { count: 'exact', head: true }).gte('created_at', since);
+      // The room-wide daily cap counts real teams and practice teams separately, so testing on the preview never closes the live room.
+      const everyoneQ = supabase.from('evalroom_karaoke').select('id', { count: 'exact', head: true }).gte('created_at', since);
+      const { count: everyone } = await (process.env.PREVIEW_MODE === '1' ? everyoneQ.like('team_key', 'preview:%') : everyoneQ.not('team_key', 'like', 'preview:%'));
       if ((everyone || 0) >= MAX_ALL_TEAMS_PER_DAY) return res.status(503).json({ error: 'The song maker has reached its limit for today. It opens again tomorrow.' });
       if (running >= MAX_AT_ONCE) return res.status(503).json({ error: 'The song maker is busy with other teams\' songs. Please try again in a minute.' });
       if (limited('karaoke:' + req.team.key, 4, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of songs in a few minutes. Please wait a little and try again.' });
