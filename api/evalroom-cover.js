@@ -181,7 +181,9 @@ module.exports = function attachCover(router, deps) {
       if ((today || []).some((x) => x.status === 'queued' || x.status === 'singing')) return res.status(429).json({ error: 'Your team\'s song is still being sung. Wait for it to finish, then you can make another.' });
       if ((today || []).filter((x) => x.status !== 'failed').length >= MAX_PER_DAY) return res.status(429).json({ error: `Your team has had ${MAX_PER_DAY} songs sung today. The singer is back tomorrow.` });
       if ((today || []).length >= MAX_TRIES_PER_DAY) return res.status(429).json({ error: 'Your team has reached today\'s limit of tries. The singer is back tomorrow.' });
-      const { count: everyone } = await supabase.from('evalroom_covers').select('id', { count: 'exact', head: true }).gte('created_at', since);
+      // The room-wide daily cap counts real teams and practice teams separately, so testing on the preview never closes the live room.
+      const everyoneQ = supabase.from('evalroom_covers').select('id', { count: 'exact', head: true }).gte('created_at', since);
+      const { count: everyone } = await (process.env.PREVIEW_MODE === '1' ? everyoneQ.like('team_key', 'preview:%') : everyoneQ.not('team_key', 'like', 'preview:%'));
       if ((everyone || 0) >= MAX_ALL_TEAMS_PER_DAY) return res.status(503).json({ error: 'The singer has reached its limit for today. It is back tomorrow.' });
       if (running >= MAX_AT_ONCE) return res.status(503).json({ error: 'The singer is busy with other teams\' songs. Please try again in a minute.' });
       if (limited('sung:' + req.team.key, 4, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of songs in a few minutes. Please wait a little and try again.' });
