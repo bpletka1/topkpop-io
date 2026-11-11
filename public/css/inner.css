@@ -220,3 +220,7 @@ footer {
   .footer-inner { flex-direction: column; }
   .footer-links { flex-direction: column; gap: 12px; }
 }
+
+/* The menu button on pages that use the older "nav-toggle" name */
+.nav-toggle { display: none; background: none; border: none; color: var(--silver, #e0e0e0); font-size: 1.6rem; line-height: 1; padding: 8px 10px; cursor: pointer; z-index: 1001; }
+@media (max-width: 768px) { .nav-toggle { display: block; } }

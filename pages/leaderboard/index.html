@@ -194,7 +194,7 @@ async function loadLeaderboard() {
       const accLabel = t.accusation_correct === true ? 'Correct ✓' : t.accusation_correct === false ? 'Incorrect' : (t.accusation_submitted ? 'Pending' : 'Locked');
       return `<tr>
         <td><span class="rank-num ${rankClass}">${String(i+1).padStart(2,'0')}</span></td>
-        <td><span class="team-name">${t.team_name}</span></td>
+        <td><span class="team-name">${String(t.team_name == null ? '' : t.team_name).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))}</span></td>
         <td>${t.trove1 || '&mdash;'}</td>
         <td>${t.trove2 || '&mdash;'}</td>
         <td>${t.trove3 || '&mdash;'}</td>

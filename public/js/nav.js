@@ -44,7 +44,7 @@
   function init() {
     session();
     // ── Hamburger menu toggle (mobile) ──
-    var hamburger = document.querySelector('.nav-hamburger');
+    var hamburger = document.querySelector('.nav-hamburger') || document.querySelector('.nav-toggle');
     var navLinks  = document.querySelector('.nav-links');
 
     if (hamburger && navLinks) {
