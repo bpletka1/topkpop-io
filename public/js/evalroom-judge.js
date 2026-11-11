@@ -43,7 +43,7 @@
       directions: '/pages/trove-03', submit: '/pages/submit-trove-03',
       steps: function (S) { return [
         { html: '<b>Write your lesson plan.</b> The full steps are on the <a href="/pages/trove-03" target="_blank" rel="noopener">Trove 03 page</a>.', done: function () { return S.textLen >= 20 || S.count > 0; } },
-        { html: '<b>Paste the full lesson plan</b> in the box below, including the ELA standard, the sub-skill and your movement phrases.', done: function () { return S.textLen >= 20; } },
+        { html: '<b>Paste the full lesson plan</b> in the box below, including your standard (ELA, Social Studies or World Language), the sub-skill and your movement phrases.', done: function () { return S.textLen >= 20; } },
         { html: '<b>Press Rehearse.</b> The Lesson Judge scores your plan out of 100 and gives coaching feedback.', done: function () { return S.count > 0; } },
         { html: '<b>Revise and rehearse again.</b> Strengthen the plan and see what moved.', done: function () { return S.count > 1; } },
         { html: '<b>Take the Stage.</b> When your team is happy, press Take the Stage under your score to lock it as official. Add your dance video link there for 10 more points. A lock is final.', done: function () { return !!S.lock; } }

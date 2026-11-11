@@ -135,7 +135,7 @@ const JUDGES = {
     key: 'lesson', name: 'Lesson Judge', trove: 3, max: 100, input: 'text',
     instructions: readPrompt('lesson-design.txt'),
     categories: [
-      { name: 'ELA Sub-Skill Alignment', max: 20 },
+      { name: 'Standard Sub-Skill Alignment', max: 20 },
       { name: 'Cultural Dance Integration', max: 15 },
       { name: 'Movement Phrase Integration', max: 15 },
       { name: 'Instructional Design', max: 15 },
