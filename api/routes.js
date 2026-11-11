@@ -38,7 +38,7 @@ mailchimp.setConfig({
 const AUDIENCE_ID = process.env.MAILCHIMP_AUDIENCE_ID;
 
 // ── Resend Client (HTTPS-based email — works on Railway) ─────────────────────
-const resend = new Resend(process.env.RESEND_API_KEY || 're_dkfAT7vZ_JL1D96S6UDSFG5AqzXmoRZRh');
+const resend = new Resend(process.env.RESEND_API_KEY || 're_not_set'); // the real key lives only in Railway (RESEND_API_KEY)
 
 // ── Helper: Send HTML email via Resend ───────────────────────────────────────
 // templateFile: filename in pages/emails/ (e.g. 'email1_welcome.html')
