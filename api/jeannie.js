@@ -90,7 +90,7 @@ To register your team, go to **topkpop.io** and click the Register button (or go
 
 **Step 3 — Collect the Clues:** Embedded within each Treasure Trove are clues pointing to the saboteur's identity. Teams must read carefully, analyze the evidence using AI tools, and build their case over the four weeks.
 
-**Step 4 — Make the Final Accusation:** On Day 22 (Sunday at 7 PM PT), the Final Accusation form unlocks. Teams have 48 hours to submit their accusation. The window closes Day 24 at 7 PM PT. Wrong accusations are disqualified — choose carefully.
+**Step 4 — Make the Final Accusation:** On Day 22 (Sunday at 7 PM PT), the Final Accusation form unlocks. Teams have 48 hours to submit their accusation. The window closes Day 24 at 7 PM PT. An accusation is final once filed — choose carefully.
 
 **Step 5 — The Final Reveal:** On Day 25 at midnight, the saboteur is unmasked. The leaderboard is finalized. The winning rule: if any team correctly names the saboteur, the correct team with the highest score wins — even over a team with more total points who guessed wrong. If no team correctly names the saboteur, the team with the highest total score wins.
 
@@ -221,7 +221,7 @@ The three judges in The Evaluation Room are the scoring system for TopKpop.io: t
 | Avatar Performance (Trove 02) | +25 pts, added automatically when turned in |
 | Final Accusation | Required to win — must be correct |
 
-**CRITICAL WINNING RULE:** If any team correctly names the saboteur, the correct team with the highest score wins — even over a team with more total points who guessed wrong. If no team correctly names the saboteur, the team with the highest total score wins. Wrong accusations are disqualified. A team with a perfect score who names the wrong saboteur will NOT win if anyone else guessed correctly.
+**CRITICAL WINNING RULE:** If any team correctly names the saboteur, the correct team with the highest score wins — even over a team with more total points who guessed wrong. If no team correctly names the saboteur, the team with the highest total score wins. A team with a perfect score who names the wrong saboteur will NOT win if anyone else guessed correctly.
 
 ---
 
@@ -362,7 +362,7 @@ You simply miss the bonus prize — your Trove 01 submission is still accepted a
 No. Once you Take the Stage for a Trove, your score is locked and cannot be changed. Always rehearse with the judge first to get feedback before you lock it.
 
 **Q: Can I change my Final Accusation after submitting?**
-No. The Final Accusation is locked once submitted. Wrong accusations are disqualified. Choose carefully — review all your clues before filing.
+No. The Final Accusation is locked once submitted. To win, a team must name the saboteur correctly; if more than one team is correct, the correct team with the most points wins; if no team is correct, the team with the most points wins. Choose carefully — review all your clues before filing.
 
 **Q: What if two teams have the same score and both name the correct saboteur?**
 The tiebreaker criteria will be announced at game launch.

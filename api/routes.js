@@ -845,7 +845,7 @@ async function checkAndAnnounceWinner() {
 
     const { data: allSubs } = await supabase
       .from('submissions')
-      .select('team_id, trove_number, final_score, oracle_score')
+      .select('team_id, trove_number, final_score, oracle_score, bonus_score')
       .not('team_id', 'is', null);
 
     const { data: allAcc } = await supabase
@@ -866,7 +866,8 @@ async function checkAndAnnounceWinner() {
       let total = 0;
       (subsMap[team.id] || []).forEach(s => {
         const score = s.final_score || s.oracle_score || 0;
-        total += score;
+        // Bonus points count toward the winner exactly as they do on the leaderboard.
+        total += score + (s.bonus_score || 0);
       });
       const acc = accMap[team.id];
       if (acc?.accusation_score) total += acc.accusation_score;
