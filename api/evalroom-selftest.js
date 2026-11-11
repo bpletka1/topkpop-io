@@ -518,6 +518,17 @@ async function runCase(row, port) {
 
     step('signed-out visitor cannot see extra tasks', (await call('GET', '/extras')).status, 401);
     step('organizer extras list needs the password', (await call('GET', '/organizer/extras')).status, 401);
+    const e00 = await call('GET', '/extras', A); step('room offers the Welcome Post', e00.d.welcome && e00.d.welcome.done === false && e00.d.welcome.bonus === 25, true);
+    step('an empty Welcome Post is refused', (await call('POST', '/extras/welcome', A, { text: 'hi' })).status, 400);
+    const wp = await call('POST', '/extras/welcome', A, { text: 'https://www.instagram.com/p/example-welcome/' }); step('Welcome Post turned in, 25 points', wp.d.bonus, 25, wp.d.error);
+    step('Welcome Post a second time is refused', (await call('POST', '/extras/welcome', A, { text: 'DM sent - @persona' })).status, 409);
+    step('room no longer offers the Welcome Post', ((await call('GET', '/extras', A)).d.welcome || {}).done, true);
+    if (process.env.ADMIN_PASSWORD) {
+      const ow = await call('GET', '/organizer/extras', null, null, null, org); const wi = (ow.d.items || []).find((x) => x.kind === 'welcome' && /extras a$/.test(x.team || '') && !x.removedAt);
+      step('organizer sees the Welcome Post', !!wi, true);
+      step('organizer removes the Welcome Post', (await call('POST', '/organizer/extras/remove', null, { id: wi && wi.id, note: 'selftest' }, null, org)).status, 200);
+      step('after removal the room offers it again', ((await call('GET', '/extras', A)).d.welcome || {}).done, false);
+    }
     step('story before taking the stage is refused', (await call('POST', '/extras/lore', A, { text: story })).status, 404);
 
     // Trove 01

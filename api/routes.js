@@ -329,7 +329,7 @@ router.post('/register', async (req, res) => {
     if (welcome_post_url?.trim()) {
       try {
         // Create a bonus submission record for the welcome post
-        await supabase.from('submissions').insert({
+        const { error: welcomeErr } = await supabase.from('submissions').insert({
           team_id: reg.id,
           team_name: team_name.trim(),
           trove_number: 0,  // trove 0 = registration bonus
@@ -342,6 +342,7 @@ router.post('/register', async (req, res) => {
           final_score: 0,
           scored_at: new Date().toISOString(),
         });
+        if (welcomeErr) throw new Error(welcomeErr.message);
         welcomeBonusAwarded = true;
         console.log(`Welcome bonus awarded to ${team_name} for Instagram post: ${welcome_post_url.trim()}`);
       } catch (bonusErr) {

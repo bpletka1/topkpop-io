@@ -24,6 +24,7 @@ const SONG_BONUS = 10;
 const KINDS = {
   'lore': { trove: 1, bonus: EXTRA_BONUS, tag: 'lore', name: 'Team Name Lore', what: 'their team name story (Trove 01)' },
   'avatar-performance': { trove: 2, bonus: EXTRA_BONUS, tag: 'avatar-performance', name: 'Avatar Performance', what: 'their avatar performance video (Trove 02)' },
+  'welcome': { trove: 0, bonus: EXTRA_BONUS, tag: 'welcome', name: 'Welcome Post', what: 'their Welcome Post (the registration bonus)' },
   'karaoke-video': { trove: 2, bonus: SONG_BONUS, tag: 'auto-video-song', name: 'Karaoke video', what: 'a karaoke video made outside the room as their song (Trove 02)', isSong: true },
 };
 
@@ -93,6 +94,14 @@ module.exports = function attachExtras(router, deps) {
     if (error) throw new Error(error.message);
     if (!claimed || !claimed.length) return false;
     const row = claimed[0]; const k = KINDS[row.kind];
+    if (row.kind === 'welcome' && !PREVIEW_MODE) {
+      // The welcome bonus lives on the leaderboard as its own record; removing it takes that record away.
+      const { error: dErr } = await supabase.from('submissions').delete().eq('team_id', row.team_key).eq('trove_number', 0).eq('bonus_awarded_by', 'auto-registration');
+      if (dErr) {
+        await supabase.from('evalroom_extras').update({ status: 'ready', removed_at: null, removed_by: null, removed_note: null }).eq('id', r.id);
+        throw new Error('welcome bonus undo: ' + dErr.message);
+      }
+    }
     if (!keepBonus && row.lock_id) {
       try {
         if (row.bonus) await changeBonus(row.lock_id, -row.bonus, k.tag);
@@ -115,6 +124,48 @@ module.exports = function attachExtras(router, deps) {
     for (const r of data || []) await takeDown(r, by, note, true).catch((e) => console.error('evalroom extras retire:', e.message));
   }
 
+  /** On the live site: was the welcome bonus already counted (at registration or here)? */
+  async function welcomeOnBoard(teamKey) {
+    if (PREVIEW_MODE || !UUID.test(String(teamKey))) return false;
+    const { data } = await supabase.from('submissions').select('id').eq('team_id', teamKey).eq('trove_number', 0).limit(1);
+    return !!(data && data.length);
+  }
+
+  // ── Welcome Post: the registration bonus, for teams that did not paste it when they registered ──
+  router.post('/extras/welcome', requireTeam, async (req, res) => {
+    let row = null; let onBoard = false;
+    try {
+      const text = String((req.body && req.body.text) || '').replace(/\s+/g, ' ').trim();
+      if (text.length < 5) return res.status(400).json({ error: 'Paste the link to your welcome post, or write "DM sent" with your persona handle.' });
+      if (text.length > 300) return res.status(400).json({ error: 'That is too long. Paste just the link, or a short note.' });
+      if (limited('extra:' + req.team.key, 8, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of turning in for a few minutes. Please wait a little and try again.' });
+      if (await welcomeOnBoard(req.team.key)) return res.status(409).json({ error: 'Your team\'s Welcome Post points were already added.' });
+      const link = cleanLink(text);
+      const ins = await supabase.from('evalroom_extras').insert({ team_key: req.team.key, team_name: req.team.name, trove: 0, kind: 'welcome', status: 'processing', is_preview: PREVIEW_MODE, body: link ? null : text, link: link || null }).select('*').single();
+      if (ins.error) return res.status(409).json({ error: ins.error.code === '23505' ? 'Your team\'s Welcome Post points were already added.' : 'That could not be turned in. Please try again.' });
+      row = ins.data;
+      if (!PREVIEW_MODE && UUID.test(String(req.team.key))) {
+        // The same leaderboard record the registration form makes.
+        const { error } = await supabase.from('submissions').insert({ team_id: req.team.key, team_name: req.team.name, trove_number: 0, notes: 'Welcome post (turned in in The Evaluation Room): ' + text, instagram_post_url: text, bonus_score: KINDS.welcome.bonus, bonus_awarded_at: new Date().toISOString(), bonus_awarded_by: 'auto-registration', oracle_score: 0, final_score: 0, scored_at: new Date().toISOString() });
+        if (error) throw new Error('leaderboard: ' + error.message);
+        onBoard = true;
+      }
+      const { data: done, error: e3 } = await supabase.from('evalroom_extras').update({ status: 'ready', bonus: KINDS.welcome.bonus }).eq('id', row.id).eq('status', 'processing').select('*').single();
+      if (e3 || !done) throw new Error((e3 && e3.message) || 'turn-in was cancelled');
+      row = null;
+      const emailed = await notify(done).catch(() => false);
+      res.json({ ok: true, bonus: done.bonus, emailed });
+    } catch (e) {
+      console.error('evalroom welcome turn-in error:', e.message);
+      if (row) {
+        if (onBoard) await supabase.from('submissions').delete().eq('team_id', req.team.key).eq('trove_number', 0).eq('bonus_awarded_by', 'auto-registration');
+        await supabase.from('evalroom_extras').update({ status: 'failed', error: String(e.message).slice(0, 300) }).eq('id', row.id);
+      }
+      if (res.headersSent) return;
+      res.status(502).json({ error: 'That could not be turned in this time. Nothing was changed. Please try again.' });
+    }
+  });
+
   // ── What this team can still turn in ──
   router.get('/extras', requireTeam, async (req, res) => {
     try {
@@ -122,6 +173,7 @@ module.exports = function attachExtras(router, deps) {
       // Anything left over from an entry the organizer has reset no longer counts.
       const live = (kind, lock) => (have[kind] && lock && have[kind].lock_id === lock.id ? view(have[kind]) : null);
       res.json({ maxMb: MAX_MB, practice: PREVIEW_MODE,
+        welcome: { bonus: KINDS.welcome.bonus, done: !!have.welcome || (await welcomeOnBoard(req.team.key)) },
         lore: { locked: !!l1, bonus: KINDS.lore.bonus, item: live('lore', l1) },
         avatarPerformance: { locked: !!l2, bonus: KINDS['avatar-performance'].bonus, item: live('avatar-performance', l2) },
         karaokeVideo: { locked: !!l2, bonus: KINDS['karaoke-video'].bonus, hasSong: !!(l2 && l2.song_url), item: live('karaoke-video', l2) } });

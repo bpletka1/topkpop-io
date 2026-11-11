@@ -93,6 +93,16 @@
       </a>
     </div>
 
+    <section class="er-card" id="welcomeCard" hidden>
+      <p class="er-label">Welcome Post &middot; +<span id="welcomePts">25</span> points</p>
+      <h2 class="er-h2">Did your team post its welcome message?</h2>
+      <p class="er-muted" style="margin:8px 0 14px">If your team did not paste its Welcome Post when it registered, turn it in here. The points are added to your team's score by themselves, one time.</p>
+      <div class="er-field"><label for="welcomeText">Your post link, your Google Drive link, or &ldquo;DM sent&rdquo; with your persona handle</label>
+        <input class="er-input" id="welcomeText" maxlength="300" autocapitalize="off" placeholder="https://www.instagram.com/p/..." /></div>
+      <button class="er-btn amber small" id="welcomeBtn" type="button">Turn in our Welcome Post</button>
+      <p class="er-msg" id="welcomeMsg"></p>
+    </section>
+
     <section class="er-card">
       <p class="er-label">Take the Stage</p>
       <h2 class="er-h2">Ready to make it official?</h2>
@@ -111,7 +121,7 @@
   var next = new URLSearchParams(location.search).get('next');
   if (next && (next.indexOf('/pages/evaluation-room/') !== 0 || next.indexOf('//') === 0)) next = null; // only ever return inside the room
 
-  function showRoom() {
+  function showRoom() { document.dispatchEvent(new CustomEvent('er:signed-in'));
     var t = ER.team() || {};
     $('#signIn').hidden = true;
     $('#room').hidden = false;
@@ -208,6 +218,25 @@
 
   ER.config().catch(function () {});
   if (ER.token()) { if (next) location.replace(next); else showRoom(); } else showSignIn();
+})();
+</script>
+<script>
+(function () {
+  'use strict';
+  var $ = ER.$, busy = false;
+  function load() { return ER.api('/extras').then(function (d) { $('#welcomePts').textContent = d.welcome.bonus; $('#welcomeCard').hidden = !!d.welcome.done; }).catch(function () { $('#welcomeCard').hidden = true; }); }
+  $('#welcomeBtn').addEventListener('click', function () {
+    var btn = this, m = $('#welcomeMsg'), t = $('#welcomeText').value.trim();
+    if (busy) return;
+    if (t.length < 5) { ER.showMsg(m, 'Paste the link to your welcome post, or write "DM sent" with your persona handle.'); return; }
+    busy = true; btn.disabled = true; btn.textContent = 'Turning in\u2026'; ER.hideMsg(m);
+    ER.api('/extras/welcome', { json: { text: t } }).then(function (d) {
+      $('#welcomeText').disabled = true; btn.hidden = true;
+      ER.showMsg(m, 'Turned in. ' + d.bonus + ' points were added to your team\u2019s score.', 'info');
+    }).catch(function (e) { ER.showMsg(m, e.message); btn.disabled = false; btn.textContent = 'Turn in our Welcome Post'; }).then(function () { busy = false; });
+  });
+  load();
+  document.addEventListener('er:signed-in', load);
 })();
 </script>
 </body>
