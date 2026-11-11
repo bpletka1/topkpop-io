@@ -68,6 +68,9 @@
   }
   function load() {
     return call('/organizer/locks').then(function (d) {
+      // Keep any outside judge numbers that were typed but not saved yet.
+      var typed = {}; document.querySelectorAll('#rows input[id^="jp-"]').forEach(function (n) { if (n.value !== n.defaultValue) typed[n.id] = n.value; });
+      setTimeout(function () { Object.keys(typed).forEach(function (id) { var n = document.getElementById(id); if (n) n.value = typed[id]; }); }, 0);
       $('#gate').hidden = true; $('#list').hidden = false;
       var live = d.locks.filter(function (l) { return !l.reset_at; });
       $('#count').textContent = live.length + ' active lock' + (live.length === 1 ? '' : 's');
@@ -123,6 +126,10 @@
     if (note === null) return;
     call('/organizer/wall/remove', { id: b.getAttribute('data-wall'), note: note }).then(loadWall).catch(function (e) { ER.showMsg($('#wallMsg'), e.message); });
   });
+  $('#rows').addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter' || !ev.target.id || ev.target.id.indexOf('jp-') !== 0) return;
+    ev.preventDefault(); var b = document.querySelector('button[data-judge="' + ev.target.id.slice(3) + '"]'); if (b) b.click();
+  });
   $('#gateForm').addEventListener('submit', function (ev) {
     ev.preventDefault(); pw = $('#pw').value; ER.hideMsg($('#gateMsg'));
     load().then(loadWall).then(loadExtras).catch(function (e) { ER.showMsg($('#gateMsg'), e.message); });
@@ -135,12 +142,12 @@
       if (!/^\d{1,2}$/.test(v) || Number(v) > 10) { ER.showMsg($('#listMsg'), "The outside judge's points must be a whole number from 0 to 10."); return; }
       ER.hideMsg($('#listMsg')); j.disabled = true;
       call('/organizer/judge-points', { lock_id: j.getAttribute('data-judge'), points: Number(v) })
-        .then(function (d) { return load().then(function () { ER.showMsg($('#listMsg'), 'Saved: ' + d.points + ' outside judge point' + (d.points === 1 ? '' : 's') + ' for "' + j.getAttribute('data-team') + '" (was ' + d.was + ').', 'info'); }); })
+        .then(function (d) { box.defaultValue = box.value; return load().catch(function () {}).then(function () { ER.showMsg($('#listMsg'), 'Saved: ' + d.points + ' outside judge point' + (d.points === 1 ? '' : 's') + ' for "' + j.getAttribute('data-team') + '" (was ' + d.was + ').', 'info'); }); })
         .catch(function (e) { j.disabled = false; ER.showMsg($('#listMsg'), e.message); });
       return;
     }
     var b = ev.target.closest('button[data-id]'); if (!b) return;
-    var note = window.prompt('Reset the Trove 0' + b.getAttribute('data-trove') + ' lock for "' + b.getAttribute('data-team') + '"?\n\nTheir official score for this Trove is removed and they can lock again. Type a short reason and press OK, or Cancel to leave it.');
+    var note = window.prompt('Reset the Trove 0' + b.getAttribute('data-trove') + ' lock for "' + b.getAttribute('data-team') + '"?\n\nTheir official score for this Trove is removed and they can lock again. Any outside judge points on it are removed too and would need to be entered again. Type a short reason and press OK, or Cancel to leave it.');
     if (note === null) return;
     call('/organizer/reset', { lock_id: b.getAttribute('data-id'), note: note }).then(load).catch(function (e) { ER.showMsg($('#listMsg'), e.message); });
   });

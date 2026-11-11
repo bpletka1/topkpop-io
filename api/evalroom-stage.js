@@ -373,7 +373,7 @@ module.exports = function attachStage(router, deps) {
       const id = String((req.body && req.body.lock_id) || '');
       if (!UUID.test(id)) return res.status(400).json({ error: 'Choose a team first.' });
       const raw = req.body && req.body.points;
-      const pts = typeof raw === 'number' ? raw : /^\d{1,2}$/.test(String(raw == null ? '' : raw).trim()) ? Number(String(raw).trim()) : NaN;
+      const pts = typeof raw === 'number' ? raw : typeof raw === 'string' && /^\d{1,2}$/.test(raw.trim()) ? Number(raw.trim()) : NaN;
       if (!Number.isInteger(pts) || pts < 0 || pts > JUDGE_MAX) return res.status(400).json({ error: `The outside judge's points must be a whole number from 0 to ${JUDGE_MAX}.` });
       const { data: lock } = await supabase.from(LOCKS).select('id, trove, dance_video_url').eq('id', id).is('reset_at', null).single();
       if (!lock) return res.status(404).json({ error: 'That entry was not found or has been reset.' });

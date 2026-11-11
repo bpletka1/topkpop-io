@@ -146,7 +146,11 @@ module.exports = function attachWall(router, deps) {
   async function setJudgePointsBack(lockId, points, was) {
     for (let i = 0; i < 6; i++) {
       const { data: lock } = await supabase.from(LOCKS).select('id, bonus, bonus_reason').eq('id', lockId).single(); if (!lock) return;
-      const reasons = String(lock.bonus_reason || '').split('+').filter(Boolean).filter((t) => !/^outside-judge-\d+$/.test(t)); if (was > 0) reasons.push('outside-judge-' + was);
+      const had = String(lock.bonus_reason || '').split('+').filter(Boolean);
+      // Only undo our own write. If someone has saved a different number since, leave theirs alone.
+      const ours = points > 0 ? had.includes('outside-judge-' + points) : !had.some((t) => /^outside-judge-\d+$/.test(t));
+      if (!ours) return;
+      const reasons = had.filter((t) => !/^outside-judge-\d+$/.test(t)); if (was > 0) reasons.push('outside-judge-' + was);
       let q = supabase.from(LOCKS).update({ bonus: Math.max(0, (lock.bonus || 0) - points + was), bonus_reason: reasons.join('+') || null }).eq('id', lock.id).eq('bonus', lock.bonus || 0);
       q = lock.bonus_reason == null ? q.is('bonus_reason', null) : q.eq('bonus_reason', lock.bonus_reason);
       const { data: upd } = await q.select('id'); if (upd && upd.length) return;

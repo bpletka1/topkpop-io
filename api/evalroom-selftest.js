@@ -640,6 +640,7 @@ async function runCase(row, port) {
       step('a negative number is refused', (await jp(l3id, -3)).status, 400);
       step('half points are refused', (await jp(l3id, 7.5)).status, 400);
       step('words are refused', (await jp(l3id, 'ten')).status, 400);
+      step('a list is refused', (await jp(l3id, [5])).status, 400);
       step('a Trove 01 entry is refused', (await jp(l1id, 5)).status, 400);
       step('a made-up entry is refused', (await jp('00000000-0000-4000-8000-000000000000', 5)).status, 404);
       const j7 = await jp(l3id, 7); step('outside judge gives 7', j7.status === 200 && j7.d.points === 7 && j7.d.was === 0, true, j7.d.error);
