@@ -527,7 +527,13 @@ async function runCase(row, port) {
       const p2b = await page('/pages/trove-02/index.html'); step('the direct file address is locked too', /still locked/.test(p2b.text) && !/Lyric Judge/.test(p2b.text), true);
       const p1 = await page('/pages/trove-01/'); step('an open Trove page shows its directions', /Visual Judge/.test(p1.text), true);
       step('reading the wall and the schedule still works while Troves are locked', (await call('GET', '/wall', A)).status, 200);
-      step('with no accusation dates the window counts as open and nothing is revealed', s1.d.accusation && s1.d.accusation.open === true && s1.d.reveal && s1.d.reveal.open === false, true);
+      step('with no accusation dates nothing is scheduled and nothing is revealed', s1.d.accusation && s1.d.accusation.unscheduled === true && s1.d.accusation.open === false && s1.d.reveal && s1.d.reveal.open === false, true);
+      const S2 = require('./evalroom-schedule'); const mk = (d) => S2({ supabase: null, PREVIEW_MODE: true }); const sx = mk(); sx.setPractice({ accOpen: '2020-01-01', accClose: '2020-01-03' });
+      step('a window that closed long ago with no reveal counts as not scheduled, not closed', (await sx.game()).accusation.unscheduled, true);
+      const now0 = new Date(); const ymd = (dt) => dt.toISOString().slice(0, 10); sx.setPractice({ accOpen: ymd(new Date(now0 - 5 * 86400000)), accClose: ymd(new Date(now0.getTime() + 5 * 86400000)) });
+      step('a window around today is open', (await sx.game()).accusation.open, true);
+      sx.setPractice({ accOpen: ymd(new Date(now0 - 9 * 86400000)), accClose: ymd(new Date(now0 - 4 * 86400000)) });
+      step('a window that closed a few days ago shows as closed', (await sx.game()).accusation.closed, true);
       const rv0 = await fetch(site + '/pages/final-reveal/', { redirect: 'manual' }); step('the reveal page is shut before the saboteur is announced', rv0.status, 302);
       const rv0b = await fetch(site + '/pages/Final-Reveal/index.html', { redirect: 'manual' }); step('however its address is spelled', rv0b.status === 302 || rv0b.status === 404, true);
       await fetch(base + '/organizer/practice-schedule', { method: 'POST', headers: org, body: JSON.stringify({ trove1: '2020-01-01', accusation_open: far, accusation_close: '2099-01-03' }) });

@@ -354,6 +354,8 @@ router.post('/register', async (req, res) => {
       success: true,
       message: `Welcome to the investigation, ${team_name}! Check your email for your mission briefing.`,
       team_id: reg.id,
+      room_token: (() => { try { return require('./evalroom')._internal.signToken({ t: String(reg.id), n: team_name }); } catch (e) { return null; } })(),
+      team: { name: team_name },
       welcome_bonus: welcomeBonusAwarded ? '+25 bonus points awarded for your Instagram welcome post!' : null,
     });
 
@@ -376,91 +378,82 @@ function parseTrove(param) {
 }
 
 // Final Accusation route — alias to /accuse
-router.post('/submit/final-accusation', upload.none(), async (req, res) => {
-  // Parse body from either JSON or FormData
-  const body = req.body || {};
-  let { team_name, captain_email, accused_suspect, evidence_summary, motive } = body;
+// The suspects a team may name. Anything else is refused, so a filing can never match by accident.
+const ACCUSABLE = ['Sunny', 'James Paul', 'Nari', 'Emilise', 'Star', 'Hanbit Phil', 'Jax J'];
+const oneLine = (v, max) => (typeof v === 'string' ? v : '').replace(/\s+/g, ' ').trim().slice(0, max);
 
-  // A team that is signed in is known from its sign-in, so it is not asked for its name and email again.
-  let signedInTeamId = null;
+/** The signed-in team behind a request, or null. Preview sign-ins never count on the live site. */
+async function signedInTeam(req) {
   try {
     const tok = require('./evalroom')._internal.readToken(req.headers['x-evalroom-token']);
-    if (tok && !tok.p) {
-      const { data: reg } = await supabase.from('registrations').select('id, team_name, captain_email').eq('id', tok.t).single();
-      if (reg) { signedInTeamId = reg.id; team_name = reg.team_name; captain_email = reg.captain_email; }
-    }
-  } catch (e) { /* fall back to the typed name and email */ }
+    if (!tok || tok.p) return null;
+    const { data: reg } = await supabase.from('registrations').select('id, team_name, captain_name, captain_email, status').eq('id', tok.t).single();
+    return reg || null;
+  } catch (e) { return null; }
+}
 
-  if (!team_name || !captain_email || !accused_suspect) {
-    return res.status(400).json({ error: 'Missing required fields.' });
+// Has the signed-in team already filed? Lets the page say so instead of showing the form again.
+router.get('/accusation-status', async (req, res) => {
+  try {
+    const team = await signedInTeam(req);
+    if (!team) return res.status(401).json({ error: 'Please sign in.' });
+    const { data } = await supabase.from('accusations').select('id').eq('team_id', team.id).limit(1);
+    res.json({ filed: !!(data && data.length) });
+  } catch (e) { res.status(500).json({ error: 'Could not check.' }); }
+});
+
+router.post('/submit/final-accusation', upload.none(), async (req, res) => {
+  try {
+    const body = req.body || {};
+    // A team files as itself: it must be signed in. Nobody can file for a team by typing its captain's email.
+    const team = await signedInTeam(req);
+    if (!team) return res.status(401).json({ error: 'Please sign in with your team to file your Final Accusation.', signIn: true });
+    if (String(team.status || '').toLowerCase() === 'disqualified') return res.status(403).json({ error: 'This team cannot file a Final Accusation.' });
+
+    const picked = oneLine(body.accused_suspect, 60);
+    const accused_suspect = ACCUSABLE.find((n) => n.toLowerCase() === picked.toLowerCase());
+    if (!accused_suspect) return res.status(400).json({ error: 'Please choose one suspect from the list.' });
+    const evidence_summary = (typeof body.evidence_summary === 'string' ? body.evidence_summary : '').trim().slice(0, 6000);
+    const motive = (typeof body.motive === 'string' ? body.motive : '').trim().slice(0, 3000);
+
+    const { data: settings } = await supabase
+      .from('game_settings')
+      .select('accusation_open, accusation_close, correct_saboteur, winner_announced')
+      .eq('id', 1)
+      .single();
+
+    // The window opens and closes at 7:00 PM Pacific on its dates, the time the site tells players.
+    const { unlockInstant } = require('./evalroom-schedule')._internal;
+    const now = Date.now();
+    const opensAt = settings?.accusation_open ? unlockInstant(settings.accusation_open) : null;
+    const closesAt = settings?.accusation_close ? unlockInstant(settings.accusation_close) : null;
+    if (opensAt != null && opensAt > now) return res.status(403).json({ error: 'The Final Accusation window is not yet open.' });
+    if ((closesAt != null && closesAt <= now) || settings?.winner_announced) return res.status(403).json({ error: 'The Final Accusation window has closed.' });
+
+    const { data: existing } = await supabase.from('accusations').select('id').eq('team_id', team.id).limit(1);
+    if (existing && existing.length) return res.status(409).json({ error: 'Your team has already submitted a Final Accusation.', filed: true });
+
+    const isCorrect = fuzzyMatchSaboteur(accused_suspect, settings?.correct_saboteur);
+    const { data: acc, error: accError } = await supabase
+      .from('accusations')
+      .insert({ team_id: team.id, team_name: team.team_name, accused_suspect, evidence_summary, motive, is_correct: isCorrect, accusation_score: isCorrect ? 100 : 0 })
+      .select()
+      .single();
+    if (accError) return res.status(accError.code === '23505' ? 409 : 500).json({ error: accError.code === '23505' ? 'Your team has already submitted a Final Accusation.' : 'Failed to submit accusation.' });
+
+    const email = String(team.captain_email || '').toLowerCase();
+    try {
+      await tagSubscriber(email, 'accusation-submitted');
+      await sendEmail('email10_accusation_open.html', email, '🕵️ Final Accusation Filed — The Truth Will Be Revealed',
+        { '[CAPTAIN_NAME]': String(team.captain_name || '').trim().split(' ')[0] || 'Detective' });
+      await checkAndAnnounceWinner();
+    } catch (e) { console.error('Accusation follow-up error:', e.message); }
+
+    res.json({ success: true, message: 'Your accusation has been filed. The truth will be revealed soon.', accusation_id: acc.id });
+  } catch (err) {
+    console.error('Final accusation error:', err.message);
+    if (!res.headersSent) res.status(500).json({ error: 'Your accusation could not be filed just now. Please try again.' });
   }
-
-  // Check accusation window
-  const { data: settings } = await supabase
-    .from('game_settings')
-    .select('accusation_open, accusation_close, correct_saboteur, winner_announced')
-    .eq('id', 1)
-    .single();
-
-  // The window opens and closes at 7:00 PM Pacific on its dates, the time the site tells players.
-  const { unlockInstant } = require('./evalroom-schedule')._internal;
-  const now = Date.now();
-  const opensAt = settings?.accusation_open ? unlockInstant(settings.accusation_open) : null;
-  const closesAt = settings?.accusation_close ? unlockInstant(settings.accusation_close) : null;
-  if (opensAt != null && opensAt > now) {
-    return res.status(403).json({ error: 'The Final Accusation window is not yet open.' });
-  }
-  if (closesAt != null && closesAt <= now) {
-    return res.status(403).json({ error: 'The Final Accusation window has closed.' });
-  }
-
-  const teamQuery = supabase.from('registrations').select('id, status');
-  const { data: team } = await (signedInTeamId ? teamQuery.eq('id', signedInTeamId) : teamQuery.eq('captain_email', captain_email.toLowerCase())).single();
-
-  if (!team) return res.status(404).json({ error: 'Team not found.' });
-
-  const { data: existing } = await supabase
-    .from('accusations')
-    .select('id')
-    .eq('team_id', team.id)
-    .single();
-
-  if (existing) return res.status(409).json({ error: 'Your team has already submitted a Final Accusation.' });
-
-  const isCorrect = fuzzyMatchSaboteur(accused_suspect, settings?.correct_saboteur);
-  const accusationScore = isCorrect ? 100 : 0;
-
-  const { data: acc, error: accError } = await supabase
-    .from('accusations')
-    .insert({
-      team_id: team.id,
-      team_name: team_name.trim(),
-      accused_suspect: accused_suspect.trim(),
-      evidence_summary: evidence_summary?.trim(),
-      motive: motive?.trim(),
-      is_correct: isCorrect,
-      accusation_score: accusationScore,
-    })
-    .select()
-    .single();
-
-  if (accError) return res.status(500).json({ error: 'Failed to submit accusation.' });
-
-  await tagSubscriber(captain_email.toLowerCase(), 'accusation-submitted');
-  // Send accusation confirmation email
-  await sendEmail(
-    'email10_accusation_open.html',
-    captain_email.toLowerCase(),
-    '🕵️ Final Accusation Filed — The Truth Will Be Revealed',
-    { '[CAPTAIN_NAME]': (team_name || captain_email).split(' ')[0] || 'Detective' }
-  );
-  await checkAndAnnounceWinner();
-
-  res.json({
-    success: true,
-    message: 'Your accusation has been filed. The truth will be revealed soon.',
-    accusation_id: acc.id,
-  });
 });
 
 router.post('/submit/:trove', upload.fields([
@@ -732,6 +725,8 @@ router.get('/leaderboard', async (req, res) => {
 // ════════════════════════════════════════════════════════════════════════════
 
 router.post('/accuse', async (req, res) => {
+  // Closed: the Final Accusation is filed on its page by a signed-in team.
+  if (process.env.OLD_ACCUSE_OPEN !== '1') return res.status(410).json({ error: 'The Final Accusation is filed on the Final Accusation page.' });
   try {
     const { team_name, captain_email, accused_suspect, evidence_summary, motive } = req.body;
 
@@ -837,8 +832,8 @@ async function checkAndAnnounceWinner() {
 
     if (settings?.winner_announced) return; // Already done
 
-    const now = new Date();
-    if (!settings?.accusation_close || new Date(settings.accusation_close) > now) return; // Window still open
+    const closeAt = settings?.accusation_close ? require('./evalroom-schedule')._internal.unlockInstant(settings.accusation_close) : null;
+    if (closeAt == null || closeAt > Date.now()) return; // Window still open (it closes at 7:00 PM Pacific on its date)
 
     // Get all teams with scores and accusations (manual join to avoid FK issues)
     const { data: teams } = await supabase
@@ -864,7 +859,7 @@ async function checkAndAnnounceWinner() {
       subsMap[s.team_id].push(s);
     });
     const accMap = {};
-    (allAcc || []).forEach(a => { accMap[a.team_id] = a; });
+    (allAcc || []).forEach(a => { if (!accMap[a.team_id]) accMap[a.team_id] = a; });
 
     // Calculate total scores
     const scored = teams.map(team => {
@@ -1303,7 +1298,7 @@ router.get('/admin/leaderboard', adminAuth, async (req, res) => {
       subsMap[s.team_id].push(s);
     });
     const accMap = {};
-    (accusations || []).forEach(a => { accMap[a.team_id] = a; });
+    (accusations || []).forEach(a => { if (!accMap[a.team_id]) accMap[a.team_id] = a; });
 
     const ranked = (teams || []).map(team => {
       const teamSubs = subsMap[team.id] || [];
@@ -1493,7 +1488,7 @@ function startScheduler() {
         console.log('Final Reveal email sent.');
       }
       // Also check winner announcement
-      if (settings.accusation_close && settings.accusation_close <= nowISO && !settings.winner_announced) {
+      if (settings.accusation_close && !settings.winner_announced) {
         await checkAndAnnounceWinner();
       }
     } catch (err) {

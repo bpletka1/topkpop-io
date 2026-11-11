@@ -39,19 +39,24 @@
     var a = g.accusation, fmt = function (iso) { return esc(new Date(iso).toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })); };
     var suspects = link('/pages/suspects', 'Study the suspect dossiers');
     var html;
+    if (g.filed && !(g.reveal && g.reveal.open)) { el.innerHTML = '<strong style="color:#fff">Your team has filed its Final Accusation.</strong> It is final. Watch your email and the leaderboard for the Final Reveal. ' + link('/pages/leaderboard', 'Leaderboard'); return; }
     if (g.reveal && g.reveal.open) html = '<strong style="color:#fff">The saboteur has been revealed.</strong> ' + link('/pages/final-reveal', 'Watch the Final Reveal') + ' &nbsp; ' + link('/pages/leaderboard', 'See the final leaderboard');
     else if (a.notYet) html = '<strong style="color:#fff">The Final Accusation is locked.</strong> It opens ' + fmt(a.opensAt) + '. Until then, gather your clues. ' + suspects;
+    else if (a.unscheduled) html = '<strong style="color:#fff">The Final Accusation opens in the final week of your game.</strong> Its date will appear here once your game is scheduled. ' + suspects;
     else if (a.closed) html = '<strong style="color:#fff">The accusation window has closed.</strong> Watch your email and the leaderboard for the Final Reveal. ' + link('/pages/leaderboard', 'Leaderboard');
     else html = '<strong style="color:#fff">The Final Accusation is open' + (a.closesAt ? ' until ' + fmt(a.closesAt) : '') + '.</strong> ' + suspects + ' &nbsp; ' + link('/pages/final-accusation', 'File your Final Accusation');
     el.innerHTML = html;
   }
-  fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) { sched = d.troves || null; ending(d); }).catch(function () {}).then(function () {
+  fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+    sched = d.troves || null; ending(d);
+    if (token) fetch('/api/accusation-status', { headers: { 'x-evalroom-token': token }, cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (f) { if (f && f.filed) { d.filed = true; ending(d); } }).catch(function () {});
+  }).catch(function () {}).then(function () {
     if (!token) { draw(null); return; }
     return fetch('/api/evalroom/stage', { headers: { 'x-evalroom-token': token }, cache: 'no-store' })
       .then(function (r) {
         // A sign-in that has run out is cleared, so Team Sign In shows the form again.
         if (r.status === 401) { token = null; try { localStorage.removeItem('er:token'); localStorage.removeItem('er:team'); } catch (e) {} return {}; }
-        if (!r.ok) { failed = true; return {}; }
+        if (!r.ok) { failed = true; TROVES.forEach(function (t) { var sc = sched && sched[t.n]; if (sc && !sc.open) box(t.n, 'Treasure Trove 0' + t.n + ' is not open yet. It opens ' + esc(new Date(sc.opensAt).toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })) + '.'); }); return {}; }
         return r.json();
       })
       .then(function (d) { if (!failed) draw(d.locks || {}); })

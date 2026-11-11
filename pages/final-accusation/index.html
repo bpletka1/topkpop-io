@@ -264,34 +264,49 @@
 
   // Check if accusation window is open (will be controlled by backend)
   // For now, show open state by default (backend will toggle this)
-  // One sign-in for the whole site: a signed-in team is not asked for its name and email again.
+  // One sign-in for the whole site: the team files as itself and is not asked for its name and email again.
   function erStored(k) { try { var v = localStorage.getItem('er:' + k); return v === null ? null : JSON.parse(v); } catch (e) { return null; } }
   const erToken = erStored('token'), erTeam = erStored('team');
-  if (erToken && !(erTeam && erTeam.preview)) {
-    ['teamName', 'captainEmail'].forEach(function (id) { var f = document.getElementById(id); if (f) { f.required = false; var g = f.closest('.field-group') || f.parentElement; if (g) g.style.display = 'none'; } });
-    var who = document.createElement('p'); who.style.cssText = 'margin:0 0 18px;padding:12px 16px;border:1px solid rgba(255,191,0,.35);border-radius:8px;background:rgba(255,191,0,.06);font-size:.9rem;color:rgba(224,224,224,.9)';
-    who.textContent = 'Filing as ' + ((erTeam && erTeam.name) || 'your team') + '.';
+  const SIGN_IN_URL = '/pages/evaluation-room/?next=' + encodeURIComponent('/pages/final-accusation');
+  (function () {
+    var f1 = document.getElementById('teamName'), f2 = document.getElementById('captainEmail');
+    [f1, f2].forEach(function (f) { if (f) { f.required = false; f.disabled = true; } });
+    var section = f1 && f1.closest('.form-section'); if (section) section.style.display = 'none';
+    var who = document.createElement('p'); who.id = 'filingAs'; who.style.cssText = 'margin:0 0 18px;padding:12px 16px;border:1px solid rgba(255,191,0,.35);border-radius:8px;background:rgba(255,191,0,.06);font-size:.9rem;color:rgba(224,224,224,.9)';
+    who.textContent = erToken ? 'Filing as ' + ((erTeam && erTeam.name) || 'your team') + '.' : 'Sign in with your team to file.';
     var formEl = document.getElementById('accusationForm'); formEl.insertBefore(who, formEl.firstChild);
-  }
+  })();
+  // What the team typed is kept if it has to sign in again, and put back afterwards.
+  function saveDraft() { try { var f = document.getElementById('accusationForm'), d = {}; new FormData(f).forEach(function (v, k) { if (typeof v === 'string') d[k] = v; }); sessionStorage.setItem('fa:draft', JSON.stringify(d)); } catch (e) {} }
+  (function restoreDraft() { try { var d = JSON.parse(sessionStorage.getItem('fa:draft') || 'null'); if (!d) return; sessionStorage.removeItem('fa:draft'); var f = document.getElementById('accusationForm'); Object.keys(d).forEach(function (k) { var els = f.querySelectorAll('[name="' + k + '"]'); els.forEach(function (el) { if (el.type === 'radio') { if (el.value === d[k]) { el.checked = true; var card = el.closest('.suspect-card'); if (card) card.classList.add('selected'); } } else el.value = d[k]; }); }); } catch (e) {} })();
 
   // The window opens and closes on the organizer's schedule.
   function lockPage(title, text, when) {
     document.getElementById('lockedState').style.display = 'block';
     document.getElementById('openState').style.display = 'none';
     var box = document.getElementById('lockedState');
-    var h = box.querySelector('h2, h3, .locked-title'); if (h && title) h.textContent = title;
-    if (text) { var ps = box.querySelectorAll('p'); if (ps.length) ps[ps.length - 1].textContent = text; }
-    if (!when) { var cb = box.querySelector('.countdown-box'); if (cb) cb.style.display = 'none'; }
-    if (when) { updateCountdown(when); setInterval(function () { if (when - new Date() <= 0) location.reload(); else updateCountdown(when); }, 1000); }
+    var h = box.querySelector('.locked-title'); if (h && title) h.textContent = title;
+    var body = box.querySelector('.locked-body'); if (body && text) body.textContent = text;
+    var cb = box.querySelector('.countdown-box'); if (cb) cb.style.display = when ? '' : 'none';
+    if (when) (function tick() {
+      if (when - new Date() > 0) { updateCountdown(when); setTimeout(tick, 1000); return; }
+      // Time is up on this device's clock: ask the server, and only then open the form.
+      setTimeout(function () { getSchedule().then(function (g) { if (g.accusation && g.accusation.open) location.reload(); else setTimeout(tick, 20000); }).catch(function () { setTimeout(tick, 20000); }); }, 3000);
+    })();
   }
-  fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (g) {
+  function getSchedule() { return fetch('/api/evalroom/schedule', { cache: 'no-store' }).then(function (r) { return r.json(); }); }
+  getSchedule().then(function (g) {
     var a = g.accusation || {};
     if (a.notYet) lockPage(null, null, new Date(a.opensAt));
     else if (a.closed) lockPage('The Accusation Window Has Closed', 'The Final Accusation window has closed. Watch your email and the leaderboard for the Final Reveal.', null);
+    else if (a.unscheduled) lockPage('Accusation Window Not Yet Scheduled', 'The Final Accusation opens in the final week of your game. Its date will appear here once your game is scheduled.', null);
     if (g.reveal && g.reveal.open) { var l = document.getElementById('revealLink'); if (l) l.style.display = 'block'; }
   }).catch(function () {});
+  // A team that has already filed sees that, not the form again.
+  if (erToken) fetch('/api/accusation-status', { headers: { 'x-evalroom-token': erToken }, cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    if (d && d.filed) lockPage('Your Accusation Is Filed', 'Your team has filed its Final Accusation. It is final. Watch your email and the leaderboard for the Final Reveal.', null);
+  }).catch(function () {});
 
-  // Countdown timer (target date set by backend — placeholder)
   function updateCountdown(targetDate) {
     const now = new Date();
     const diff = targetDate - now;
@@ -328,6 +343,7 @@
       const res = await fetch('/api/submit/final-accusation', { method: 'POST', body: formData, headers: erToken ? { 'x-evalroom-token': erToken } : {} });
       const data = await res.json();
       if (res.ok && data.success) { document.getElementById('accusationForm').style.display = 'none'; document.getElementById('successMsg').style.display = 'block'; }
+      else if (res.status === 401) { saveDraft(); try { localStorage.removeItem('er:token'); localStorage.removeItem('er:team'); } catch (e2) {} showError('Your sign-in has run out. Taking you to sign in again. What you typed is saved.'); setTimeout(function () { location.href = SIGN_IN_URL; }, 1800); }
       else { btn.disabled = false; btn.textContent = 'File My Accusation →'; showError(data.error || data.message || 'Submission failed.'); }
     } catch (err) { btn.disabled = false; btn.textContent = 'File My Accusation →'; showError('Network error. Please try again.'); }
   });

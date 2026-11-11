@@ -49,17 +49,20 @@ router.use(async (req, res, next) => {
 });
 router.get('/schedule', async (req, res) => {
   try { res.set('Cache-Control', 'no-store'); res.json(await schedule.game()); }
-  catch (e) { res.json({ troves: { 1: { open: true, opensAt: null }, 2: { open: true, opensAt: null }, 3: { open: true, opensAt: null } }, accusation: { open: true, notYet: false, closed: false, opensAt: null, closesAt: null }, reveal: { open: false } }); }
+  catch (e) { res.json({ troves: { 1: { open: true, opensAt: null }, 2: { open: true, opensAt: null }, 3: { open: true, opensAt: null } }, accusation: { open: false, notYet: false, closed: false, unscheduled: true, opensAt: null, closesAt: null }, reveal: { open: false } }); }
 });
 // Preview copy only: set a practice schedule to test locked Troves. Needs the organizer password.
 router.post('/organizer/practice-schedule', express.json(), (req, res) => {
   const pw = process.env.ADMIN_PASSWORD; const got = String(req.headers['x-organizer-password'] || '');
   if (!PREVIEW_MODE || !pw) return res.status(404).json({ error: 'Not found.' });
-  if (limited('practice-sched:' + (req.ip || ''), 10, 15 * 60000)) return res.status(429).json({ error: 'Too many tries. Wait a while.' });
   const a = crypto.createHash('sha256').update(got).digest(), b2 = crypto.createHash('sha256').update(pw).digest();
-  if (!crypto.timingSafeEqual(a, b2)) return res.status(404).json({ error: 'Not found.' });
+  if (!crypto.timingSafeEqual(a, b2)) {
+    // Only wrong passwords are counted, so the organizer's own calls are never shut out.
+    if (limited('practice-sched:' + (req.ip || ''), 10, 15 * 60000)) return res.status(429).json({ error: 'Too many tries. Wait a while.' });
+    return res.status(404).json({ error: 'Not found.' });
+  }
   const b = req.body || {};
-  schedule.setPractice(b.clear ? null : { 1: b.trove1 || null, 2: b.trove2 || null, 3: b.trove3 || null, accOpen: b.accusation_open || null, accClose: b.accusation_close || null, revealed: !!b.revealed });
+  schedule.setPractice(b.clear ? null : { 1: b.trove1 || null, 2: b.trove2 || null, 3: b.trove3 || null, accOpen: b.accusation_open || null, accClose: b.accusation_close || null, revealed: b.revealed === true });
   res.json({ ok: true });
 });
 

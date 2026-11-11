@@ -51,7 +51,9 @@ module.exports = function makeSchedule({ supabase, PREVIEW_MODE }) {
   function ending(d, now) {
     const o = d && d.accOpen ? unlockInstant(d.accOpen) : null; const c = d && d.accClose ? unlockInstant(d.accClose) : null;
     const notYet = o != null && o > now; const over = c != null && c <= now;
-    return { accusation: { open: !notYet && !over, notYet, closed: over, opensAt: o == null ? null : new Date(o).toISOString(), closesAt: c == null ? null : new Date(c).toISOString() }, reveal: { open: !!(d && d.revealed) } };
+    // A window that closed weeks ago with no reveal belongs to an earlier season: nothing is scheduled yet.
+    const unscheduled = (o == null && c == null) || (over && !(d && d.revealed) && now - c > 21 * 86400000);
+    return { accusation: { open: !notYet && !over && !unscheduled, notYet, closed: over && !unscheduled, unscheduled, opensAt: o == null ? null : new Date(o).toISOString(), closesAt: c == null ? null : new Date(c).toISOString() }, reveal: { open: !!(d && d.revealed) } };
   }
   return {
     get: async () => build(await dates(), Date.now()),
