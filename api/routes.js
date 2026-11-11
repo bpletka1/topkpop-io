@@ -483,6 +483,15 @@ router.post('/submit/:trove', upload.fields([
       return res.status(403).json({ error: 'This team has been disqualified.' });
     }
 
+    // A score locked in The Evaluation Room (Take the Stage) is final: the portal must not replace it.
+    try {
+      const { data: roomLock } = await supabase.from('evalroom_locks').select('id')
+        .eq('team_key', team.id).eq('trove', troveNumber).is('reset_at', null).limit(1);
+      if (roomLock && roomLock.length) {
+        return res.status(409).json({ error: 'Your team already locked its official score for this Trove in The Evaluation Room. That score is final.' });
+      }
+    } catch (e) { console.warn('evalroom lock check skipped:', e.message); }
+
     // Upload files to Supabase Storage
     const folder = `trove-${troveNumber}/${team.id}`;
     let file1Data = null, file2Data = null, file3Data = null;
@@ -1022,7 +1031,7 @@ function fuzzyMatchSaboteur(guess, correct) {
 // Middleware: check admin password
 function adminAuth(req, res, next) {
   const { password } = req.headers;
-  if (password !== process.env.ADMIN_PASSWORD) {
+  if (!process.env.ADMIN_PASSWORD || password !== process.env.ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Unauthorized.' });
   }
   next();
@@ -1096,8 +1105,15 @@ router.post('/admin/award-bonus', adminAuth, async (req, res) => {
     return res.status(400).json({ error: 'bonus_points must be a number between 0 and 100.' });
   }
 
+  // Points the Evaluation Room already gave this entry (song or dance video) are kept and the admin bonus is added to them.
+  let roomBonus = 0;
+  try {
+    const { data: roomLock } = await supabase.from('evalroom_locks').select('bonus').eq('submission_id', submission_id).is('reset_at', null).limit(1);
+    roomBonus = (roomLock && roomLock[0] && roomLock[0].bonus) || 0;
+  } catch (e) { /* no room lock for this entry */ }
+
   const updatePayload = {
-    bonus_score: pts,
+    bonus_score: pts + roomBonus,
     bonus_awarded_at: new Date().toISOString(),
     bonus_awarded_by: awarded_by || 'admin',
   };
@@ -1125,14 +1141,16 @@ router.get('/admin/instagram-pending', adminAuth, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('submissions')
-      .select('id, team_id, team_name, trove_number, final_score, bonus_score, instagram_post_url, bonus_awarded_at, created_at')
+      .select('id, team_id, team_name, trove_number, final_score, bonus_score, instagram_post_url, bonus_awarded_at, bonus_awarded_by, created_at')
       .not('instagram_post_url', 'is', null)
       .neq('instagram_post_url', '')
       .order('created_at', { ascending: false });
     if (error) throw error;
     // Separate pending (no bonus yet) from awarded
-    const pending = (data || []).filter(s => !s.bonus_score || s.bonus_score === 0);
-    const awarded = (data || []).filter(s => s.bonus_score && s.bonus_score > 0);
+    // Points the Evaluation Room gave by itself (song or dance video) do not mean the Instagram bonus was reviewed.
+    const reviewed = (s) => s.bonus_score && s.bonus_score > 0 && !/^auto-/.test(String(s.bonus_awarded_by || ''));
+    const pending = (data || []).filter(s => !reviewed(s));
+    const awarded = (data || []).filter(s => reviewed(s));
     res.json({ success: true, pending, awarded });
   } catch (err) {
     res.status(500).json({ error: err.message });
