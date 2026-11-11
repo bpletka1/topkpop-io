@@ -270,10 +270,17 @@ module.exports = function attachStage(router, deps) {
       const lock = await activeLock(req.team.key, 2);
       if (!lock) return res.status(404).json({ error: 'Lock your lyrics with the Lyric Judge first (Take the Stage), then turn in your song.' });
       if (lock.song_url) return res.status(409).json({ error: 'Your team already turned in its song.', lock: await withText(lockView(lock)) });
-      const { data: song } = await supabase.from(table).select(kind === 'karaoke' ? 'id, title, status, new_lyrics' : 'id, title, status, lyrics').eq('id', id).eq('team_key', req.team.key).single();
+      const { data: song } = await supabase.from(table).select(kind === 'karaoke' ? 'id, title, status, new_lyrics, timings' : 'id, title, status, lyrics').eq('id', id).eq('team_key', req.team.key).single();
       if (!song || song.status !== 'ready') return res.status(404).json({ error: 'That song is not finished yet, or it was removed.' });
       const { data: r } = await supabase.from('evalroom_rehearsals').select('input_text').eq('id', lock.rehearsal_id).single();
-      const m = lyricMatch(r && r.input_text, kind === 'karaoke' ? song.new_lyrics : song.lyrics);
+      // The same brackets are ignored on both sides, so identical lyrics always match.
+      const noBrackets = (t) => String(t || '').replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ');
+      const songWords = kind === 'karaoke' ? song.new_lyrics : song.lyrics;
+      if (kind === 'karaoke') {
+        const shown = Array.isArray(song.timings) ? song.timings.length : 0; const want = String(songWords || '').split('\n').filter((l) => l.trim()).length;
+        if (shown < 2 || shown * 2 < want) return res.status(400).json({ error: 'This karaoke song does not show enough of your lyrics yet. Open it in the Song Maker, check the words light up, then turn it in.' });
+      }
+      const m = lyricMatch(noBrackets(r && r.input_text), noBrackets(songWords));
       if (!(m.pct >= ROOM_MATCH_PCT && m.enough)) return res.status(400).json({ error: 'This song does not use your locked lyrics. Make the song again with the exact lyrics your team locked, then turn that one in.', match: m.pct });
       const url = `room:${kind}:${song.id}`;
       const check = { verdict: 'verified', room: kind, title: song.title, match: m, canonical: url };

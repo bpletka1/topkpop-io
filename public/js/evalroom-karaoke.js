@@ -192,7 +192,7 @@
     if (S.taps.length !== S.lines.length) { endFix(); ER.showMsg($('#playMsg'), 'Not every line was tapped, so the timing was left as it was.', 'info'); return; }
     audio.pause();
     ER.api('/karaoke/' + S.current.id + '/timings', { json: { starts: S.taps } }).then(function (d) {
-      S.lines = d.lines; endFix(); audio.currentTime = 0; paint(0, true); $('#timingWarn').hidden = true; $('#fixReset').hidden = false; ER.showMsg($('#playMsg'), 'Timing saved. Press Play to hear it. You can go back to the automatic timing at any time.', 'info');
+      S.lines = d.lines; document.dispatchEvent(new CustomEvent('er:karaoke-timing')); endFix(); audio.currentTime = 0; paint(0, true); $('#timingWarn').hidden = true; $('#fixReset').hidden = false; ER.showMsg($('#playMsg'), 'Timing saved. Press Play to hear it. You can go back to the automatic timing at any time.', 'info');
     }).catch(function (e) { endFix(); ER.showMsg($('#playMsg'), e.message); });
   }
   $('#fixStart').addEventListener('click', function () {

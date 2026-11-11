@@ -45,7 +45,7 @@ function fitLyrics(text) {
 
 // What the singer is given: the team's words in ordinary capitals, without stage notes.
 // Stress marks like "eMERgency" help a person but trip the AI singer.
-const STAGE_NOTE = /^(x\s*\d+|\d+\s*x|repeat.*|spoken.*|chorus.*|verse.*|bridge.*|intro.*|outro.*|pre-?chorus.*|instrumental.*|whisper.*|shout.*|pause.*|music.*|laugh.*|clap.*|with .*|all|solo)$/i;
+const STAGE_NOTE = /^(x\s*\d+|\d+\s*x|repeat.*|spoken.*|chorus.*|verse.*|bridge.*|intro.*|outro.*|pre-?chorus.*|instrumental.*|whispered|shouted|pause|music|laughs?|claps?|with a .*|solo)$/i;
 function forSinger(text) {
   return K.lyricLines(text).map((line) => {
     let l = line; let prev;
@@ -175,7 +175,6 @@ module.exports = function attachCover(router, deps) {
       const fit = fitLyrics(raw);
       if (fit.kept < 2 || fit.text.length < 10) return res.status(400).json({ error: 'Paste your new lyrics in box 3, one line per line.' });
       if (K.lyricLines(forSinger(fit.text)).length < 2) return res.status(400).json({ error: 'The singer needs at least two lines of words to sing. Lines that are only notes in brackets are left out.' });
-      if (limited('sung:' + req.team.key, 4, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of songs in a few minutes. Please wait a little and try again.' });
 
       const since = new Date(Date.now() - 864e5).toISOString();
       const { data: today } = await supabase.from('evalroom_covers').select('status').eq('team_key', req.team.key).gte('created_at', since);
@@ -185,6 +184,7 @@ module.exports = function attachCover(router, deps) {
       const { count: everyone } = await supabase.from('evalroom_covers').select('id', { count: 'exact', head: true }).gte('created_at', since);
       if ((everyone || 0) >= MAX_ALL_TEAMS_PER_DAY) return res.status(503).json({ error: 'The singer has reached its limit for today. It is back tomorrow.' });
       if (running >= MAX_AT_ONCE) return res.status(503).json({ error: 'The singer is busy with other teams\' songs. Please try again in a minute.' });
+      if (limited('sung:' + req.team.key, 4, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of songs in a few minutes. Please wait a little and try again.' });
       running++; reserved = true; // held from here so uploads arriving at the same moment cannot all slip through
 
       const { data: row, error } = await supabase.from('evalroom_covers').insert({
@@ -227,6 +227,9 @@ module.exports = function attachCover(router, deps) {
     if (!UUID.test(req.params.id)) return res.status(404).json({ error: 'Song not found.' });
     const { data: r } = await supabase.from('evalroom_covers').select('id, team_key, audio_path, status').eq('id', req.params.id).eq('team_key', req.team.key).single();
     if (!r || r.status === 'deleted') return res.status(404).json({ error: 'Song not found.' });
+    // A song that was turned in for points stays, so the organizer can still hear it.
+    { const { data: used } = await supabase.from(process.env.PREVIEW_MODE === '1' ? 'evalroom_practice_locks' : 'evalroom_locks').select('id').eq('song_url', 'room:sung:' + r.id).is('reset_at', null).limit(1);
+      if (used && used.length) return res.status(409).json({ error: 'This song was turned in for your team\'s points, so it stays.' }); }
     if (r.audio_path) await supabase.storage.from(BUCKET).remove([r.audio_path]);
     await dropSource(r);
     const { error } = await supabase.from('evalroom_covers').update({ status: 'deleted', audio_path: null, lyrics: '' }).eq('id', r.id);

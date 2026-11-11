@@ -32,7 +32,7 @@
         { html: '<b>Press Rehearse.</b> The Lyric Judge scores your lyrics out of 90 and gives feedback.', done: function () { return S.count > 0; } },
         { html: '<b>Revise and rehearse again.</b> Change your lyrics and see what moved.', done: function () { return S.count > 1; } },
         { html: '<b>Take the Stage.</b> When your team is happy, press Take the Stage under your score to lock your lyrics as official. A lock is final.', done: function () { return !!S.lock; } },
-        { html: '<b>Add your song for 10 more points.</b> Paste your locked lyrics into <a href="https://suno.com" target="_blank" rel="noopener">Suno</a> in Custom mode, tap Share, copy the link and turn it in here.', done: function () { return !!(S.lock && S.lock.song_url); } }
+        { html: '<b>Add your song for 10 more points.</b> Paste your locked lyrics into <a href="https://suno.com" target="_blank" rel="noopener">Suno</a> in Custom mode, tap Share, copy the link and turn it in here. Or make your song in the <a href="/pages/evaluation-room/karaoke/">Song Maker</a> and turn it in there.', done: function () { return !!(S.lock && S.lock.song_url); } }
       ]; },
       next: 'Use the feedback to revise your lyrics, then rehearse again. When your team is happy, Take the Stage above, then make your song in Suno for 10 more points.',
       nextBtns: [['Open Suno', 'https://suno.com', 'ghost'], ['Back to the studio', '/pages/evaluation-room/studio/', 'ghost']]

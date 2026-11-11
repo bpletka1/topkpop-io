@@ -277,8 +277,11 @@ function buildTimings(originalLyrics, newLyrics, aligned, durationHint) {
 async function timeSong(vocals, originalLyrics, newLyrics, note = () => {}) {
   const orig = lyricLines(originalLyrics);
   let heard;
-  try { heard = await transcribe(vocals.buf, vocals); }
-  catch (e) {
+  try {
+    try { heard = await transcribe(vocals.buf, vocals); }
+    catch (first) { console.error('evalroom karaoke: listening failed, trying once more:', String(first.message).slice(0, 200)); await new Promise((r) => setTimeout(r, 2500)); heard = await transcribe(vocals.buf, vocals); }
+  } catch (e) {
+    console.error('evalroom karaoke: could not listen, timing from box 2 only:', String(e.message).slice(0, 200));
     // Listening is unavailable: fall back to timing everything in box 2, and say so.
     if (!orig.length) throw e;
     await note('Timing the lyrics to the singing');
@@ -398,7 +401,6 @@ module.exports = function attachKaraoke(router, deps) {
       if (orig.length > CFG.maxTextChars || neu.length > CFG.maxTextChars) return res.status(400).json({ error: `Those lyrics are longer than the song maker can take (${CFG.maxTextChars.toLocaleString()} characters). Please trim them.` });
       const ol = lyricLines(orig); const nl = lyricLines(neu);
       if (nl.length < 2) return res.status(400).json({ error: 'Paste your new lyrics, one line per line. Lines that are only a label, like [Chorus], are skipped.' });
-      if (limited('karaoke:' + req.team.key, 4, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of songs in a few minutes. Please wait a little and try again.' });
       const since = new Date(Date.now() - 864e5).toISOString();
       const { data: today } = await supabase.from('evalroom_karaoke').select('status').eq('team_key', req.team.key).gte('created_at', since);
       const made = (today || []).filter((x) => x.status !== 'failed').length;
@@ -407,6 +409,7 @@ module.exports = function attachKaraoke(router, deps) {
       const { count: everyone } = await supabase.from('evalroom_karaoke').select('id', { count: 'exact', head: true }).gte('created_at', since);
       if ((everyone || 0) >= MAX_ALL_TEAMS_PER_DAY) return res.status(503).json({ error: 'The song maker has reached its limit for today. It opens again tomorrow.' });
       if (running >= MAX_AT_ONCE) return res.status(503).json({ error: 'The song maker is busy with other teams\' songs. Please try again in a minute.' });
+      if (limited('karaoke:' + req.team.key, 4, 10 * 60000)) return res.status(429).json({ error: 'That is a lot of songs in a few minutes. Please wait a little and try again.' });
       running++; reserved = true; // held from here so two uploads at the same moment cannot both slip through
 
       const { data: row, error } = await supabase.from('evalroom_karaoke').insert({
@@ -478,6 +481,9 @@ module.exports = function attachKaraoke(router, deps) {
     if (!UUID.test(req.params.id)) return res.status(404).json({ error: 'Song not found.' });
     const { data: r } = await supabase.from('evalroom_karaoke').select('id, instrumental_path, source_path, status').eq('id', req.params.id).eq('team_key', req.team.key).single();
     if (!r || r.status === 'deleted') return res.status(404).json({ error: 'Song not found.' });
+    // A song that was turned in for points stays, so the organizer can still hear it.
+    { const { data: used } = await supabase.from(process.env.PREVIEW_MODE === '1' ? 'evalroom_practice_locks' : 'evalroom_locks').select('id').eq('song_url', 'room:karaoke:' + r.id).is('reset_at', null).limit(1);
+      if (used && used.length) return res.status(409).json({ error: 'This song was turned in for your team\'s points, so it stays.' }); }
     const paths = [r.instrumental_path, r.source_path].filter(Boolean);
     if (paths.length) await supabase.storage.from(BUCKET).remove(paths);
     await require('./evalroom-video').removeVideos(supabase, req.team.key, r.id).catch(() => {});

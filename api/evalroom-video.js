@@ -15,7 +15,7 @@ const BUCKET = 'evalroom-private';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FONTS = path.join(__dirname, 'evalroom-fonts');
 const MAX_PER_DAY = Number(process.env.EVALROOM_VIDEOS_PER_DAY || 8);  // per team; a new video is only made when the timing changed
-const MAX_AT_ONCE = Number(process.env.EVALROOM_VIDEOS_AT_ONCE || 1);
+const MAX_AT_ONCE = Number(process.env.EVALROOM_VIDEOS_AT_ONCE || 2);
 const MAX_SECONDS = Number(process.env.EVALROOM_VIDEO_MAX_SECONDS || 420);
 const safePart = (x) => String(x).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
 
@@ -24,7 +24,8 @@ function ffmpegPath() { try { return require('ffmpeg-static'); } catch (e) { ret
 // ── Subtitles with karaoke highlighting (ASS) ────────────────────────────────
 const ts = (x) => { x = Math.max(0, x); const h = Math.floor(x / 3600); const m = Math.floor((x % 3600) / 60); const s = x % 60; return `${h}:${String(m).padStart(2, '0')}:${s.toFixed(2).padStart(5, '0')}`; };
 // Team text is shown, never run: braces and backslashes would be read as commands.
-const clean = (t) => String(t || '').replace(/[{}\\]/g, '').replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+// Emoji are left out: the video's lettering has no pictures for them and would show empty boxes.
+const clean = (t) => String(t || '').replace(/[{}\\]/g, '').replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, '').replace(/[\r\n\u2028\u2029]+/g, ' ').replace(/\s+/g, ' ').trim();
 
 function buildAss(title, teamName, lines, duration) {
   const L = (lines || []).filter((l) => l && Number.isFinite(l.start) && Number.isFinite(l.end) && clean(l.text)).map((l) => ({ ...l, text: clean(l.text) }));
@@ -88,14 +89,13 @@ async function render(music, ext, ass, duration) {
     fs.writeFileSync(path.join(dir, 'words.ass'), ass, 'utf8');
     fs.mkdirSync(path.join(dir, 'fonts'));
     for (const f of fs.readdirSync(FONTS)) if (/\.(ttf|otf)$/i.test(f)) fs.copyFileSync(path.join(FONTS, f), path.join(dir, 'fonts', f));
-    const secs = Math.min(MAX_SECONDS, Math.max(3, Math.ceil(duration)));
     // A still night-sky backdrop with a soft glow; the words are the picture.
     const backdrop = `color=c=0x1a0b2e:s=1280x720:r=20,format=yuv420p,drawbox=x=0:y=0:w=iw:h=6:color=0xff2d8a@0.9:t=fill,drawbox=x=0:y=ih-6:w=iw:h=6:color=0xffc233@0.9:t=fill`;
     await run(bin, ['-hide_banner', '-loglevel', 'error', '-y',
-      '-f', 'lavfi', '-t', String(secs), '-i', backdrop, '-i', 'music.' + ext,
+      '-f', 'lavfi', '-t', String(MAX_SECONDS), '-i', backdrop, '-i', 'music.' + ext,
       '-vf', 'ass=words.ass:fontsdir=fonts', '-map', '0:v', '-map', '1:a',
       '-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'stillimage', '-crf', '27', '-pix_fmt', 'yuv420p', '-r', '20',
-      '-c:a', 'aac', '-b:a', '160k', '-ac', '2', '-t', String(secs), '-movflags', '+faststart', 'out.mp4'], dir, 6 * 60000);
+      '-c:a', 'aac', '-b:a', '160k', '-ac', '2', '-shortest', '-movflags', '+faststart', 'out.mp4'], dir, 6 * 60000); // as long as the music, up to the cap
     return fs.readFileSync(path.join(dir, 'out.mp4'));
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 }
@@ -103,6 +103,7 @@ async function render(music, ext, ass, duration) {
 module.exports = function attachVideo(router, deps) {
   const { supabase, requireTeam, limited } = deps;
   const jobs = new Map(); // song id -> { started, error }
+  const started = new Map(); // team -> times a video was started in the last day
   let running = 0;
   const folder = (r) => `${safePart(r.team_key)}/karaoke/${r.id}`;
   // The file name carries a fingerprint of the timing, so fixing the timing makes a fresh video.
@@ -137,6 +138,9 @@ module.exports = function attachVideo(router, deps) {
       const last = r.timings.length ? r.timings[r.timings.length - 1].end : 0;
       const duration = Math.max(Number(r.duration_s) || 0, last + 2);
       const mp4 = await render(music, (r.instrumental_path.split('.').pop() || 'mp3').toLowerCase(), buildAss(r.title, r.team_name, r.timings, duration), duration);
+      // If the song was removed or its timing changed while this was being made, the video is no longer wanted.
+      const { data: fresh } = await supabase.from('evalroom_karaoke').select('id, team_key, title, status, timings').eq('id', r.id).single();
+      if (!fresh || fresh.status !== 'ready' || !Array.isArray(fresh.timings) || nameFor(fresh) !== name) { jobs.delete(r.id); return; }
       const old = (await existing(r)).filter((n) => /^video-.*\.mp4$/.test(n) && n !== name).map((n) => `${folder(r)}/${n}`);
       const up = await supabase.storage.from(BUCKET).upload(`${folder(r)}/${name}`, mp4, { contentType: 'video/mp4', upsert: true });
       if (up.error) throw new Error('storage: ' + up.error.message);
@@ -160,9 +164,12 @@ module.exports = function attachVideo(router, deps) {
       const now = await state(r);
       if (now.status === 'ready' || now.status === 'working') return res.json(now);
       if (!r.timings.length) return res.status(400).json({ error: 'This song has no timed lyrics to show yet.' });
-      if (limited('video:' + req.team.key, MAX_PER_DAY, 864e5)) return res.status(429).json({ error: `Your team has made ${MAX_PER_DAY} videos today. The video maker is back tomorrow.` });
-      if (running >= MAX_AT_ONCE) return res.status(503).json({ error: 'The video maker is busy with another team\'s song. Please try again in a minute.' });
-      running++;
+      const mine = jobs.get(r.id);
+      if (mine && !mine.error && Date.now() - mine.started < 7 * 60000) return res.json({ status: 'working', seconds: Math.round((Date.now() - mine.started) / 1000) });
+      const day = started.get(req.team.key) || []; const recent = day.filter((t) => Date.now() - t < 864e5);
+      if (recent.length >= MAX_PER_DAY) return res.status(429).json({ error: `Your team has made ${MAX_PER_DAY} videos today. The video maker is back tomorrow.` });
+      if (running >= MAX_AT_ONCE) return res.status(503).json({ error: 'The video maker is busy with other teams\' songs. It will try again by itself in a moment.', busy: true });
+      running++; recent.push(Date.now()); started.set(req.team.key, recent); // only videos that really start are counted
       const name = nameFor(r); jobs.set(r.id, { name, started: Date.now(), error: null });
       make(r, name); // carries on after this reply; the page checks back
       res.json({ status: 'working', seconds: 0 });

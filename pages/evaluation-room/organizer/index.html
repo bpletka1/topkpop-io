@@ -50,7 +50,7 @@
       $('#count').textContent = live.length + ' active lock' + (live.length === 1 ? '' : 's');
       $('#rows').innerHTML = d.locks.map(function (l) {
         var when = new Date(l.locked_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-        var extras = [l.practice ? '<span class="er-badge practice">Practice</span>' : '', l.song_url ? '<a href="' + esc(l.song_url) + '" target="_blank" rel="noopener">Song</a>' : '', l.dance_video_url ? '<a href="' + esc(l.dance_video_url) + '" target="_blank" rel="noopener">Dance video</a>' : ''].filter(Boolean).join(' ');
+        var extras = [l.practice ? '<span class="er-badge practice">Practice</span>' : '', l.song_url ? (/^room:/.test(l.song_url) ? '<span class="er-small">Song made in the Song Maker (' + (/^room:sung/.test(l.song_url) ? 'AI-sung' : 'karaoke') + ')</span>' : '<a href="' + esc(l.song_url) + '" target="_blank" rel="noopener">Song</a>') : '', l.dance_video_url ? '<a href="' + esc(l.dance_video_url) + '" target="_blank" rel="noopener">Dance video</a>' : ''].filter(Boolean).join(' ');
         return '<tr><td><b>' + esc(l.team_name || '') + '</b></td><td>0' + l.trove + '</td><td>' + l.score + (l.bonus ? ' + ' + l.bonus : '') + ' = <b>' + l.total + '</b></td><td>' + esc(when) + '</td><td>' + extras + '</td><td>' +
           (l.reset_at ? '<span class="er-small">Reset' + (l.reset_note ? ': ' + esc(l.reset_note) : '') + '</span>' : '<button class="er-btn ghost small" data-id="' + esc(l.id) + '" data-team="' + esc(l.team_name || '') + '" data-trove="' + l.trove + '">Reset</button>') + '</td></tr>';
       }).join('') || '<tr><td colspan="6" class="er-muted">No team has locked a score yet.</td></tr>';
