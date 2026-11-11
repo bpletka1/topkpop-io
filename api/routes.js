@@ -321,6 +321,7 @@ router.post('/register', async (req, res) => {
       {
         '{{TEAM_NAME}}': team_name.trim(),
         '{{CAPTAIN_NAME}}': captain_name.trim(),
+        '{{CAPTAIN_EMAIL}}': captain_email.toLowerCase().trim(),
       }
     ).catch(err => console.error('Welcome email error:', err.message));
 
@@ -444,7 +445,7 @@ router.post('/submit/final-accusation', upload.none(), async (req, res) => {
     const email = String(team.captain_email || '').toLowerCase();
     try {
       await tagSubscriber(email, 'accusation-submitted');
-      await sendEmail('email10_accusation_open.html', email, '🕵️ Final Accusation Filed — The Truth Will Be Revealed',
+      await sendEmail('email11_accusation_received.html', email, '🕵️ Final Accusation Filed — The Truth Will Be Revealed',
         { '[CAPTAIN_NAME]': String(team.captain_name || '').trim().split(' ')[0] || 'Detective' });
       await checkAndAnnounceWinner();
     } catch (e) { console.error('Accusation follow-up error:', e.message); }
@@ -797,7 +798,7 @@ router.post('/accuse', async (req, res) => {
 
     // Send accusation confirmation email
     await sendEmail(
-      'email10_accusation_open.html',
+      'email11_accusation_received.html',
       captain_email.toLowerCase(),
       '🕵️ Final Accusation Filed — The Truth Will Be Revealed',
       { '[CAPTAIN_NAME]': (captain_name || captain_email).split(' ')[0] || 'Detective' }
@@ -1524,7 +1525,8 @@ function startScheduler() {
   // ── Gmail polling — every 30 minutes, check for forwarded score emails ────────────────────────
   // Looks for emails with subject containing "scores" or "dance" or "joyce"
   // forwarded to the admin inbox, and auto-applies scores via score-by-name logic
-  cron.schedule('*/30 * * * *', async () => {
+  // Retired with the Score by Name tool (same switch brings both back).
+  if (process.env.OLD_SCORE_BY_NAME_OPEN === '1') cron.schedule('*/30 * * * *', async () => {
     await pollGmailForScores();
   });
 
@@ -1648,6 +1650,9 @@ async function sendRevealEmail() {
 // ════════════════════════════════════════════════════════════════════════════
 
 router.post('/admin/score-by-name', adminAuth, async (req, res) => {
+  // Retired: it overwrote bonus points and locked scores. The outside judge's points are entered on the
+  // Evaluation Room organizer page. Set OLD_SCORE_BY_NAME_OPEN=1 to bring this back.
+  if (process.env.OLD_SCORE_BY_NAME_OPEN !== '1') return res.status(410).json({ error: "This tool is retired. Enter the outside judge's points on the Evaluation Room organizer page." });
   try {
     const { text, trove_number, score_type = 'admin' } = req.body;
     if (!text || !trove_number) {
