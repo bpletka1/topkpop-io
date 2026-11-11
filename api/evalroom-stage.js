@@ -316,6 +316,8 @@ module.exports = function attachStage(router, deps) {
     next();
   }
 
+  require('./evalroom-wall')(router, { supabase, requireTeam, requireOrganizer, limited, loadPictures, activeLock, LOCKS, PREVIEW_MODE });
+
   router.get('/organizer/locks', requireOrganizer, async (req, res) => {
     const { data, error } = await supabase.from(LOCKS).select('*').order('locked_at', { ascending: false }).limit(500);
     if (error) return res.status(500).json({ error: 'Could not load the locks.' });

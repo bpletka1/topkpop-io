@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Wall | The Evaluation Room | TopKpop.io</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="/css/evalroom.css" />
+  <style>
+    .wall-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+    .wall-item { background: rgba(15,16,22,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
+    .wall-pics { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #000; }
+    .wall-pics a { display: block; aspect-ratio: 3 / 4; background: #111; }
+    .wall-pics img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .wall-video { position: relative; aspect-ratio: 16 / 9; background: #000; }
+    .wall-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .wall-meta { padding: 12px 14px; }
+    .wall-meta b { display: block; font-size: 0.98rem; }
+    .wall-meta span { font-size: 0.8rem; color: rgba(224,224,224,0.6); }
+    .wall-share { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; margin-top: 16px; }
+    .wall-share:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+  </style>
+</head>
+<body class="er">
+
+<header class="er-hero">
+  <p class="er-eyebrow">The Evaluation Room</p>
+  <h1 class="er-title">The <em>Wall</em></h1>
+  <p class="er-sub">See what the other teams made, and share your own. Only teams playing the game can see this page.</p>
+</header>
+
+<main class="er-wrap">
+  <a class="er-back" href="/pages/evaluation-room/">&larr; Back to the room</a>
+
+  <section class="er-card" id="share" aria-labelledby="shareTitle">
+    <p class="er-label">Share your work</p>
+    <h2 class="er-h2" id="shareTitle">Put your team on the wall</h2>
+    <p class="er-muted" style="margin:8px 0 18px">Sharing adds <b><span id="bonusN">25</span> points</b> for that Trove, by itself. If you take your work down later, those points come off again.</p>
+
+    <div class="wall-share" id="sharePics">
+      <p class="er-label">Trove 01 &middot; Avatar and poster</p>
+      <p class="er-muted" id="picsState"></p>
+      <div id="picsForm" hidden>
+        <label class="er-check"><input type="checkbox" id="picsOk" /><span>Our team agrees to show our avatar and poster to the other teams playing the game.</span></label>
+        <label class="er-check"><input type="checkbox" id="picsPublic" /><span><b>Optional:</b> the game may also post our avatar and poster on its <b>public</b> Instagram page, where anyone can see it.</span></label>
+        <div class="er-row"><button class="er-btn" id="picsBtn" type="button">Share our avatar and poster</button></div>
+      </div>
+      <p class="er-msg" id="picsMsg"></p>
+    </div>
+
+    <div class="wall-share" id="shareSong">
+      <p class="er-label">Trove 02 &middot; Karaoke video</p>
+      <p class="er-muted" id="songState"></p>
+      <div id="songForm" hidden>
+        <div class="er-field"><label for="songPick">Which song?</label><select class="er-input" id="songPick"></select></div>
+        <label class="er-check"><input type="checkbox" id="songOk" /><span>Our team agrees to show our karaoke video to the other teams playing the game.</span></label>
+        <label class="er-check"><input type="checkbox" id="songPublic" /><span><b>Optional:</b> the game may also post our karaoke video on its <b>public</b> Instagram page, where anyone can see it.</span></label>
+        <div class="er-row"><button class="er-btn" id="songBtn" type="button">Share our karaoke video</button></div>
+      </div>
+      <p class="er-msg" id="songMsg"></p>
+    </div>
+  </section>
+
+  <section class="er-card" aria-labelledby="wallTitle">
+    <div class="er-row" style="justify-content:space-between;margin-bottom:14px">
+      <div><p class="er-label">On the wall</p><h2 class="er-h2" id="wallTitle">Shared by the teams</h2></div>
+      <button class="er-btn ghost small" id="refresh" type="button">Refresh</button>
+    </div>
+    <p class="er-muted" id="empty" hidden>Nothing has been shared yet. Your team could be first.</p>
+    <div class="wall-grid" id="grid"></div>
+    <p class="er-msg" id="wallMsg"></p>
+  </section>
+</main>
+
+<script src="/js/evalroom.js"></script>
+<script src="/js/evalroom-wall.js"></script>
+</body>
+</html>

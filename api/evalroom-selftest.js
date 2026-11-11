@@ -370,6 +370,17 @@ async function runCase(row, port) {
       const mm = await post('/stage/lyric/room-song', F, { kind: 'karaoke', id: fsong.id }, true); step('a song with different words earns no points', mm.status, 400, mm.d.error);
       await R.supabase.from('evalroom_karaoke').update({ status: 'deleted', instrumental_path: null }).eq('id', fsong.id);
       for (const [x, tk] of [[mc, C], [md, D], [bad, E]]) if (x.d.song) await post('/karaoke/' + x.d.song.id + '/delete', tk, {}, true);
+      if (process.env.VIMEO_ACCESS_TOKEN) {
+        step('sharing a video needs the agree box', (await post('/wall/share', A, { kind: 'karaoke', id }, true)).status, 400);
+        const ws = await post('/wall/share', A, { kind: 'karaoke', id, confirm: 'true', public_ok: 'false' }, true);
+        step('karaoke video shared on the wall adds 25', ws.d.bonus, 25, ws.d.error);
+        step('the shared video has a player on the game\'s Vimeo', /^https:\/\/player\.vimeo\.com\/video\/\d+/.test((ws.d.item && ws.d.item.embed) || ''), true);
+        const wl = await get('/wall', B); const seen = (wl.d.items || []).find((x) => ws.d.item && x.id === ws.d.item.id);
+        step('another team sees it on the wall but cannot take it down', !!seen && seen.mine === false && (await post('/wall/' + ws.d.item.id + '/remove', B, {}, true)).status === 404, true);
+        const st2 = await get('/stage', A); step('lyric score now carries song + wall points', st2.d.locks.lyric && st2.d.locks.lyric.bonus, 35);
+        step('team takes its video down', (await post('/wall/' + ws.d.item.id + '/remove', A, {}, true)).status, 200);
+        const st3 = await get('/stage', A); step('wall points come off again', st3.d.locks.lyric && st3.d.locks.lyric.bonus, 10);
+      }
       step('a song that was turned in for points cannot be deleted', (await post('/karaoke/' + id + '/delete', A, {}, true)).status, 409);
       // Tidy up: release this run's practice locks so the test song can be removed.
       await R.supabase.from('evalroom_practice_locks').update({ reset_at: new Date().toISOString(), reset_note: 'selftest tidy-up' }).like('team_key', 'preview:' + run + '-%').is('reset_at', null);
@@ -484,6 +495,52 @@ async function runCase(row, port) {
     }
     if (!p.keep) note('delete the test video', await api('DELETE', '/videos/' + id));
     return out;
+  }
+
+  if (row.kind === 'wallflow') {
+    // The wall, through the web routes: lock pictures, share, see, remove.
+    const base = `http://127.0.0.1:${port}/api/evalroom`;
+    const run = 'w' + Date.now().toString(36);
+    const tok = (k) => R.signToken({ t: 'preview:' + run + '-' + k, n: 'Preview: wall ' + k, p: 1 });
+    const A = tok('a'); const B = tok('b');
+    const call = async (method, pth, token, json, form, extra) => { const headers = { ...(extra || {}) }; if (token) headers['x-evalroom-token'] = token; let body; if (form) body = form; else if (json) { headers['content-type'] = 'application/json'; body = JSON.stringify(json); } const r = await fetch(base + pth, { method, headers, body }); let d = {}; try { d = await r.json(); } catch (_) {} return { status: r.status, d }; };
+    const steps = []; const step = (name, got, want, note) => steps.push((got === want ? 'PASS ' : 'FAIL ') + name + (got === want ? '' : ' (got ' + JSON.stringify(got) + ')') + (note ? ' [' + note + ']' : ''));
+    const pics = () => { const f = new FormData(); for (const [k, n] of [['avatar', 'avatar_good.png'], ['poster', 'poster_good.png']]) f.append(k, new Blob([fs.readFileSync(path.join(FIXTURES, n))], { type: 'image/png' }), n); return f; };
+    step('signed-out visitor cannot see the wall', (await call('GET', '/wall')).status, 401);
+    step('signed-out visitor cannot share', (await call('POST', '/wall/share', null, { kind: 'pictures', confirm: 'true' })).status, 401);
+    step('organizer list needs the password', (await call('GET', '/organizer/wall')).status, 401);
+    step('sharing before taking the stage is refused', (await call('POST', '/wall/share', A, { kind: 'pictures', confirm: 'true' })).status, 404);
+    const r1 = await call('POST', '/rehearse/visual', A, null, pics()); step('rehearse pictures', r1.status, 200, 'score ' + r1.d.score);
+    const l1 = await call('POST', '/stage/visual', A, { rehearsal_id: r1.d.id, confirm: 'true' }); step('lock pictures', l1.status, 200);
+    const w0 = await call('GET', '/wall', A); step('wall says the team can share its pictures', w0.d.can && w0.d.can.pictures.locked === true && !w0.d.can.pictures.shared, true);
+    step('share without the agree box is refused', (await call('POST', '/wall/share', A, { kind: 'pictures' })).status, 400);
+    step('a made-up kind is refused', (await call('POST', '/wall/share', A, { kind: 'everything', confirm: 'true' })).status, 400);
+    step('karaoke share without locked lyrics is refused', (await call('POST', '/wall/share', A, { kind: 'karaoke', confirm: 'true', id: '00000000-0000-4000-8000-000000000000' })).status, process.env.VIMEO_ACCESS_TOKEN ? 404 : 404);
+    const sh = await call('POST', '/wall/share', A, { kind: 'pictures', confirm: 'true', public_ok: 'true' }); step('pictures shared, 25 points added', sh.d.bonus, 25, sh.d.error);
+    const s1 = await call('GET', '/stage', A); step('locked score shows the 25', s1.d.locks.visual && s1.d.locks.visual.bonus, 25);
+    step('sharing twice is refused', (await call('POST', '/wall/share', A, { kind: 'pictures', confirm: 'true' })).status, 409);
+    const wb = await call('GET', '/wall', B); const it = (wb.d.items || []).find((x) => sh.d.item && x.id === sh.d.item.id);
+    step('another team sees the item, not as its own', !!it && it.mine === false, true);
+    step('other teams are not told who approved public posting', it && it.publicOk, undefined);
+    if (it && it.images) {
+      for (const slot of ['avatar', 'poster']) { const g = await fetch(it.images[slot].small); const b = Buffer.from(await g.arrayBuffer()); step(slot + ' small picture loads as a JPEG', g.status === 200 && b[0] === 0xff && b[1] === 0xd8, true, b.length + ' bytes'); }
+      const { data: w } = await R.supabase.from('evalroom_wall').select('images, public_ok, ig_status, is_preview').eq('id', it.id).single();
+      step('public approval is recorded, nothing is posted', w.public_ok === true && w.ig_status === 'approved-waiting-for-setup' && w.is_preview === true, true);
+      const plain = await fetch(`${process.env.SUPABASE_URL}/storage/v1/object/public/evalroom-private/${w.images.avatar.small}`); step('pictures cannot be opened without a signed link', plain.status >= 400, true, String(plain.status));
+    }
+    step('another team cannot take it down', (await call('POST', '/wall/' + (sh.d.item && sh.d.item.id) + '/remove', B, {})).status, 404);
+    step('organizer removal needs the password', (await call('POST', '/organizer/wall/remove', null, { id: sh.d.item && sh.d.item.id })).status, 401);
+    if (process.env.ADMIN_PASSWORD) {
+      const ol = await call('GET', '/organizer/wall', null, null, null, { 'x-organizer-password': process.env.ADMIN_PASSWORD }); step('organizer sees the item and the public approval', !!(ol.d.items || []).find((x) => x.id === sh.d.item.id && x.publicOk === true), true);
+      const or = await call('POST', '/organizer/wall/remove', null, { id: sh.d.item.id, note: 'selftest' }, null, { 'x-organizer-password': process.env.ADMIN_PASSWORD }); step('organizer removes it', or.status, 200);
+    } else step('team takes it down', (await call('POST', '/wall/' + sh.d.item.id + '/remove', A, {})).status, 200);
+    const s2 = await call('GET', '/stage', A); step('the 25 points come off again', s2.d.locks.visual && s2.d.locks.visual.bonus, 0);
+    step('it is gone from the wall', !((await call('GET', '/wall', B)).d.items || []).find((x) => x.id === sh.d.item.id), true);
+    const { data: left } = await R.supabase.storage.from('evalroom-private').list(`preview_${run}-a/wall/${sh.d.item && sh.d.item.id}`); step('its pictures are removed from storage', (left || []).length, 0);
+    const again = await call('POST', '/wall/share', A, { kind: 'pictures', confirm: 'true' }); step('after removal the team may share again', again.status, 200);
+    if (again.d.item) await call('POST', '/wall/' + again.d.item.id + '/remove', A, {});
+    await R.supabase.from('evalroom_practice_locks').update({ reset_at: new Date().toISOString(), reset_note: 'selftest tidy-up' }).like('team_key', 'preview:' + run + '-%').is('reset_at', null);
+    return { passed: steps.filter((x) => x.startsWith('PASS')).length, total: steps.length, steps };
   }
 
   if (row.kind === 'refit') {

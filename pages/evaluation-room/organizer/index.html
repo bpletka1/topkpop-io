@@ -32,6 +32,14 @@
     <div class="er-scroll"><table class="er-table"><thead><tr><th>Team</th><th>Trove</th><th>Score</th><th>Locked</th><th>Extras</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
     <p class="er-msg" id="listMsg"></p>
   </section>
+  <section class="er-card" id="wall" hidden>
+    <div class="er-row" style="justify-content:space-between;margin-bottom:12px">
+      <div><p class="er-label">The Wall</p><h2 class="er-h2" id="wallCount"></h2></div>
+    </div>
+    <p class="er-muted" style="margin-bottom:12px">Everything teams have shared. Removing an item takes it off the wall and takes back that team's sharing points.</p>
+    <div class="er-scroll"><table class="er-table"><thead><tr><th>Team</th><th>What</th><th>Shared</th><th>Public Instagram?</th><th>Look</th><th></th></tr></thead><tbody id="wallRows"></tbody></table></div>
+    <p class="er-msg" id="wallMsg"></p>
+  </section>
 </main>
 <script src="/js/evalroom.js"></script>
 <script>
@@ -56,11 +64,34 @@
       }).join('') || '<tr><td colspan="6" class="er-muted">No team has locked a score yet.</td></tr>';
     });
   }
+  function loadWall() {
+    return call('/organizer/wall').then(function (d) {
+      $('#wall').hidden = false;
+      var want = new URLSearchParams(location.search).get('wall');
+      var live = d.items.filter(function (i) { return !i.removedAt; });
+      $('#wallCount').textContent = live.length + ' item' + (live.length === 1 ? '' : 's') + ' on the wall';
+      $('#wallRows').innerHTML = d.items.map(function (i) {
+        var when = new Date(i.when).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        var look = i.kind === 'pictures' && i.images ? ['avatar', 'poster'].map(function (s) { return i.images[s] && i.images[s].full ? '<a href="' + esc(i.images[s].full) + '" target="_blank" rel="noopener">' + s + '</a>' : ''; }).join(' ') : i.embed && /^https:\/\/player\.vimeo\.com\//.test(i.embed) ? '<button class="er-linkbtn" data-play="' + esc(i.embed) + '">play video</button>' : '';
+        return '<tr' + (want === i.id ? ' style="outline:2px solid #ffbf00"' : '') + '><td><b>' + esc(i.team || '') + '</b>' + (i.practice ? ' <span class="er-badge practice">Practice</span>' : '') + '</td><td>Trove 0' + i.trove + ' · ' + (i.kind === 'pictures' ? 'avatar and poster' : esc(i.title || 'karaoke video')) + '</td><td>' + esc(when) + '</td><td>' + (i.publicOk ? '<b>Yes, approved</b>' : 'No') + '</td><td>' + look + '</td><td>' +
+          (i.removedAt ? '<span class="er-small">Removed by ' + esc(i.removedBy || '') + (i.note ? ': ' + esc(i.note) : '') + '</span>' : '<button class="er-btn ghost small" data-wall="' + esc(i.id) + '" data-team="' + esc(i.team || '') + '">Remove</button>') + '</td></tr>';
+      }).join('') || '<tr><td colspan="6" class="er-muted">Nothing has been shared yet.</td></tr>';
+      if (want) { var hl = document.querySelector('#wallRows tr[style]'); if (hl) hl.scrollIntoView({ block: 'center' }); }
+    });
+  }
+  $('#wallRows').addEventListener('click', function (ev) {
+    var play = ev.target.getAttribute('data-play');
+    if (play) { var td = ev.target.parentNode; td.innerHTML = '<iframe src="' + esc(play) + '" style="width:260px;height:146px;border:0" allow="autoplay; fullscreen" allowfullscreen></iframe>'; return; }
+    var b = ev.target.closest('button[data-wall]'); if (!b) return;
+    var note = window.prompt('Remove what "' + b.getAttribute('data-team') + '" shared?\n\nIt comes off the wall and their sharing points are taken back. Type a short reason and press OK, or Cancel to leave it.');
+    if (note === null) return;
+    call('/organizer/wall/remove', { id: b.getAttribute('data-wall'), note: note }).then(loadWall).catch(function (e) { ER.showMsg($('#wallMsg'), e.message); });
+  });
   $('#gateForm').addEventListener('submit', function (ev) {
     ev.preventDefault(); pw = $('#pw').value; ER.hideMsg($('#gateMsg'));
-    load().catch(function (e) { ER.showMsg($('#gateMsg'), e.message); });
+    load().then(loadWall).catch(function (e) { ER.showMsg($('#gateMsg'), e.message); });
   });
-  $('#refresh').addEventListener('click', function () { load().catch(function (e) { ER.showMsg($('#listMsg'), e.message); }); });
+  $('#refresh').addEventListener('click', function () { load().then(loadWall).catch(function (e) { ER.showMsg($('#listMsg'), e.message); }); });
   $('#rows').addEventListener('click', function (ev) {
     var b = ev.target.closest('button[data-id]'); if (!b) return;
     var note = window.prompt('Reset the Trove 0' + b.getAttribute('data-trove') + ' lock for "' + b.getAttribute('data-team') + '"?\n\nTheir official score for this Trove is removed and they can lock again. Type a short reason and press OK, or Cancel to leave it.');
