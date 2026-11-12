@@ -1427,6 +1427,28 @@ async function sendWeeklyScoreSummary() {
   }
 }
 
+// Instagram: the clue for a Trove is posted when that Trove opens (see api/instagram.js).
+const instagram = require('./instagram');
+async function instagramNotify({ subject, html }) {
+  const to = process.env.EVALROOM_ORGANIZER_EMAIL || process.env.ADMIN_EMAIL;
+  if (!to) return;
+  await resend.emails.send({ from: 'TopKpop.io System <anna@topkpop.io>', to, subject, html });
+}
+
+// Admin: is Instagram connected, and what would be posted for each Trove. Never returns the token.
+router.get('/admin/instagram', adminAuth, (req, res) => {
+  res.json({ connected: instagram.configured(), clues: [1, 2, 3].map((n) => instagram.clueFor(n)) });
+});
+// Admin: post one Trove's clue now (for a test, or to redo one that failed).
+router.post('/admin/instagram/post-clue', adminAuth, async (req, res) => {
+  const n = Number(req.body && req.body.trove);
+  if (![1, 2, 3].includes(n)) return res.status(400).json({ error: 'Choose Trove 1, 2 or 3.' });
+  if (!instagram.configured()) return res.status(409).json({ error: 'Instagram is not connected yet. Nothing was posted.' });
+  const out = await instagram.postClue(n, { notify: null });
+  if (!out.posted) return res.status(502).json({ error: `Instagram did not accept the post: ${out.reason}` });
+  res.json({ ok: true, id: out.id });
+});
+
 function startScheduler() {
   // ── Sunday 7:00 PM Pacific — Trove / Accusation unlock checks ──────────────
   // Runs every Sunday at 19:00 PT (03:00 UTC Monday)
@@ -1446,18 +1468,21 @@ function startScheduler() {
       // Trove 1 — Day 1 (game start)
       if (settings.game_start_date && settings.game_start_date <= nowISO && !settings.trove1_email_sent) {
         await sendTroveUnlockEmail(1);
+        await instagram.postClue(1, { notify: instagramNotify });
         await supabase.from('game_settings').update({ trove1_email_sent: true }).eq('id', 1);
         console.log('Trove 1 unlock email sent.');
       }
       // Trove 2 — Day 8 Sunday 7pm
       if (settings.trove2_unlock && settings.trove2_unlock <= nowISO && !settings.trove2_email_sent) {
         await sendTroveUnlockEmail(2);
+        await instagram.postClue(2, { notify: instagramNotify });
         await supabase.from('game_settings').update({ trove2_email_sent: true }).eq('id', 1);
         console.log('Trove 2 unlock email sent.');
       }
       // Trove 3 — Day 15 Sunday 7pm
       if (settings.trove3_unlock && settings.trove3_unlock <= nowISO && !settings.trove3_email_sent) {
         await sendTroveUnlockEmail(3);
+        await instagram.postClue(3, { notify: instagramNotify });
         await supabase.from('game_settings').update({ trove3_email_sent: true }).eq('id', 1);
         console.log('Trove 3 unlock email sent.');
       }

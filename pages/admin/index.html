@@ -332,6 +332,19 @@
       </div>
     </div>
 
+    <!-- INSTAGRAM CLUE POSTS -->
+    <div class="admin-panel" style="border-color:rgba(176,106,255,0.25);">
+      <div class="panel-header" style="border-bottom-color:rgba(176,106,255,0.15);">
+        <span class="panel-title" style="color:#b06aff;">&#128247; Instagram Clue Posts</span>
+        <span class="panel-badge" id="ig-status" style="background:rgba(176,106,255,0.1); border-color:rgba(176,106,255,0.3); color:#b06aff;">Checking</span>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:0.92rem; line-height:1.65; color:rgba(224,224,224,0.8); margin-bottom:12px;">When a Trove opens, its clue is posted to @topkpopio. Until Instagram is connected, or if a post fails, you get an email with the picture and caption to post by hand.</p>
+        <div id="ig-clues"></div>
+        <div id="ig-result" style="margin-top:10px; font-size:0.9rem;"></div>
+      </div>
+    </div>
+
     <!-- SCORE BY NAME (Joyce Dance / Manual) -->
     <div class="admin-panel" style="border-color:rgba(0,180,100,0.25);">
       <div class="panel-header" style="border-bottom-color:rgba(0,180,100,0.15);">
@@ -636,6 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function loadDashboard() {
+  loadInstagram();
   try {
     // Load game settings
     const settingsRes = await fetch('/api/admin/settings', { headers: { password: ADMIN_PASS } });
@@ -1156,6 +1170,36 @@ async function startNewGameInstance() {
   }
 }
 </script>
-<script src="/js/nav.js"></script>
+<script src="/js/nav.js">
+// Instagram clue posts
+async function loadInstagram() {
+  try {
+    const r = await fetch('/api/admin/instagram', { headers: { password: ADMIN_PASS } });
+    if (!r.ok) return;
+    const d = await r.json();
+    const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    document.getElementById('ig-status').textContent = d.connected ? 'Connected' : 'Not connected yet';
+    document.getElementById('ig-clues').innerHTML = (d.clues || []).map((c) =>
+      '<div style="display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-top:1px solid rgba(255,255,255,0.06);">' +
+      (c.video ? '' : '<a href="' + esc(c.media) + '" target="_blank" rel="noopener"><img src="' + esc(c.media) + '" alt="Trove 0' + c.trove + ' clue card" style="width:72px; border-radius:4px; border:1px solid rgba(255,255,255,0.15);" /></a>') +
+      '<div style="flex:1; min-width:0;"><strong>Trove 0' + c.trove + '</strong> &middot; <a href="' + esc(c.media) + '" target="_blank" rel="noopener" style="color:#b06aff;">' + (c.video ? 'video' : 'picture') + '</a>' +
+      '<div style="white-space:pre-wrap; font-size:0.82rem; color:rgba(224,224,224,0.65); margin-top:4px;">' + esc(c.caption) + '</div>' +
+      (d.connected ? '<button type="button" class="team-action" style="margin-top:8px;" onclick="postInstagramClue(' + c.trove + ', this)">Post this clue now</button>' : '') +
+      '</div></div>').join('');
+  } catch (e) { /* the panel is optional */ }
+}
+async function postInstagramClue(trove, btn) {
+  const out = document.getElementById('ig-result');
+  if (!window.confirm('Post the Trove 0' + trove + ' clue to @topkpopio now? It will be public.')) return;
+  btn.disabled = true; out.style.color = ''; out.textContent = 'Posting. This can take a minute.';
+  try {
+    const r = await fetch('/api/admin/instagram/post-clue', { method: 'POST', headers: { 'Content-Type': 'application/json', password: ADMIN_PASS }, body: JSON.stringify({ trove }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'The post did not go through.');
+    out.style.color = '#00B464'; out.textContent = 'Posted the Trove 0' + trove + ' clue to Instagram.';
+  } catch (e) { out.style.color = '#ff6b6b'; out.textContent = e.message; }
+  btn.disabled = false;
+}
+</script>
 </body>
 </html>
