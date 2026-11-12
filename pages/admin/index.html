@@ -1174,7 +1174,7 @@ async function startNewGameInstance() {
 async function loadInstagram() {
   try {
     const r = await fetch('/api/admin/instagram', { headers: { password: ADMIN_PASS } });
-    if (!r.ok) return;
+    if (!r.ok) { document.getElementById('ig-status').textContent = 'Could not load'; return; }
     const d = await r.json();
     const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     document.getElementById('ig-status').textContent = d.connected ? 'Connected' : 'Not connected yet';
@@ -1182,19 +1182,20 @@ async function loadInstagram() {
       '<div style="padding:10px 0; border-top:1px solid rgba(255,255,255,0.06);"><strong>Trove 0' + t.trove + '</strong> &middot; ' + t.items.length + ' posts' +
       t.items.map((c) => '<div style="margin-top:8px;"><a href="' + esc(c.page) + '" target="_blank" rel="noopener" style="color:#b06aff;">' + (c.key === 'card' ? 'Cipher card' : 'Clue video ' + c.key.slice(5)) + '</a>' +
         '<div style="white-space:pre-wrap; font-size:0.8rem; color:rgba(224,224,224,0.6); margin-top:2px;">' + esc(c.caption.split('\n')[0]) + '</div></div>').join('') +
-      (d.connected ? '<button type="button" class="team-action" style="margin-top:10px;" onclick="postInstagramClue(' + t.trove + ', this)">Post Trove 0' + t.trove + ' clues now</button>' : '') +
+      (d.connected && t.open ? '<button type="button" class="team-action" style="margin-top:10px;" onclick="postInstagramClue(' + t.trove + ', this)">Post Trove 0' + t.trove + ' clues now</button>' : '') +
+      (t.open ? '' : '<div style="font-size:0.8rem; color:rgba(224,224,224,0.5); margin-top:8px;">Not open yet. Its clues post on their own when it opens.</div>') +
       '</div>').join('') + (d.vimeo ? '' : '<p style="font-size:0.85rem; color:#ffbf00;">The site has no Vimeo token, so clue videos would come to you to post by hand.</p>');
-  } catch (e) { /* the panel is optional */ }
+  } catch (e) { document.getElementById('ig-status').textContent = 'Could not load'; }
 }
 async function postInstagramClue(trove, btn) {
   const out = document.getElementById('ig-result');
   if (!window.confirm('Post the Trove 0' + trove + ' cipher card and clue videos to @topkpopio now? Everyone who can see that account will see them.')) return;
-  btn.disabled = true; out.style.color = ''; out.textContent = 'Posting. Videos take a few minutes. You can leave this page; anything already posted is never posted twice.';
+  btn.disabled = true; out.style.color = ''; out.textContent = 'Starting.';
   try {
     const r = await fetch('/api/admin/instagram/post-clue', { method: 'POST', headers: { 'Content-Type': 'application/json', password: ADMIN_PASS }, body: JSON.stringify({ trove }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.error || 'The post did not go through.');
-    out.style.color = '#00B464'; out.textContent = d.already ? 'The Trove 0' + trove + ' clues are already on Instagram. Nothing new was posted.' : 'The Trove 0' + trove + ' clues are on Instagram.';
+    out.style.color = '#00B464'; out.textContent = 'Started. The card and videos go up one at a time over the next 10 to 25 minutes. Anything already on the account is skipped, and you get an email about anything that does not go up.';
   } catch (e) { out.style.color = '#ff6b6b'; out.textContent = e.message; }
   btn.disabled = false;
 }

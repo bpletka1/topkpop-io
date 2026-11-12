@@ -1437,22 +1437,65 @@ async function instagramNotify({ subject, html }) {
   return true;
 }
 
+// Has this date's opening moment (7 PM Pacific on that date) passed? The same rule the Trove pages use.
+function hasOpened(dateStr) {
+  if (!dateStr) return false;
+  const at = require('./evalroom-schedule')._internal.unlockInstant(dateStr);
+  return at != null && at <= Date.now();
+}
+// Which Troves are open right now, by the organizer's dates. No date at all means open, as on the pages.
+async function trovesOpen() {
+  const { data: s, error } = await supabase.from('game_settings').select('game_start_date, trove1_unlock, trove2_unlock, trove3_unlock').eq('id', 1).single();
+  if (error) throw new Error(error.message);
+  const d = { 1: (s && (s.game_start_date || s.trove1_unlock)) || null, 2: (s && s.trove2_unlock) || null, 3: (s && s.trove3_unlock) || null };
+  const out = {}; for (const n of [1, 2, 3]) out[n] = { open: !d[n] || hasOpened(d[n]), date: d[n] };
+  return out;
+}
+
 // Admin: is Instagram connected, and what would be posted for each Trove. Never returns the token.
-router.get('/admin/instagram', adminAuth, (req, res) => {
-  res.json({ connected: instagram.configured(), vimeo: !!String(process.env.VIMEO_ACCESS_TOKEN || '').trim(), troves: [1, 2, 3].map((n) => ({ trove: n, items: instagram.cluesFor(n).map(({ key, video, page, caption }) => ({ key, video, page, caption })) })) });
+router.get('/admin/instagram', adminAuth, async (req, res) => {
+  let open = {}; try { open = await trovesOpen(); } catch (e) { open = {}; }
+  res.json({
+    connected: instagram.configured(), vimeo: !!String(process.env.VIMEO_ACCESS_TOKEN || '').trim(),
+    troves: [1, 2, 3].map((n) => ({ trove: n, open: !!(open[n] && open[n].open), items: instagram.cluesFor(n).map(({ key, video, page, caption }) => ({ key, video, page, caption })) })),
+  });
 });
-// Admin: post one Trove's clues now (for a test, or to finish ones that failed). Anything already up is skipped.
+// Admin: post one Trove's clues now (to finish ones that failed). Only for a Trove that is open; anything already
+// up is skipped. The run goes on in the background, since videos take minutes, and the organizer is emailed about
+// anything that does not go up.
 router.post('/admin/instagram/post-clue', adminAuth, async (req, res) => {
   const n = req.body && req.body.trove;
   if (![1, 2, 3].includes(n)) return res.status(400).json({ error: 'Choose Trove 1, 2 or 3.' });
   if (!instagram.configured()) return res.status(409).json({ error: 'Instagram is not connected yet. Nothing was posted.' });
-  const out = await instagram.postClue(n, { notify: null });
-  const done = (out.items || []).filter((x) => x.posted).length;
-  if (!out.posted) return res.status(502).json({ error: `${done} of ${(out.items || []).length || 'the'} went up. Not posted: ${out.reason}`, items: out.items });
-  res.json({ ok: true, already: !!out.already, items: out.items });
+  let open; try { open = await trovesOpen(); } catch (e) { return res.status(502).json({ error: 'The game dates could not be read, so nothing was posted. Please try again.' }); }
+  if (!open[n].open) return res.status(409).json({ error: `Trove 0${n} is not open yet, so its clues stay off Instagram. Nothing was posted.` });
+  if (instagram.isBusy(n)) return res.status(409).json({ error: `The Trove 0${n} clues are being posted right now. Check @topkpopio in a few minutes.` });
+  instagram.postClue(n, { notify: instagramNotify }).catch((e) => console.error('instagram post error:', e.message));
+  res.json({ ok: true, started: true });
 });
 
+// If the site restarted while clues were going up, finish the job: for a Trove that opened in the last day and
+// whose unlock email has gone out, post whatever is not on the account yet. Quiet (no emails) and safe to repeat.
+async function instagramCatchUp() {
+  if (!instagram.configured()) return;
+  try {
+    const { data: s } = await supabase.from('game_settings').select('game_start_date, trove2_unlock, trove3_unlock, trove1_email_sent, trove2_email_sent, trove3_email_sent').eq('id', 1).single();
+    if (!s) return;
+    const at = require('./evalroom-schedule')._internal.unlockInstant;
+    const rows = [[1, s.game_start_date, s.trove1_email_sent], [2, s.trove2_unlock, s.trove2_email_sent], [3, s.trove3_unlock, s.trove3_email_sent]];
+    for (const [n, date, sent] of rows) {
+      const t0 = date ? at(date) : null;
+      if (!sent || t0 == null || Date.now() < t0 + 20 * 60 * 1000 || Date.now() > t0 + 24 * 3600 * 1000) continue;
+      if (instagram.isBusy(n)) continue;
+      await instagram.postClue(n, { notify: null });
+    }
+  } catch (e) { console.error('instagram catch-up error:', e.message); }
+}
+
 function startScheduler() {
+  // Instagram catch-up: shortly after start, then every hour at :40.
+  setTimeout(instagramCatchUp, 90 * 1000);
+  cron.schedule('40 * * * *', instagramCatchUp, { timezone: 'America/Los_Angeles' });
   // ── Sunday 7:00 PM Pacific — Trove / Accusation unlock checks ──────────────
   // Runs every Sunday at 19:00 PT (03:00 UTC Monday)
   cron.schedule('0 19 * * 0', async () => {   // Sunday 7:00 PM in Los Angeles (the timezone option below does the conversion)
@@ -1469,7 +1512,7 @@ function startScheduler() {
       const nowISO = now.toISOString();
 
       // Trove 1 — Day 1 (game start)
-      if (settings.game_start_date && settings.game_start_date <= nowISO && !settings.trove1_email_sent) {
+      if (hasOpened(settings.game_start_date) && !settings.trove1_email_sent) {
         await sendTroveUnlockEmail(1);
         await supabase.from('game_settings').update({ trove1_email_sent: true }).eq('id', 1);
         // After the flag is saved and not waited on: a slow or failed post can never re-send the emails or hold up this job.
@@ -1477,7 +1520,7 @@ function startScheduler() {
         console.log('Trove 1 unlock email sent.');
       }
       // Trove 2 — Day 8 Sunday 7pm
-      if (settings.trove2_unlock && settings.trove2_unlock <= nowISO && !settings.trove2_email_sent) {
+      if (hasOpened(settings.trove2_unlock) && !settings.trove2_email_sent) {
         await sendTroveUnlockEmail(2);
         await supabase.from('game_settings').update({ trove2_email_sent: true }).eq('id', 1);
         // After the flag is saved and not waited on: a slow or failed post can never re-send the emails or hold up this job.
@@ -1485,7 +1528,7 @@ function startScheduler() {
         console.log('Trove 2 unlock email sent.');
       }
       // Trove 3 — Day 15 Sunday 7pm
-      if (settings.trove3_unlock && settings.trove3_unlock <= nowISO && !settings.trove3_email_sent) {
+      if (hasOpened(settings.trove3_unlock) && !settings.trove3_email_sent) {
         await sendTroveUnlockEmail(3);
         await supabase.from('game_settings').update({ trove3_email_sent: true }).eq('id', 1);
         // After the flag is saved and not waited on: a slow or failed post can never re-send the emails or hold up this job.
@@ -1493,7 +1536,7 @@ function startScheduler() {
         console.log('Trove 3 unlock email sent.');
       }
       // Guess the Saboteur — Day 22 Sunday 7pm
-      if (settings.accusation_open && settings.accusation_open <= nowISO && !settings.accusation_email_sent) {
+      if (hasOpened(settings.accusation_open) && !settings.accusation_email_sent) {
         await sendAccusationUnlockEmail();
         await supabase.from('game_settings').update({ accusation_email_sent: true }).eq('id', 1);
         console.log('Guess the Saboteur unlock email sent.');

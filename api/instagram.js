@@ -39,7 +39,7 @@ function scrub(text) {
   return out;
 }
 
-const TAGS = '#TopKpop #AISuperSleuth #KClue';
+const TAGS = '#TopKpopSleuth';
 const WHERE = 'Every clue is also on the website. Sign in at topkpop.io to investigate.';
 
 /**
@@ -59,7 +59,7 @@ function cluesFor(trove) {
     caption: [firstLine(n), `"${c.title}" — ${c.line}`, WHERE, TAGS].join('\n\n'),
   }];
   c.videos.forEach((id, i) => {
-    const first = `K-CLUE · Treasure Trove 0${n} · Clue video ${i + 1} of ${c.videos.length}.`;
+    const first = `K-CLUE · Treasure Trove 0${n} · Clue video ${i + 1}.`;
     items.push({ trove: n, key: 'video' + (i + 1), first, vimeo: id, video: true, page: `https://vimeo.com/${id}`,
       caption: [first, 'Watch closely. Someone in this story is not who they seem.', WHERE, TAGS].join('\n\n') });
   });
@@ -78,9 +78,10 @@ async function vimeoFile(id) {
   } catch (e) { throw new Error('Vimeo could not be reached'); } finally { clearTimeout(timer); }
   if (!res.ok) throw new Error(`Vimeo answered ${res.status} for this video`);
   // Instagram wants a plain .mp4 no taller or wider than 1920; take the largest that fits.
+  // Vimeo's own conversions only (never the original upload, which can be huge or in a format Instagram refuses).
   const files = [].concat(data.files || [], data.download || [])
-    .filter((f) => f && f.link && /^https:\/\//i.test(f.link) && (f.type === 'video/mp4' || /\.mp4(\?|$)/i.test(f.link)) && f.quality !== 'hls' && f.quality !== 'dash')
-    .filter((f) => !f.width || Math.max(f.width, f.height || 0) <= 1920)
+    .filter((f) => f && f.link && /^https:\/\//i.test(f.link) && (f.type === 'video/mp4' || /\.mp4(\?|$)/i.test(f.link)) && !['hls', 'dash', 'source'].includes(f.quality))
+    .filter((f) => Math.max(f.width || 0, f.height || 0) <= 1920)
     .sort((a, b) => (b.height || 0) - (a.height || 0));
   if (!files.length) throw new Error('Vimeo gave no file link for this video (the token needs the video_files scope, and the Vimeo plan must include file links)');
   return files[0].link;
@@ -160,14 +161,17 @@ async function postClue(trove, { notify, opts } = {}) {
   const n = items[0].trove;
   const tell = async (lead, left) => {
     if (!notify) return false;
+    // Give the organizer a file to download for each video, where Vimeo will hand one over.
+    for (const x of left) { if (x.item.vimeo) { try { x.file = await vimeoFile(x.item.vimeo); } catch (_) { /* the Vimeo page link is still there */ } } }
     try {
       return (await notify({
         subject: `Post by hand: Trove 0${n} clue${left.length === 1 ? '' : 's'} for Instagram`,
         html: `<p>Trove 0${n} is open. ${esc(lead)}</p>` + left.map((x) => `<hr>
 <p><strong>${esc(label(x.item))}</strong>${x.reason ? ' — ' + esc(x.reason) : ''}<br>
-${x.item.video ? 'Video' : 'Picture'}: <a href="${esc(x.item.page)}">${esc(x.item.page)}</a></p>
+${x.item.video ? 'Video' : 'Picture'}: <a href="${esc(x.item.page)}">${esc(x.item.page)}</a><br>
+${x.file ? `Download the file: <a href="${esc(x.file)}">video file</a> (this link works for about a day)<br>` : ''}</p>
 <pre style="white-space:pre-wrap;font-family:inherit">${esc(x.item.caption)}</pre>`).join('') +
-          `<hr><p>If any of these are already on @topkpopio, there is nothing to do for that one.</p>`,
+          `<hr><p>If any of these are already on @topkpopio, there is nothing to do for that one. When you post one by hand, keep the first line of its caption exactly as written above: that line is how the site knows it is already up.</p>`,
       })) === true;
     } catch (e) { console.error('instagram notify error:', scrub(e.message)); return false; }
   };
@@ -203,4 +207,6 @@ ${x.item.video ? 'Video' : 'Picture'}: <a href="${esc(x.item.page)}">${esc(x.ite
   };
 }
 
-module.exports = { configured, cluesFor, postClue, _internal: { publish, address, alreadyPosted, scrub, vimeoFile } };
+const isBusy = (trove) => busy.has(Number(trove));
+
+module.exports = { configured, cluesFor, postClue, isBusy, _internal: { publish, address, alreadyPosted, scrub, vimeoFile } };
