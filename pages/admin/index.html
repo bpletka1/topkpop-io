@@ -339,7 +339,7 @@
         <span class="panel-badge" id="ig-status" style="background:rgba(176,106,255,0.1); border-color:rgba(176,106,255,0.3); color:#b06aff;">Checking</span>
       </div>
       <div class="panel-body">
-        <p style="font-size:0.92rem; line-height:1.65; color:rgba(224,224,224,0.8); margin-bottom:12px;">When a Trove opens, its clue is posted to @topkpopio. Until Instagram is connected, or if a post fails, you get an email with the picture and caption to post by hand.</p>
+        <p style="font-size:0.92rem; line-height:1.65; color:rgba(224,224,224,0.8); margin-bottom:12px;">When a Trove opens, its clue is posted to @topkpopio. Until Instagram is connected, or if a post fails, you get an email with the picture and caption to post by hand. A clue that is already on the account is never posted twice. A card can only be viewed once its Trove is open.</p>
         <div id="ig-clues"></div>
         <div id="ig-result" style="margin-top:10px; font-size:0.9rem;"></div>
       </div>
@@ -649,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function loadDashboard() {
-  loadInstagram();
+  try { loadInstagram(); } catch (e) { /* the Instagram panel is optional */ }
   try {
     // Load game settings
     const settingsRes = await fetch('/api/admin/settings', { headers: { password: ADMIN_PASS } });
@@ -1169,8 +1169,7 @@ async function startNewGameInstance() {
     resultDiv.innerHTML = '&#10007; Network error: ' + err.message;
   }
 }
-</script>
-<script src="/js/nav.js">
+
 // Instagram clue posts
 async function loadInstagram() {
   try {
@@ -1190,16 +1189,17 @@ async function loadInstagram() {
 }
 async function postInstagramClue(trove, btn) {
   const out = document.getElementById('ig-result');
-  if (!window.confirm('Post the Trove 0' + trove + ' clue to @topkpopio now? It will be public.')) return;
+  if (!window.confirm('Post the Trove 0' + trove + ' clue to @topkpopio now? Everyone who can see that account will see it.')) return;
   btn.disabled = true; out.style.color = ''; out.textContent = 'Posting. This can take a minute.';
   try {
     const r = await fetch('/api/admin/instagram/post-clue', { method: 'POST', headers: { 'Content-Type': 'application/json', password: ADMIN_PASS }, body: JSON.stringify({ trove }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.error || 'The post did not go through.');
-    out.style.color = '#00B464'; out.textContent = 'Posted the Trove 0' + trove + ' clue to Instagram.';
+    out.style.color = '#00B464'; out.textContent = d.already ? 'The Trove 0' + trove + ' clue is already on Instagram. Nothing new was posted.' : 'Posted the Trove 0' + trove + ' clue to Instagram.';
   } catch (e) { out.style.color = '#ff6b6b'; out.textContent = e.message; }
   btn.disabled = false;
 }
 </script>
+<script src="/js/nav.js"></script>
 </body>
 </html>

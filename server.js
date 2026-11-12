@@ -46,6 +46,19 @@ app.use('/api/jeannie', jeannieRouter);
 // ── Static assets ────────────────────────────────────────────────────────────
 app.use('/css',    express.static(path.join(__dirname, 'public/css')));
 app.use('/js',     express.static(path.join(__dirname, 'public/js')));
+// A Trove's Instagram clue card carries its cipher, so it stays closed until that Trove opens.
+app.use('/assets/instagram', async (req, res, next) => {
+  let p;
+  try { p = path.posix.normalize(decodeURIComponent(req.path)).toLowerCase().replace(/\/+/g, '/'); } catch (e) { return res.status(404).end(); }
+  const m = /^\/trove-0([123])\.jpg$/.exec(p);
+  if (!m) return res.status(404).end();
+  try {
+    const s = (await troveSchedule.get())[m[1]];
+    if (s && !s.open) { res.set('Cache-Control', 'no-store'); return res.status(404).end(); }
+  } catch (e) { /* no schedule read: same rule as the Trove pages, which stay open */ }
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
 
 // ── Inner pages ──────────────────────────────────────────────────────────────
