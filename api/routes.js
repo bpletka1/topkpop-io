@@ -850,6 +850,9 @@ async function checkAndAnnounceWinner() {
 
     const closeAt = settings?.accusation_close ? require('./evalroom-schedule')._internal.unlockInstant(settings.accusation_close) : null;
     if (closeAt == null || closeAt > Date.now()) return; // Window still open (it closes at 7:00 PM Pacific on its date)
+    // A window that closed more than three weeks ago belongs to a finished season (the pages treat it the same
+    // way), so it is left alone: no new pending winner and no new reminders once the organizer has cleared it.
+    if (Date.now() - closeAt > 21 * 24 * 3600 * 1000) return;
 
     // Get all teams with scores and accusations (manual join to avoid FK issues)
     const { data: teams } = await supabase
