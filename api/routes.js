@@ -823,11 +823,25 @@ router.post('/accuse', async (req, res) => {
 // WINNER DETERMINATION
 // ════════════════════════════════════════════════════════════════════════════
 
+// The winning rule: among teams that named the saboteur correctly, the most points wins; if no team did, the most
+// points wins. Takes [{ total_score, correct_accusation, ... }] and returns the winning entry (or undefined).
+function pickWinner(scored) {
+  const byScore = (a, b) => b.total_score - a.total_score;
+  const withCorrect = scored.filter((t) => t.correct_accusation).sort(byScore);
+  return withCorrect.length > 0 ? withCorrect[0] : scored.slice().sort(byScore)[0];
+}
+// winner_data is stored as text inside a json column; read it whichever way it comes back.
+function readWinnerData(v) {
+  if (!v) return {};
+  if (typeof v === 'object') return v;
+  try { const o = JSON.parse(v); return o && typeof o === 'object' ? o : {}; } catch (_) { return {}; }
+}
+
 async function checkAndAnnounceWinner() {
   try {
     const { data: settings } = await supabase
       .from('game_settings')
-      .select('accusation_close, winner_announced, winner_team_id')
+      .select('accusation_close, winner_announced, winner_team_id, winner_pending_approval, winner_data')
       .eq('id', 1)
       .single();
 
@@ -875,9 +889,7 @@ async function checkAndAnnounceWinner() {
       return { ...team, total_score: total, correct_accusation: acc?.is_correct || false };
     });
 
-    // Winner = highest score with correct accusation first, then just highest score
-    const withCorrect = scored.filter(t => t.correct_accusation).sort((a, b) => b.total_score - a.total_score);
-    const winner = withCorrect.length > 0 ? withCorrect[0] : scored.sort((a, b) => b.total_score - a.total_score)[0];
+    const winner = pickWinner(scored);
 
     if (!winner) return;
 
@@ -896,8 +908,11 @@ async function checkAndAnnounceWinner() {
       }),
     }).eq('id', 1);
 
-    // Notify admin that winner is ready for approval
-    await notifyAdminWinnerReady(winner, scored);
+    // Notify admin that winner is ready for approval, once per result: this check runs again every week and on
+    // every filing until the winner is approved, and the same answer does not need a new email each time.
+    const before = readWinnerData(settings?.winner_data);
+    const same = settings?.winner_pending_approval && settings?.winner_team_id === winner.id && before.total_score === winner.total_score && !!before.correct_accusation === !!winner.correct_accusation;
+    if (!same) await notifyAdminWinnerReady(winner, scored);
 
     console.log(`Winner calculated (PENDING ADMIN APPROVAL): ${winner.team_name} (${winner.captain_email}) — Score: ${winner.total_score}`);
 
@@ -962,7 +977,7 @@ router.post('/admin/approve-winner', adminAuth, async (req, res) => {
       return res.status(400).json({ error: 'Winner has already been announced.' });
     }
 
-    const winner = JSON.parse(settings.winner_data || '{}');
+    const winner = readWinnerData(settings.winner_data);
     if (!winner.captain_email) {
       return res.status(400).json({ error: 'Winner data is missing or corrupted.' });
     }
@@ -1437,6 +1452,22 @@ async function instagramNotify({ subject, html }) {
   return true;
 }
 
+// For a job that runs once a week: true only on the first run after `at` (ms), so an email with no sent-flag
+// goes out once and is never repeated in later weeks.
+function firstWeeklyRunAfter(at) {
+  return at != null && at <= Date.now() && Date.now() - at < 6 * 24 * 3600 * 1000;
+}
+// The moment (ms) a YYYY-MM-DD date begins in Los Angeles.
+function laMidnight(dateStr) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || '')); if (!m) return null;
+  for (const off of [7, 8]) {
+    const t = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), off);
+    const h = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', hour12: false }).format(new Date(t))) % 24;
+    if (h === 0) return t;
+  }
+  return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 8);
+}
+
 // Has this date's opening moment (7 PM Pacific on that date) passed? The same rule the Trove pages use.
 function hasOpened(dateStr) {
   if (!dateStr) return false;
@@ -1536,9 +1567,9 @@ function startScheduler() {
         console.log('Trove 3 unlock email sent.');
       }
       // Guess the Saboteur — Day 22 Sunday 7pm
-      if (hasOpened(settings.accusation_open) && !settings.accusation_email_sent) {
+      // No sent-flag exists for this one, so it goes out only on the first weekly run after the window opens.
+      if (firstWeeklyRunAfter(require('./evalroom-schedule')._internal.unlockInstant(settings.accusation_open))) {
         await sendAccusationUnlockEmail();
-        await supabase.from('game_settings').update({ accusation_email_sent: true }).eq('id', 1);
         console.log('Guess the Saboteur unlock email sent.');
       }
     } catch (err) {
@@ -1560,9 +1591,9 @@ function startScheduler() {
       if (!settings) return;
       const nowISO = new Date().toISOString();
 
-      if (settings.reveal_unlock && settings.reveal_unlock <= nowISO && !settings.reveal_email_sent) {
+      // No sent-flag exists for this one either: only on the first weekly run after the reveal date begins.
+      if (firstWeeklyRunAfter(laMidnight(settings.reveal_unlock))) {
         await sendRevealEmail();
-        await supabase.from('game_settings').update({ reveal_email_sent: true }).eq('id', 1);
         console.log('Final Reveal email sent.');
       }
       // Also check winner announcement
@@ -1619,7 +1650,7 @@ async function sendAdminReminderEmail(adminEmail) {
       .single();
 
     // The pending winner is stored as one record by checkAndAnnounceWinner.
-    let w = {}; try { w = JSON.parse(settings?.winner_data || '{}') || {}; } catch (_) {}
+    const w = readWinnerData(settings?.winner_data);
     const teamName = w.team_name || 'Unknown Team';
     const score = w.total_score || 0;
     const correct = w.correct_accusation ? 'YES — named the saboteur correctly' : 'NO — no team named the saboteur correctly, so the top score wins';
@@ -1690,7 +1721,7 @@ async function sendRevealEmail() {
 
     const saboteur = settings?.correct_saboteur || 'The Saboteur';
     // The winner is stored as one record by checkAndAnnounceWinner.
-    let w = {}; try { w = JSON.parse(settings?.winner_data || '{}') || {}; } catch (_) {}
+    const w = readWinnerData(settings?.winner_data);
     const winnerName = w.team_name || 'The Winning Team';
     const winnerScore = w.total_score != null ? w.total_score : '—';
     const accusationLine = w.correct_accusation ? 'Accusation: Correct &#10003;' : 'Top score &mdash; no team named the saboteur';
@@ -2380,4 +2411,4 @@ router.post('/admin/run-migration', adminAuth, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-module.exports = { router, startScheduler };
+module.exports = { router, startScheduler, _internal: { pickWinner, readWinnerData, firstWeeklyRunAfter, laMidnight, hasOpened } };
