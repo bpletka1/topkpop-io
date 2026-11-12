@@ -1439,17 +1439,17 @@ async function instagramNotify({ subject, html }) {
 
 // Admin: is Instagram connected, and what would be posted for each Trove. Never returns the token.
 router.get('/admin/instagram', adminAuth, (req, res) => {
-  res.json({ connected: instagram.configured(), clues: [1, 2, 3].map((n) => instagram.clueFor(n)) });
+  res.json({ connected: instagram.configured(), vimeo: !!String(process.env.VIMEO_ACCESS_TOKEN || '').trim(), troves: [1, 2, 3].map((n) => ({ trove: n, items: instagram.cluesFor(n).map(({ key, video, page, caption }) => ({ key, video, page, caption })) })) });
 });
-// Admin: post one Trove's clue now (for a test, or to redo one that failed).
+// Admin: post one Trove's clues now (for a test, or to finish ones that failed). Anything already up is skipped.
 router.post('/admin/instagram/post-clue', adminAuth, async (req, res) => {
   const n = req.body && req.body.trove;
   if (![1, 2, 3].includes(n)) return res.status(400).json({ error: 'Choose Trove 1, 2 or 3.' });
   if (!instagram.configured()) return res.status(409).json({ error: 'Instagram is not connected yet. Nothing was posted.' });
   const out = await instagram.postClue(n, { notify: null });
-  if (out.already) return res.json({ ok: true, already: true });
-  if (!out.posted) return res.status(502).json({ error: `Instagram did not accept the post: ${out.reason}` });
-  res.json({ ok: true, id: out.id });
+  const done = (out.items || []).filter((x) => x.posted).length;
+  if (!out.posted) return res.status(502).json({ error: `${done} of ${(out.items || []).length || 'the'} went up. Not posted: ${out.reason}`, items: out.items });
+  res.json({ ok: true, already: !!out.already, items: out.items });
 });
 
 function startScheduler() {

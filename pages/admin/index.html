@@ -339,7 +339,7 @@
         <span class="panel-badge" id="ig-status" style="background:rgba(176,106,255,0.1); border-color:rgba(176,106,255,0.3); color:#b06aff;">Checking</span>
       </div>
       <div class="panel-body">
-        <p style="font-size:0.92rem; line-height:1.65; color:rgba(224,224,224,0.8); margin-bottom:12px;">When a Trove opens, its clue is posted to @topkpopio. Until Instagram is connected, or if a post fails, you get an email with the picture and caption to post by hand. A clue that is already on the account is never posted twice. A card can only be viewed once its Trove is open.</p>
+        <p style="font-size:0.92rem; line-height:1.65; color:rgba(224,224,224,0.8); margin-bottom:12px;">When a Trove opens, its cipher card and clue videos are posted to @topkpopio. Until Instagram is connected, or if a post fails, you get an email with each item and its caption to post by hand. A clue that is already on the account is never posted twice. A card can only be viewed once its Trove is open.</p>
         <div id="ig-clues"></div>
         <div id="ig-result" style="margin-top:10px; font-size:0.9rem;"></div>
       </div>
@@ -1178,24 +1178,23 @@ async function loadInstagram() {
     const d = await r.json();
     const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     document.getElementById('ig-status').textContent = d.connected ? 'Connected' : 'Not connected yet';
-    document.getElementById('ig-clues').innerHTML = (d.clues || []).map((c) =>
-      '<div style="display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-top:1px solid rgba(255,255,255,0.06);">' +
-      (c.video ? '' : '<a href="' + esc(c.media) + '" target="_blank" rel="noopener"><img src="' + esc(c.media) + '" alt="Trove 0' + c.trove + ' clue card" style="width:72px; border-radius:4px; border:1px solid rgba(255,255,255,0.15);" /></a>') +
-      '<div style="flex:1; min-width:0;"><strong>Trove 0' + c.trove + '</strong> &middot; <a href="' + esc(c.media) + '" target="_blank" rel="noopener" style="color:#b06aff;">' + (c.video ? 'video' : 'picture') + '</a>' +
-      '<div style="white-space:pre-wrap; font-size:0.82rem; color:rgba(224,224,224,0.65); margin-top:4px;">' + esc(c.caption) + '</div>' +
-      (d.connected ? '<button type="button" class="team-action" style="margin-top:8px;" onclick="postInstagramClue(' + c.trove + ', this)">Post this clue now</button>' : '') +
-      '</div></div>').join('');
+    document.getElementById('ig-clues').innerHTML = (d.troves || []).map((t) =>
+      '<div style="padding:10px 0; border-top:1px solid rgba(255,255,255,0.06);"><strong>Trove 0' + t.trove + '</strong> &middot; ' + t.items.length + ' posts' +
+      t.items.map((c) => '<div style="margin-top:8px;"><a href="' + esc(c.page) + '" target="_blank" rel="noopener" style="color:#b06aff;">' + (c.key === 'card' ? 'Cipher card' : 'Clue video ' + c.key.slice(5)) + '</a>' +
+        '<div style="white-space:pre-wrap; font-size:0.8rem; color:rgba(224,224,224,0.6); margin-top:2px;">' + esc(c.caption.split('\n')[0]) + '</div></div>').join('') +
+      (d.connected ? '<button type="button" class="team-action" style="margin-top:10px;" onclick="postInstagramClue(' + t.trove + ', this)">Post Trove 0' + t.trove + ' clues now</button>' : '') +
+      '</div>').join('') + (d.vimeo ? '' : '<p style="font-size:0.85rem; color:#ffbf00;">The site has no Vimeo token, so clue videos would come to you to post by hand.</p>');
   } catch (e) { /* the panel is optional */ }
 }
 async function postInstagramClue(trove, btn) {
   const out = document.getElementById('ig-result');
-  if (!window.confirm('Post the Trove 0' + trove + ' clue to @topkpopio now? Everyone who can see that account will see it.')) return;
-  btn.disabled = true; out.style.color = ''; out.textContent = 'Posting. This can take a minute.';
+  if (!window.confirm('Post the Trove 0' + trove + ' cipher card and clue videos to @topkpopio now? Everyone who can see that account will see them.')) return;
+  btn.disabled = true; out.style.color = ''; out.textContent = 'Posting. Videos take a few minutes. You can leave this page; anything already posted is never posted twice.';
   try {
     const r = await fetch('/api/admin/instagram/post-clue', { method: 'POST', headers: { 'Content-Type': 'application/json', password: ADMIN_PASS }, body: JSON.stringify({ trove }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.error || 'The post did not go through.');
-    out.style.color = '#00B464'; out.textContent = d.already ? 'The Trove 0' + trove + ' clue is already on Instagram. Nothing new was posted.' : 'Posted the Trove 0' + trove + ' clue to Instagram.';
+    out.style.color = '#00B464'; out.textContent = d.already ? 'The Trove 0' + trove + ' clues are already on Instagram. Nothing new was posted.' : 'The Trove 0' + trove + ' clues are on Instagram.';
   } catch (e) { out.style.color = '#ff6b6b'; out.textContent = e.message; }
   btn.disabled = false;
 }

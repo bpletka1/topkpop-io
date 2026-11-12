@@ -10,16 +10,21 @@
  *   INSTAGRAM_TROVE1_MEDIA, INSTAGRAM_TROVE2_MEDIA, INSTAGRAM_TROVE3_MEDIA
  *                            a public https link to a .jpg or .mp4 to post in place of the clue card
  *
+ * Each Trove posts its cipher card and then its clue videos. The videos live on Vimeo; at post time the site asks
+ * Vimeo for each one's direct file link (VIMEO_ACCESS_TOKEN, which needs the video_files scope and a Vimeo plan
+ * that gives file links). A video whose file link cannot be had is sent to the organizer to post by hand.
+ *
  * With nothing set, or if a post fails, the organizer is emailed the picture and caption to post by hand.
  * The preview copy never posts.
  */
 const SITE = 'https://www.topkpop.io';
 const PREVIEW_MODE = process.env.PREVIEW_MODE === '1';
 
+// videos: the Vimeo ids of the K-Clue videos on that Trove's page, in page order.
 const CLUES = {
-  1: { title: 'The Encore Ghost', line: 'A vanished idol. A secret challenge. The first cipher is out.' },
-  2: { title: 'The Blade of Bitterness', line: 'Ambition cuts deeper than any blade. The second cipher is out.' },
-  3: { title: 'Where Secret Scorn Smolders', line: 'Someone long dismissed left only a shadow. The final cipher is out.' },
+  1: { title: 'The Encore Ghost', line: 'A vanished idol. A secret challenge. The first cipher is out.', videos: ['1139810578', '1193250273', '1193252635'] },
+  2: { title: 'The Blade of Bitterness', line: 'Ambition cuts deeper than any blade. The second cipher is out.', videos: ['1144892790', '1144488168', '1193255434'] },
+  3: { title: 'Where Secret Scorn Smolders', line: 'Someone long dismissed left only a shadow. The final cipher is out.', videos: ['1193253275', '1193253274', '1193253273', '1193253276'] },
 };
 
 const env = (k) => String(process.env[k] || '').trim();
@@ -34,22 +39,51 @@ function scrub(text) {
   return out;
 }
 
-/** What would be posted for a Trove: the media link, whether it is a video, and the caption. */
-function clueFor(trove) {
+const TAGS = '#TopKpop #AISuperSleuth #KClue';
+const WHERE = 'Every clue is also on the website. Sign in at topkpop.io to investigate.';
+
+/**
+ * Everything that would be posted for a Trove, in order: the cipher card, then each clue video.
+ * Each item: { trove, key, first, caption, video, media (card) or vimeo (video id), page (where to see it) }.
+ * `first` is the caption's first line; it is unique per item and is how a repeat is recognised.
+ */
+function cluesFor(trove) {
   const n = Number(trove); const c = CLUES[n]; if (!c) return null;
-  // An override must be a public https link to a .jpg or an .mp4/.mov; anything else is ignored and the card is used.
+  // A card override must be a public https link to a .jpg or an .mp4/.mov; anything else is ignored.
   const override = env(`INSTAGRAM_TROVE${n}_MEDIA`);
   const usable = /^https:\/\/[^\s#]+\.(jpe?g|mp4|mov)(\?[^\s#]*)?$/i.test(override);
   if (override && !usable) console.warn(`instagram: INSTAGRAM_TROVE${n}_MEDIA is not an https link to a .jpg, .mp4 or .mov, so the clue card is used.`);
   const media = usable ? override : `${SITE}/assets/instagram/trove-0${n}.jpg`;
-  const video = /\.(mp4|mov)(\?|$)/i.test(media);
-  const caption = [
-    firstLine(n),
-    `"${c.title}" — ${c.line}`,
-    `Every clue is also on the website. Sign in at topkpop.io to investigate.`,
-    `#TopKpop #AISuperSleuth #KClue`,
-  ].join('\n\n');
-  return { trove: n, media, video, caption };
+  const items = [{
+    trove: n, key: 'card', first: firstLine(n), media, video: /\.(mp4|mov)(\?|$)/i.test(media), page: media,
+    caption: [firstLine(n), `"${c.title}" — ${c.line}`, WHERE, TAGS].join('\n\n'),
+  }];
+  c.videos.forEach((id, i) => {
+    const first = `K-CLUE · Treasure Trove 0${n} · Clue video ${i + 1} of ${c.videos.length}.`;
+    items.push({ trove: n, key: 'video' + (i + 1), first, vimeo: id, video: true, page: `https://vimeo.com/${id}`,
+      caption: [first, 'Watch closely. Someone in this story is not who they seem.', WHERE, TAGS].join('\n\n') });
+  });
+  return items;
+}
+
+/** Ask Vimeo for a direct .mp4 link to one of the account's videos. Throws with a plain reason if it cannot. */
+async function vimeoFile(id) {
+  const tok = env('VIMEO_ACCESS_TOKEN');
+  if (!tok) throw new Error('the site has no Vimeo token');
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 30000);
+  let res, data;
+  try {
+    res = await fetch(`https://api.vimeo.com/videos/${id}?fields=files,download`, { headers: { Authorization: 'bearer ' + tok, Accept: 'application/vnd.vimeo.*+json;version=3.4' }, signal: ctl.signal });
+    data = await res.json().catch(() => ({}));
+  } catch (e) { throw new Error('Vimeo could not be reached'); } finally { clearTimeout(timer); }
+  if (!res.ok) throw new Error(`Vimeo answered ${res.status} for this video`);
+  // Instagram wants a plain .mp4 no taller or wider than 1920; take the largest that fits.
+  const files = [].concat(data.files || [], data.download || [])
+    .filter((f) => f && f.link && /^https:\/\//i.test(f.link) && (f.type === 'video/mp4' || /\.mp4(\?|$)/i.test(f.link)) && f.quality !== 'hls' && f.quality !== 'dash')
+    .filter((f) => !f.width || Math.max(f.width, f.height || 0) <= 1920)
+    .sort((a, b) => (b.height || 0) - (a.height || 0));
+  if (!files.length) throw new Error('Vimeo gave no file link for this video (the token needs the video_files scope, and the Vimeo plan must include file links)');
+  return files[0].link;
 }
 
 const firstLine = (n) => `K-CLUE · Treasure Trove 0${n} is open.`;
@@ -81,10 +115,13 @@ async function call(method, path, params) {
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** Is this Trove's clue already on the account? Looks at the newest posts for the caption's first line. */
-async function alreadyPosted(trove) {
-  const got = await call('GET', `${env('INSTAGRAM_ACCOUNT_ID')}/media`, { fields: 'caption', limit: '25' });
-  return (got.data || []).some((m) => String(m.caption || '').startsWith(firstLine(trove)));
+/** The first lines of the newest posts on the account, used to recognise a clue that is already up. */
+async function recentCaptions() {
+  const got = await call('GET', `${env('INSTAGRAM_ACCOUNT_ID')}/media`, { fields: 'caption', limit: '50' });
+  return (got.data || []).map((m) => String(m.caption || ''));
+}
+async function alreadyPosted(item) {
+  return (await recentCaptions()).some((c) => c.startsWith(item.first));
 }
 
 /** Create the post, wait until Instagram has finished reading the media, then publish. Returns the media id. */
@@ -108,47 +145,62 @@ async function publish({ media, video, caption }, { pollMs = 15000, maxPolls = 2
 const busy = new Set();
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const label = (it) => it.key === 'card' ? 'cipher card' : 'clue video ' + it.key.slice(5);
 
 /**
- * Post a Trove's clue. Never throws: the caller is the unlock job, and a failed post must not stop the emails.
- * notify({ subject, html }) emails the organizer and returns true only if the email was really sent.
- * Returns { posted, already, by_hand, reason, id }.
+ * Post a Trove's clues: the cipher card, then each clue video. Never throws: the caller is the unlock job, and a
+ * failed post must not stop anything else. notify({ subject, html }) emails the organizer and returns true only
+ * if the email was really sent. One email lists everything left to post by hand.
+ * Returns { posted, already, by_hand, reason, items: [{ key, posted, already, reason, id }] }.
  */
 async function postClue(trove, { notify, opts } = {}) {
-  const clue = clueFor(trove);
-  if (!clue) return { posted: false, reason: 'no clue for that Trove' };
+  const items = cluesFor(trove);
+  if (!items) return { posted: false, reason: 'no clue for that Trove' };
   if (PREVIEW_MODE) return { posted: false, reason: 'the preview copy never posts' };
-  const tell = async (why) => {
+  const n = items[0].trove;
+  const tell = async (lead, left) => {
     if (!notify) return false;
     try {
       return (await notify({
-        subject: `Post by hand: Trove 0${clue.trove} clue for Instagram`,
-        html: `<p>Trove 0${clue.trove} is open. ${esc(why)}</p>
-<p><strong>${clue.video ? 'Video' : 'Picture'}:</strong> <a href="${esc(clue.media)}">${esc(clue.media)}</a></p>
-<p><strong>Caption:</strong></p><pre style="white-space:pre-wrap;font-family:inherit">${esc(clue.caption)}</pre>
-<p>If it is already on @topkpopio, there is nothing to do.</p>`,
+        subject: `Post by hand: Trove 0${n} clue${left.length === 1 ? '' : 's'} for Instagram`,
+        html: `<p>Trove 0${n} is open. ${esc(lead)}</p>` + left.map((x) => `<hr>
+<p><strong>${esc(label(x.item))}</strong>${x.reason ? ' — ' + esc(x.reason) : ''}<br>
+${x.item.video ? 'Video' : 'Picture'}: <a href="${esc(x.item.page)}">${esc(x.item.page)}</a></p>
+<pre style="white-space:pre-wrap;font-family:inherit">${esc(x.item.caption)}</pre>`).join('') +
+          `<hr><p>If any of these are already on @topkpopio, there is nothing to do for that one.</p>`,
       })) === true;
-    } catch (e) { console.error('instagram notify error:', e.message); return false; }
+    } catch (e) { console.error('instagram notify error:', scrub(e.message)); return false; }
   };
   if (!configured()) {
-    const by_hand = await tell('Instagram is not connected to the site yet, so this one is yours to post.');
-    return { posted: false, by_hand, reason: 'Instagram is not connected yet' };
+    const by_hand = await tell('Instagram is not connected to the site yet, so these are yours to post.', items.map((item) => ({ item })));
+    return { posted: false, by_hand, reason: 'Instagram is not connected yet', items: [] };
   }
-  if (busy.has(clue.trove)) return { posted: false, reason: 'this clue is being posted right now' };
-  busy.add(clue.trove);
+  if (busy.has(n)) return { posted: false, reason: 'these clues are being posted right now', items: [] };
+  busy.add(n);
+  const results = []; const left = [];
   try {
-    if (await alreadyPosted(clue.trove)) return { posted: true, already: true };
-    const id = await publish(clue, opts);
-    console.log(`Instagram: Trove ${clue.trove} clue posted (${id}).`);
-    return { posted: true, id };
-  } catch (e) {
-    const why = scrub(e.message);
-    // A lost reply does not mean a lost post: look once more before asking anyone to post by hand.
-    try { if (await alreadyPosted(clue.trove)) return { posted: true, already: true }; } catch (_) { /* fall through to the notice */ }
-    console.error(`Instagram: Trove ${clue.trove} clue failed:`, why);
-    const by_hand = await tell(`The site tried to post this to Instagram and it did not go through (${why}). Please check @topkpopio first in case it did arrive.`);
-    return { posted: false, by_hand, reason: why };
-  } finally { busy.delete(clue.trove); }
+    for (const item of items) {
+      try {
+        if (await alreadyPosted(item)) { results.push({ key: item.key, posted: true, already: true }); continue; }
+        const media = item.vimeo ? await vimeoFile(item.vimeo) : item.media;
+        const id = await publish({ media, video: item.video, caption: item.caption }, opts);
+        console.log(`Instagram: Trove ${n} ${label(item)} posted (${id}).`);
+        results.push({ key: item.key, posted: true, id });
+      } catch (e) {
+        const why = scrub(e.message);
+        // A lost reply does not mean a lost post: look once more before asking anyone to post by hand.
+        let there = false; try { there = await alreadyPosted(item); } catch (_) { /* treat as not there */ }
+        if (there) { results.push({ key: item.key, posted: true, already: true }); continue; }
+        console.error(`Instagram: Trove ${n} ${label(item)} failed:`, why);
+        results.push({ key: item.key, posted: false, reason: why }); left.push({ item, reason: why });
+      }
+    }
+  } finally { busy.delete(n); }
+  const by_hand = left.length ? await tell('The site tried to post these to Instagram and they did not go through. Please check @topkpopio first in case they did arrive.', left) : false;
+  return {
+    posted: left.length === 0, already: results.every((r) => r.already), by_hand,
+    reason: left.length ? left.map((x) => `${label(x.item)}: ${x.reason}`).join('; ') : undefined, items: results,
+  };
 }
 
-module.exports = { configured, clueFor, postClue, _internal: { publish, address, alreadyPosted, scrub } };
+module.exports = { configured, cluesFor, postClue, _internal: { publish, address, alreadyPosted, scrub, vimeoFile } };
