@@ -826,7 +826,8 @@ router.post('/accuse', async (req, res) => {
 // The winning rule: among teams that named the saboteur correctly, the most points wins; if no team did, the most
 // points wins. Takes [{ total_score, correct_accusation, ... }] and returns the winning entry (or undefined).
 function pickWinner(scored) {
-  const byScore = (a, b) => b.total_score - a.total_score;
+  // Equal points: the same team every time (by id), so the result cannot flip between runs.
+  const byScore = (a, b) => (b.total_score - a.total_score) || String(a.id).localeCompare(String(b.id));
   const withCorrect = scored.filter((t) => t.correct_accusation).sort(byScore);
   return withCorrect.length > 0 ? withCorrect[0] : scored.slice().sort(byScore)[0];
 }
@@ -1342,6 +1343,11 @@ router.get('/admin/leaderboard', adminAuth, async (req, res) => {
 
 async function sendWeeklyScoreSummary() {
   try {
+    // Only while a game is on: from the start date until a week after the accusation window closes.
+    const { data: gs } = await supabase.from('game_settings').select('game_start_date, accusation_close').eq('id', 1).single();
+    const at = require('./evalroom-schedule')._internal.unlockInstant;
+    const start = gs && gs.game_start_date ? at(gs.game_start_date) : null; const end = gs && gs.accusation_close ? at(gs.accusation_close) : null;
+    if (start == null || Date.now() < start || (end != null && Date.now() > end + 7 * 24 * 3600 * 1000)) { console.log('Weekly summary skipped: no game is on.'); return; }
     // Fetch registrations and submissions separately (avoids FK join issues)
     const { data: teams } = await supabase
       .from('registrations')
@@ -1455,7 +1461,8 @@ async function instagramNotify({ subject, html }) {
 // For a job that runs once a week: true only on the first run after `at` (ms), so an email with no sent-flag
 // goes out once and is never repeated in later weeks.
 function firstWeeklyRunAfter(at) {
-  return at != null && at <= Date.now() && Date.now() - at < 6 * 24 * 3600 * 1000;
+  // 6.5 days: a run exactly 6 days after the date still counts, and the run a week after that never does.
+  return at != null && at <= Date.now() && Date.now() - at < 6.5 * 24 * 3600 * 1000;
 }
 // The moment (ms) a YYYY-MM-DD date begins in Los Angeles.
 function laMidnight(dateStr) {
@@ -2153,7 +2160,6 @@ router.post('/admin/new-game-instance', adminAuth, async (req, res) => {
       trove1_email_sent:      false,
       trove2_email_sent:      false,
       trove3_email_sent:      false,
-      accusation_email_sent:  false,
       // Reset winner state
       winner_announced:       false,
       winner_pending_approval: false,
